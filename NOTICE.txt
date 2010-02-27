@@ -1,0 +1,18 @@
+Kamikaze-1.0.2
+
+This product includes software developed by
+The Apache Software Foundation (http://www.apache.org/).
+
+The following classes are borrowed from Apache Lucene trunk 
+
+
+com.kamikaze.lucenetrunk.search.DocIdSet.java @617859
+com.kamikaze.lucenetrunk.search.DocIdSetIterator.java @ 617859
+com.kamikaze.lucenetrunk.util.BitUtil.java @617859
+com.kamikaze.lucenetrunk.util.OpenBitSet.java @617859
+com.kamikaze.lucenetrunk.util.OpenBitSetIterator.java @617859
+
+These classes currently do not exist in any release branch for Lucene until  2.3.2, once they are available in a stable release branch, we will
+eliminate these classes and depend on the Lucene release jar directly. 
+
+

@@ -1,0 +1,141 @@
+<project xmlns:ivy="antlib:org.apache.ivy.ant" name="lucene-ext" default="dist" basedir=".">
+	<property name="src" value="src" />
+	<property name="test" value="test" />
+	<property name="lib" location="lib" />
+	<property name="lib.master" location="${lib}/master" />
+	<property name="lib.test" location="${lib}/test" />
+	<property name="build" value="build" />
+	<property name="dist" value="dist" />
+	<property name="doc" value="doc" />
+	<property name="build.test" value="build-test" />
+	<property name="project.name" value="kamikaze" />
+	 <property name="ivy.install.version" value="2.0.0-beta1"/>
+	 <property name="ivy.jar.dir" value="${basedir}/ivy"/>
+	 <property name="ivy.jar.file" value="${ivy.jar.dir}/ivy.jar"/>
+	 <property name="test.report.dir" location="${dist}/junit-reports" />
+     <property name="test.html.dir" location="${test.report.dir}/html" />
+
+	 	
+
+	<property file="${basedir}/version.properties" />
+		
+	<target name="download-ivy" unless="skip.download">
+		<mkdir dir="${ivy.jar.dir}"/>
+        <echo message="installing ivy..."/>
+        <get src="http://repo1.maven.org/maven2/org/apache/ivy/ivy/${ivy.install.version}/ivy-${ivy.install.version}.jar" dest="${ivy.jar.file}" usetimestamp="true"/>
+    </target>
+
+    <target name="install-ivy" depends="download-ivy" description="--> install ivy">
+        <path id="ivy.lib.path">
+            <fileset dir="${ivy.jar.dir}" includes="*.jar"/>
+        </path>
+        <taskdef resource="org/apache/ivy/ant/antlib.xml" uri="antlib:org.apache.ivy.ant" classpathref="ivy.lib.path"/>
+    </target>
+        	
+	<path id="compile.class.path">
+		<fileset dir="${lib.master}">
+			<include name="*.jar" />
+		</fileset>
+	</path>
+
+	<path id="java.class.path">
+		<dirset dir="${build}">
+			<include name="**" />
+		</dirset>
+		<fileset dir="${lib.test}">
+			<include name="*.jar" />
+		</fileset>
+	</path>
+
+	<path id="test.class.path">
+		<dirset dir="${build.test}">
+			<include name="**" />
+		</dirset>
+	</path>
+
+	<target name="clean">
+		<delete dir="${build}" />
+		<delete dir="${dist}" />
+		<delete dir="${build.test}"/>
+	</target>
+
+	<target name="resolve" description="--> retrieve dependencies with ivy" depends="install-ivy">
+	    <ivy:retrieve pattern="${ivy.lib.dir}/[conf]/[artifact].[ext]" />
+	</target>
+	    	
+	<target name="init" depends="resolve">
+		<mkdir dir="${build}" />
+		<mkdir dir="${dist}" />
+		<mkdir dir="${build.test}" />
+	</target>
+
+	<target name="compile" depends="init">
+		<javac destdir="${build}" debug="on">
+			<src path="${src}" />
+			<classpath refid="compile.class.path" />
+		</javac>
+	</target>
+
+	<target name="compile-test" depends="compile">
+		<javac destdir="${build.test}">
+			<classpath refid="compile.class.path" />
+			<classpath refid="java.class.path" />
+			<src path="${test}" />
+		</javac>
+	</target>
+
+
+
+
+	<target name="test" description="Runs JUnit Tests" depends="compile-test">
+	    <echo>=== Running JUnit Tests ===</echo>
+        <mkdir dir="${test.report.dir}" />
+        <mkdir dir="${test.html.dir}" />
+
+		<junit printsummary="yes" showoutput="yes" haltonfailure="yes">
+			<classpath refid="compile.class.path" />
+			<classpath refid="java.class.path" />
+			<classpath refid="test.class.path" />
+			<formatter type="plain" />
+			<!--
+			<jvmarg value="-d64" />
+			<jvmarg value="-Xms2G" />
+			<jvmarg value="-Xmx4G" />
+				-->		
+			<jvmarg value="-Xms1g" />
+			<jvmarg value="-Xmx1500m" />
+			
+			<test name="com.kamikaze.test.TestDocIdSetSuite" todir="${test.report.dir}" haltonfailure="yes" fork="yes">
+				<formatter type="xml"/>
+			</test>
+		</junit>
+		<junitreport todir="${test.html.dir}">
+          <fileset dir="${test.report.dir}">
+            <include name="TEST-*.xml" />
+          </fileset>
+          <report todir="${test.html.dir}" format="frames" />
+        </junitreport>
+	</target>
+
+	<target name="jar" depends="compile">
+		<jar destfile="${dist}/${project.name}-${version}.jar" basedir="${build}" />
+	</target>
+	<target name="javadoc" depends="init">
+		<javadoc packagenames="com.kamikaze.*" sourcepath="src" defaultexcludes="yes" destdir="${doc}" author="true" version="true" use="true" windowtitle="Kamikaze">
+				<classpath refid="compile.class.path" />
+				<classpath refid="java.class.path" />
+				<doctitle>
+					<![CDATA[<h1>Kamikaze</h1>]]></doctitle>
+			<tag name="todo" scope="all" description="To do:" />
+			<group title="Group 1 Packages" packages="com.dummy.test.a*" />
+			<group title="Group 2 Packages" packages="com.dummy.test.b*:com.dummy.test.c*" />
+			<link offline="true" href="http://java.sun.com/j2se/1.5.0/docs/api/" packagelistLoc="C:\tmp" />
+			<link href="http://developer.java.sun.com/developer/products/xml/docs/api/" />
+		</javadoc>
+
+</target>
+<target name="dist" depends="jar,javadoc">
+
+</target>
+
+</project>
