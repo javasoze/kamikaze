@@ -22,16 +22,16 @@ public abstract class DocSet extends DocIdSet
      * Return the set size
      * @return true if present, false otherwise
      */
-	  public boolean find(int val) throws IOException
+	  public boolean find(int target) throws IOException
 	  {
-	    return findWithIndex(val)>-1?true:false;
+	    return findWithIndex(target)>-1?true:false;
 	  }
 	
 	/**
      * Return the set size
      * @return index if present, -1 otherwise
      */
-    public int findWithIndex(int val) throws IOException
+    public int findWithIndex(int target) throws IOException
     {
       return -1;
     }

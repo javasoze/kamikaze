@@ -30,31 +30,29 @@ public class KamikazeTest extends TestCase
         
               ArrayList<OpenBitSet> obs = new ArrayList<OpenBitSet>(); 
               ArrayList<DocIdSet> docs = new ArrayList<DocIdSet>(); 
-          Random rand = new Random(System.currentTimeMillis()); 
+              Random rand = new Random(System.currentTimeMillis()); 
               int maxDoc = 350000; 
               for(int i=0; i < 3; ++i) 
               { 
                       int numdocs = rand.nextInt(maxDoc); 
-                      ArrayList<Integer> nums = new 
-      ArrayList<Integer>(); 
+                      ArrayList<Integer> nums = new ArrayList<Integer>(); 
                       HashSet<Integer> seen = new HashSet<Integer>(); 
                       for (int j = 0; j < numdocs; j++) 
-                  { 
+                      { 
                               int nextDoc = rand.nextInt(maxDoc); 
                               if(seen.contains(nextDoc)) 
                               { 
                                       while(seen.contains(nextDoc)) 
                                       { 
-                                              nextDoc = 
-      rand.nextInt(maxDoc); 
+                                              nextDoc = rand.nextInt(maxDoc); 
                                       } 
                               } 
                               nums.add(nextDoc); 
                               seen.add(nextDoc); 
                   } 
-                      Collections.sort(nums); 
-                      obs.add(createObs(nums, maxDoc)); 
-                      docs.add(createDocSet(nums)); 
+                  Collections.sort(nums); 
+                  obs.add(createObs(nums, maxDoc)); 
+                  docs.add(createDocSet(nums)); 
               } 
               OpenBitSet base = obs.get(0); 
               for(int i = 1; i < obs.size(); ++i) 
