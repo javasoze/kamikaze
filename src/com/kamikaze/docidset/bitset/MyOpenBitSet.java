@@ -28,12 +28,10 @@ public class MyOpenBitSet extends OpenBitSet implements Serializable
 	   * @param bitVal
 	   */
 	  public void fastSetAs(long index, int bitVal)
-	  {
-		  
-		  int wordNum = (int)(index >> 6);
-		    int bit = (int)index & 0x3f;
-		    long bitmask = ((long)bitVal) << bit;
-		    bits[wordNum] |= bitmask;
-		  
+	  {		  
+		int wordNum = (int)(index >> 6);
+		int bit = (int)index & 0x3f;
+		long bitmask = ((long)bitVal) << bit;
+		bits[wordNum] |= bitmask;		  
 	  }
 }

@@ -62,7 +62,7 @@ public abstract class PForDeltaAbstractDocSet extends DocSet implements Serializ
    protected long compressedBitSize=0;
 
    // hy: used for binary searching across blocks
-   IntArray baseList = null;  
+   IntArray baseListForOnlyCompBlocks = null;  
    
   /**
    * Internal compression Method 
@@ -76,9 +76,13 @@ public abstract class PForDeltaAbstractDocSet extends DocSet implements Serializ
     this.sequenceOfCompBlocks = new PForDeltaIntSegmentArray();
     compressedBitSize = 0;
     
-    baseList = new IntArray();
+    baseListForOnlyCompBlocks = new IntArray();
   }
 
+  public long getCompressedBitSize()
+  {
+    return compressedBitSize;
+  }
   /**
    * Internal Decompression Method
    * 
@@ -106,14 +110,16 @@ public abstract class PForDeltaAbstractDocSet extends DocSet implements Serializ
     if(totalDocIdNum==0)
     {
       initSet();
-      baseList.add(docId);
+      // hy: not the first docId any more
+      //baseListForOnlyCompBlocks.add(docId);
       currentNoCompBlock[sizeOfCurrentNoCompBlock++] = docId;    
       lastAdded = docId;      
     }
     else if (sizeOfCurrentNoCompBlock == BATCH_SIZE)
     { 
-      // hy: the base of the currentNoCompBlock[] is also added into the baseList
-      baseList.add(docId);
+      // hy: the base of the currentNoCompBlock[] is also added into the baseListForOnlyCompBlocks, now I changed it to the last docId of the block      
+      baseListForOnlyCompBlocks.add(lastAdded);
+      
       // hy: compress currentNoCompBlock[] (excluding the input docId) , return the compressed block with its compressed bitSize
       CompResult compRes = PForDeltaCompressCurrentBlock();
       
@@ -191,24 +197,30 @@ public abstract class PForDeltaAbstractDocSet extends DocSet implements Serializ
     // hy: find the best b (achieving the smallest overall compressed size) and the compressed block
     currentB = POSSIBLE_B[0];   
     int tmpB = currentB;
-   
+
+    
     preProcessBlock(currentNoCompBlock, sizeOfCurrentNoCompBlock);
+    //System.out.println("tom compresso");
+   // printBlock(currentNoCompBlock, sizeOfCurrentNoCompBlock);
     CompResult optRes = PForDeltaCompressOneBlock(currentNoCompBlock, tmpB);
     if(optRes == null)
     {     
       return null;
     }
     
-    for (int i = 1; i < POSSIBLE_B.length; ++i)
-    {
-      tmpB = POSSIBLE_B[i];
-      CompResult curRes = PForDeltaCompressOneBlock(currentNoCompBlock, tmpB);
-      if(curRes.getCompressedSize() < optRes.getCompressedSize())
-      {
-        currentB = tmpB;
-        optRes = curRes;
-      }
-    }
+//    for (int i = 1; i < POSSIBLE_B.length; ++i)
+//    {
+//      tmpB = POSSIBLE_B[i];
+//      CompResult curRes = PForDeltaCompressOneBlock(currentNoCompBlock, tmpB);
+//      if(curRes.getCompressedSize() < optRes.getCompressedSize())
+//      {
+//        currentB = tmpB;
+//        optRes = curRes;
+//      }
+//    }
+    
+//    System.out.println("print final one with b: " + currentB);
+//    optRes = PForDeltaCompressOneBlock(currentNoCompBlock, currentB);
     return optRes;  
   }
  

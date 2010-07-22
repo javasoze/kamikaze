@@ -91,7 +91,7 @@ public class PForDeltaAndDocIdSet extends ImmutableDocSet implements Serializabl
       
       // hy: i is ith iterator
       while (i < size) {
-        System.out.println("now is the list " + i + ", skip: " + skip + ", target: " + target + "size:" + size);
+        //System.out.println("now is the list " + i + ", skip: " + skip + ", target: " + target + "size:" + size);
         if (i != skip) {
           dcit = iterators[i];
           int docId = dcit.advance(target);
@@ -99,10 +99,10 @@ public class PForDeltaAndDocIdSet extends ImmutableDocSet implements Serializabl
           // hy: i add this since once we reach the end of one of the blocks, we return NO_MORE_DOCS
           if(docId == DocIdSetIterator.NO_MORE_DOCS)
           {
-            System.out.println("i: " + i + " does not find target" + target);
+            //System.out.println("i: " + i + " does not find target" + target);
             return (lastReturn = docId);
           }
-          System.out.println("i: " + i + " find docId:" + docId);
+          //System.out.println("i: " + i + " find docId:" + docId);
            
           if (docId > target) { // hy: cannot find the target in the next list
             target = docId;
@@ -119,7 +119,7 @@ public class PForDeltaAndDocIdSet extends ImmutableDocSet implements Serializabl
       }
       
       _interSectionResult.add(target);
-      System.out.println("all lists find docId:" + target);
+      //System.out.println("all lists find docId:" + target);
       // hy: find the target
       return (lastReturn = target);
     }

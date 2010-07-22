@@ -61,6 +61,7 @@ public class P4DDocIdSet extends AbstractDocSet implements Serializable {
     return compressedSet.compressAlt(current);
   }
 
+   
   /**
    * Method to decompress the entire batch
    * 

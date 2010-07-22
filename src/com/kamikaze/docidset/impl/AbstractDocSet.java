@@ -102,8 +102,7 @@ public abstract class AbstractDocSet extends DocSet implements Serializable {
  // protected abstract Object compressAlt();
 
   protected AbstractDocSet() {
-    this.blob = new LongSegmentArray();
-    
+    this.blob = new LongSegmentArray();    
   }
 
   /**
@@ -141,8 +140,6 @@ public abstract class AbstractDocSet extends DocSet implements Serializable {
   public int size() {
     return blob.size() * BATCH_SIZE + current_size;
   }
-
-  
   
   /**
    * Add document to this set
@@ -212,6 +209,11 @@ public abstract class AbstractDocSet extends DocSet implements Serializable {
     
   }
   
+  // hy: i added this
+  public long getCompressedBitSize()
+  {
+    return compressedBits;
+  }
   /**
    * Add document to this set
    * 

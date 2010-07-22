@@ -59,41 +59,17 @@ public class PForDeltaDocIdSet extends PForDeltaAbstractDocSet implements Serial
     return new PForDeltaSetNoBase().decompress(compressedBlock);
   }
 
-  protected int binarySearchForBlockThatMayContainTarget(IntArray in, int start, int end, int target)
+  // hy: the baseListForOnlyCompBlocks (in) contains all last elements of the compressed block. 
+  protected int binarySearchInBaseListForBlockThatMayContainTarget(IntArray in, int start, int end, int target)
   {   
-    int bn = binarySearchForFirstElementLargerThanTarget(in, start, end, target);
-    if(bn > start)
-      return bn-1;
-    
-    return -1;
+    return binarySearchForFirstElementEqualOrLargerThanTarget(in, start, end, target);
   }
   
-
-  protected int binarySearchForFirstElementLargerThanTarget(IntArray in, int start, int end, int target)
-  {   
-    int mid;
-    if(in.get(end)<=target)
-      return end;
-    
-    while(start < end)
-    {
-      mid = (start + end)/2;
-      if(in.get(mid) <= target)
-        start = mid+1;
-      else
-        end = mid;
-    }
-    // hy: start == end;
-    if(in.get(start) > target)
-      return start;
-    else 
-      return -1;
-  }
-  
+ 
   /**
-   * Binary search for the first element that is equal or larger than the target 
+   * Binary search for the first element that is equal to or larger than the target 
    * 
-   * @param in must be sorted
+   * @param in must be sorted and contains no duplicates
    * @param start
    * @param end
    * @param target
@@ -190,44 +166,41 @@ public class PForDeltaDocIdSet extends PForDeltaAbstractDocSet implements Serial
   
   @Override
   public boolean find(int target)
-  {   
+  { 
+    // hy: this func is in PForDeltaDocIdSet instead of in PForDeltaDocIdSetIterator, therefore it cannot use iterBlockIndex, cursor, etc.
     if(size()==0)
       return false;
-    //Short Circuit case where its not in the set at all
-    if(target>lastAdded || target<baseList.get(0))
-    {   
-      //System.out.println("Time to perform BinarySearch for:"+val+":"+(System.nanoTime() - time));
-      return false;
-    }  
-    else if(target>=baseList.get(sequenceOfCompBlocks.size()))
-    {      // hy: in the decompBlock
-        int pos = binarySearchForTarget(currentNoCompBlock, 0, sizeOfCurrentNoCompBlock-1, target);
-       
-        if(pos<0) // hy: not found
-          return false;
-        
-        return true;
-    }
-    else
-    {      // We are in the compressed space
-      if(baseList.size() == 0)
-        return false;
+   
+    // hy: first search noComp block
+    if(sizeOfCurrentNoCompBlock > 0)
+    {
+      if(target > currentNoCompBlock[sizeOfCurrentNoCompBlock-1])
+        return false;     
       
-      int posBlock = binarySearchForBlockThatMayContainTarget(baseList, 0, baseList.size()-1, target);
-      if(posBlock >= 0)
+      // hy: if it is possible to be in the noComp block, then we check 
+      if(target>baseListForOnlyCompBlocks.get(baseListForOnlyCompBlocks.size()-1))
       {
-        compressedBlocksNoBase.setParam(0, BATCH_SIZE);
-        int[] decompBlock = compressedBlocksNoBase.decompressOneBlock(sequenceOfCompBlocks.get(posBlock));
-        postProcessBlock(decompBlock, BATCH_SIZE);
-        
-        int pos = binarySearchForTarget(decompBlock, 0, BATCH_SIZE-1, target);
-        if(pos<0) // hy: not found
-          return false;
-        
-        return true;
+        if(binarySearchForTarget(currentNoCompBlock, 0, sizeOfCurrentNoCompBlock-1, target) >= 0)
+          return true;
+        else
+          return false; 
       }
     }
-    return false;
+
+    // hy: search for the compressed space (we do not keep track of decompressed comp blocks, instead, we alwasy decompress the comp block for each find())
+   int posBlock = binarySearchInBaseListForBlockThatMayContainTarget(baseListForOnlyCompBlocks, 0, baseListForOnlyCompBlocks.size()-1, target);
+   if(posBlock<0)
+     return false;
+   
+   compressedBlocksNoBase.setParam(0, BATCH_SIZE);
+   int[] decompBlock = compressedBlocksNoBase.decompressOneBlock(sequenceOfCompBlocks.get(posBlock));
+   postProcessBlock(decompBlock, BATCH_SIZE);
+        
+   int pos = binarySearchForTarget(decompBlock, 0, BATCH_SIZE-1, target);
+   if(pos>=0) 
+      return true;
+   
+   return false;
   }
 
   
@@ -235,7 +208,7 @@ public class PForDeltaDocIdSet extends PForDeltaAbstractDocSet implements Serial
   public void optimize()
   {
     //Trim the baselist to size
-    this.baseList.seal();
+    this.baseListForOnlyCompBlocks.seal();
     this.sequenceOfCompBlocks.seal();
   }
   
@@ -248,7 +221,7 @@ public class PForDeltaDocIdSet extends PForDeltaAbstractDocSet implements Serial
     // batch_size * 4 + int array overhead
     // P4dDocIdSet Overhead 110
     optimize();
-    int headInBytes = baseList.length()*4*2; // 1 int for storing b and expNum; the other int is for storing base
+    int headInBytes = baseListForOnlyCompBlocks.length()*4*2; // 1 int for storing b and expNum; the other int is for storing base
     return (long) (headInBytes + 64 +sequenceOfCompBlocks.length()*BATCH_SIZE*1.1 + BATCH_SIZE*4 + 24 + 110);
     
   }
@@ -273,42 +246,21 @@ public class PForDeltaDocIdSet extends PForDeltaAbstractDocSet implements Serial
   class PForDeltaDocIdSetIterator extends StatefulDSIterator implements Serializable {
 
     private static final long serialVersionUID = 1L;
-    /**
-     * Address bits
-     * 
-     */
+  
     int BATCH_INDEX_SHIFT_BITS;
-    /**
-     * retaining Offset from the list of blobs from the iterator pov
-     * 
-     */
-    int cursor = -1;
+  
+    // hy: The following three pointer variables must be synced always!!!, so my current way is 
+    //  to only update cursor after moving the pointers; and each time before we use offset and iterBlockIndex 
+    // (in particular, each time when nextDoc() and advance() is called), we use cursor to get them
+    // this is just for safety, later i will change this to be more efficient
+    int cursor = -1; // hy: the current pointer 
+    int iterBlockIndex = -1; // hy: the current block index
+   // int offset = 0; // hy: the distance of the cursor to the beginning of the current block  
+    int lastAccessedDocId = -1; // hy: the docId that was accessed of the last time called nextDoc() or advance(), therefore, it is kind of synced with the above three too
 
-    /**
-     * Current iterating batch index.
-     * 
-     */
-    int iterBlockIndex = -1;
+    int sequenceSize = size(); // hy: the number of docIds in the sequence 
 
-    /**
-     * Current iterating offset.
-     * 
-     */
-    int offset = 0;
-
-    /**
-     * doc() returned
-     * 
-     */
-    int lastReturn = -1;
-
-    /**
-     * size of the set
-     * 
-     */
-    int sequenceSize = size();
-
-    int compBlockNum=0;
+    int compBlockNum=0; // hy: the number of compressed blocks
     
     int[] iterDecompBlock = null;
    
@@ -318,7 +270,7 @@ public class PForDeltaDocIdSet extends PForDeltaAbstractDocSet implements Serial
       super();
       compBlockNum = sequenceOfCompBlocks.size();
       iterBlockIndex = 0;
-      offset = 0;
+     // offset = 0;
       cursor = -1;
       // hy: BATCH_INDEX_SHIFT_BITS = log2(BATCH_SIZE); assuming BATCH_SIZE = 2^k, e.g., BATCH_SIZE=32 =2^5 ; => BATCH_INDEX_SHIFT_BITS = 5 bits = lg(32) = bitShiftLoopNum-1
       // that is why i is initialized as -1, then we can get blockIndex = (docIdIndex >> BATCH_INDEX_SHIFT_BITS); for example, in the above example,
@@ -326,7 +278,7 @@ public class PForDeltaDocIdSet extends PForDeltaAbstractDocSet implements Serial
       int i=-1;
       for(int x=BATCH_SIZE; x>0; ++i, x>>>=1);  
       BATCH_INDEX_SHIFT_BITS = i;
-      System.out.println("BATCH_INDEX_SHIFT_BITS" + BATCH_INDEX_SHIFT_BITS);
+      //System.out.println("BATCH_INDEX_SHIFT_BITS" + BATCH_INDEX_SHIFT_BITS);
       // hy: assume that b=31 results in 0 exps, in this Iterator, we do not need to set b and expCount since
       // we do not need to compress one block. In contrast, we only need to decompress one block.
       // However, we still need to set BATCH_SIZE.
@@ -335,61 +287,45 @@ public class PForDeltaDocIdSet extends PForDeltaAbstractDocSet implements Serial
 
     @Override
     public int docID() {
-      return lastReturn;
+      return lastAccessedDocId;
     }
 
     /**
      * Method to allow iteration in decompressed form
-     
-    public int get(OpenBitSet set, int index) {
-      return compressedSet.get(set, index);
-    }*/
-    
-    /**
-     * Method to allow iteration in decompressed form
      */
-//    public int get(int[] compBlock, int index) {
-//      return iterPForDeltaSetNoBase.get(compBlock, index);
-//    }
-
     @Override
     public int nextDoc() 
     {
       // hy: return docId instead of d-gap
       // increment the cursor and check if it falls in the range for the
       // number of batches, if not return false else, its within range
+      if(cursor == sequenceSize || ++cursor == sequenceSize)
+      {// hy: if ptr already ptrs to the end; or its next position ptrs to the end
+        lastAccessedDocId = DocIdSetIterator.NO_MORE_DOCS;
+        return DocIdSetIterator.NO_MORE_DOCS;
+      }
       
-      if (++cursor < sequenceSize)
-      {   
-          iterBlockIndex = batchIndex(cursor);
-          //System.out.println("iterBlockIndex:" + iterBlockIndex + ", compBlockNum" + compBlockNum + ",cursor:" + cursor + ",sequenceSize:" + sequenceSize + ",offset" + offset);
-          if(iterBlockIndex == compBlockNum) // hy: in the currentNoCompBlock[] array which has never been compressed yet and therefore not added into sequenceOfCompBlocks yet.
-          {           
-              lastReturn = currentNoCompBlock[offset];
-          }
-          else if(offset == 0) // hy: that is, iterBlockIndex<compBlockNum && offset == 0; hy: start of the next comp block (need to decompress the block first)
-          {
-            //iterBlockIndex = batchIndex(cursor);
-            //System.out.println("again, iterBlockIndex:" + iterBlockIndex + ", compBlockNum" + compBlockNum + ",cursor:" + cursor + ",sequenceSize:" + sequenceSize + ",offset" + offset);
-            iterDecompBlock = iterPForDeltaSetNoBase.decompressOneBlock(sequenceOfCompBlocks.get(iterBlockIndex));
-            postProcessBlock(iterDecompBlock, BATCH_SIZE);
-            if(iterDecompBlock == null)
-            {
-              System.err.println("ERROR: cannot decompress one block");
-            }            
-            lastReturn = iterDecompBlock[offset];
-          }
-          else // hy: in the lately decompressed block (different from blockIndex == compBlockNum where the currentNoCompBlock[] has never been compressed)
-          {
-            // hy: all decompressed number are docIds instead of d-gaps
-            lastReturn = iterDecompBlock[offset];
-          }
-          offset = (offset+1) % BATCH_SIZE;         
-            
-          return lastReturn;
-      }     
-      lastReturn = DocIdSetIterator.NO_MORE_DOCS;
-      return DocIdSetIterator.NO_MORE_DOCS;
+      iterBlockIndex = batchIndex(cursor);
+      int offset = cursor % BATCH_SIZE; // hy: sync offset with cursor
+      //System.out.println("iterBlockIndex:" + iterBlockIndex + ", compBlockNum" + compBlockNum + ",cursor:" + cursor + ",sequenceSize:" + sequenceSize + ",offset" + offset);
+      if(iterBlockIndex == compBlockNum) // hy: case 1: in the currentNoCompBlock[] array which has never been compressed yet and therefore not added into sequenceOfCompBlocks yet.
+      { 
+        lastAccessedDocId = currentNoCompBlock[offset];
+      }
+      //hy: must be in one of the comp blocks: case 2: the comp block is never decompressed; case 3: it was decompressed lately
+      else if(offset == 0) // hy: since skipping case 1, that is, iterBlockIndex<compBlockNum && offset == 0; hy: start of the next comp block (need to decompress the block first)
+      {
+        //System.out.println("again, iterBlockIndex:" + iterBlockIndex + ", compBlockNum" + compBlockNum + ",cursor:" + cursor + ",sequenceSize:" + sequenceSize + ",offset" + offset);
+       
+        iterDecompBlock = iterPForDeltaSetNoBase.decompressOneBlock(sequenceOfCompBlocks.get(iterBlockIndex));
+        postProcessBlock(iterDecompBlock, BATCH_SIZE);        
+        lastAccessedDocId = iterDecompBlock[offset];
+      }
+      else // hy: case 3: a specialin the lately decompressed block (different from blockIndex == compBlockNum where the currentNoCompBlock[] has never been compressed)
+      {
+        lastAccessedDocId = iterDecompBlock[offset];
+      }        
+      return lastAccessedDocId;
     }
 
     /**
@@ -402,127 +338,136 @@ public class PForDeltaDocIdSet extends PForDeltaAbstractDocSet implements Serial
       return docIdIndex >> BATCH_INDEX_SHIFT_BITS;
     }
 
+    // hy:  to call this func, make sure baseListForOnlyCompBlock is not empty and  we must be able to find the target in this function, otherwise something must be wrong
+    // hy: I did not put the logic of this inside the func is because i want to make this func simple logic
+    private int advanceToTargetInTheFollowingCompBlocks(int target)
+    {
+      int posBlock = binarySearchInBaseListForBlockThatMayContainTarget(baseListForOnlyCompBlocks, iterBlockIndex, baseListForOnlyCompBlocks.size()-1, target);
+      
+      //System.out.println("baseListForOnlyCompBlocks:" + baseListForOnlyCompBlocks + ",posBlock: " + posBlock + ",target: " + target);
+      if(posBlock < 0)
+      {
+        System.err.println("ERROR: advanceToTargetInTheFollowingCompBlocks(): Impossible, we must be able to find the block");
+      }
+      
+      //iterBlockIndex = posBlock;
+      
+      //System.out.println("sequenceOfCompBlocks.size():" + sequenceOfCompBlocks.size() + ",posBlock:" + posBlock);
+      
+      iterDecompBlock = iterPForDeltaSetNoBase.decompressOneBlock(sequenceOfCompBlocks.get(posBlock));        
+      postProcessBlock(iterDecompBlock, BATCH_SIZE);
+      
+      int pos = binarySearchForFirstElementEqualOrLargerThanTarget(iterDecompBlock, 0, BATCH_SIZE-1, target);
+      if(pos < 0)
+      {
+        System.err.println("ERROR: case 2: advanceToTargetInTheFollowingCompBlocks(), Impossible, we must be able to find the target" + target + " in the block " + posBlock);
+      }
+      cursor = posBlock * BATCH_SIZE + pos; 
+      //System.out.println("case 2: cursor: " + cursor);
+      return iterDecompBlock[pos];
+    }
+    
+    private void printArray(int[] list, int start, int end)
+    {
+      System.out.print("(" + (end-start+1) + ")[");
+      for(int i=start; i<=end; ++i)
+      {
+        System.out.print(list[i]);
+        System.out.print(", ");
+      }
+      System.out.println("]");
+    }
+    
     /**
      * Next need be called after skipping.
      * 
      */
     @Override
     public int advance(int target) {
-      // hy: advance() will go to some docId that is after the lastReturn (that is, the last nextDoc()), return the first element that is >= target && after lastReturn, or return NO_MORE_DOCS if there is no such docIds.
-      if (target <= lastReturn) //target = lastReturn + 1;
+      // hy: the expected behavior is to find the first element AFTER the current cursor, who is equal or larger than target
+      if(target <= lastAccessedDocId)
       {
-        System.out.println("call advance, and target<= lastReturn, target:"+target+"lastReturn"+lastReturn);
-        target = lastReturn + 1;
-        //return nextDoc();
+        target = lastAccessedDocId + 1;
       }
-
-     // hy: iterBlockIndex is achieved from nextDoc() (by default it is -1), it is the index of the block where the cursor is, and it
-     // also means that iterDecompBlock[] stores the uncompressed block of the (iterBlockIndex)th block.
-     int pos = -1;
-     int posBlock = -1;
- 
-     iterBlockIndex = batchIndex(cursor);
-     //if(iterBlockIndex<0)
-     //  iterBlockIndex = 0;
-     
-     System.out.println("iterBlockIndex: " + iterBlockIndex + ", compBlockNum:" + compBlockNum + ", cursor:" + cursor);
-     if(cursor<0)
-     {
-       System.out.println("first decomp");
-       posBlock = binarySearchForBlockThatMayContainTarget(baseList, 0, baseList.size()-1, target);
       
-       iterBlockIndex = posBlock;
-       if(posBlock == compBlockNum)
-       {
-         System.out.println("first decomp:in the noComp block, posBlock: " + posBlock);
-         iterBlockIndex = posBlock;
-         
-         //System.err.println("the currentNoCompBlock should have been taken care by case 1, cursor:" + cursor + "posBlock:" + posBlock + "compBlockNum" + compBlockNum);
-       }
-       else
-       {
-         System.out.println("first decomp: in the " + posBlock + " block");
-         iterDecompBlock = iterPForDeltaSetNoBase.decompressOneBlock(sequenceOfCompBlocks.get(iterBlockIndex));
-         postProcessBlock(iterDecompBlock, BATCH_SIZE);
-         
-       } 
-       // hy: advance cursor to the first one of the found block
-       cursor = BATCH_SIZE * iterBlockIndex;
-     }
-     
-     if(iterBlockIndex == compBlockNum || (target >= baseList.get(baseList.size()-1)))
-     { 
-       // hy: case 1: check the uncompressed block, i.e., the currrentNoCompBlock[]
-       posBlock = iterBlockIndex;
-       pos = binarySearchForFirstElementEqualOrLargerThanTarget(currentNoCompBlock, 0, sizeOfCurrentNoCompBlock-1, target);
-       if(pos>=0)
-       {         
-         System.out.println("found at pos" + pos + ", which is " + currentNoCompBlock[pos] + " against the target of " + target);
-         lastReturn = currentNoCompBlock[pos];
-       }
-     }     
-     else if(iterBlockIndex>=0 && iterBlockIndex+1<compBlockNum)
-     {
-       // hy: case 2: in the the (iterBlockIndex)th block, which is already decompressed into iterDecompBlock[]
-       //     this case including the case where compBlockNum = 0 (i.e., the very beginning, no decomp at all), where iterBlockIndex is also 0, so, they are also equal 
-       posBlock = iterBlockIndex;
-       if(baseList.get(iterBlockIndex+1)>target)
-       {
-         pos = binarySearchForFirstElementEqualOrLargerThanTarget(iterDecompBlock, 0, BATCH_SIZE-1, target);
-         if(pos>=0)
-         {          
-           lastReturn = iterDecompBlock[pos];
-         }
-         else
-         { // hy: then must be the base of the next compressed block
-           iterBlockIndex++;
-           iterDecompBlock = iterPForDeltaSetNoBase.decompressOneBlock(sequenceOfCompBlocks.get(iterBlockIndex));
-           lastReturn = iterDecompBlock[0];
-           pos = 0;
-         }
-       }       
-     }
-     else // hy: case 3: check other comp blocks , first find the block using binary search on the baseList, then decomp the block, then do binary search within the block
-     { // hy: including the case where cursor<0
-        posBlock = binarySearchForBlockThatMayContainTarget(baseList, iterBlockIndex, baseList.size()-1, target);
-        
-        System.out.println("baseList:" + baseList + ",posBlock: " + posBlock + ",target: " + target);
-        if(posBlock == compBlockNum)
-        {
-          System.out.println("ERROR: should have been handled above when (target >= baseList.get(baseList.size()-1)" +
-          		"");
-          //System.err.println("the currentNoCompBlock should have been taken care by case 1, cursor:" + cursor + "posBlock:" + posBlock + "compBlockNum" + compBlockNum);
-        }
-        if(posBlock >= 0)
-        {
-          iterBlockIndex = posBlock;
-          System.out.println("sequenceOfCompBlocks.size():" + sequenceOfCompBlocks.size() + ",iterBlockIndex:" + iterBlockIndex);
-          iterDecompBlock = iterPForDeltaSetNoBase.decompressOneBlock(sequenceOfCompBlocks.get(iterBlockIndex));
-          postProcessBlock(iterDecompBlock, BATCH_SIZE);
-          pos = binarySearchForFirstElementEqualOrLargerThanTarget(iterDecompBlock, 0, BATCH_SIZE-1, target);
-          if(pos>=0)
+      if(sequenceSize <= 0)
+      {
+        lastAccessedDocId = DocIdSetIterator.NO_MORE_DOCS;
+        return lastAccessedDocId;
+      }
+      
+      if(cursor == sequenceSize || ++cursor == sequenceSize)
+      {// hy: if ptr already ptrs to the end; or its next position ptrs to the end
+        lastAccessedDocId = DocIdSetIterator.NO_MORE_DOCS;
+        return DocIdSetIterator.NO_MORE_DOCS;
+      }
+      
+      int offset = cursor % BATCH_SIZE;
+      iterBlockIndex = batchIndex(cursor);
+      
+      //System.out.println("cursor: " + cursor + ", offset: " + offset);
+      
+      // hy: if there is noComp block, check noComp block 
+      // the next element is in currently in the last block , or currently not in the last block, but the target is larger than the last element of the last compressed block
+      if(sizeOfCurrentNoCompBlock>0) // if there exists the last decomp block (which does not mean that there is definitely decomp block)
+      {
+        if(iterBlockIndex == compBlockNum || (baseListForOnlyCompBlocks.size()>0 && target > baseListForOnlyCompBlocks.get(baseListForOnlyCompBlocks.size()-1)))
+        {   
+          offset = binarySearchForFirstElementEqualOrLargerThanTarget(currentNoCompBlock, 0, sizeOfCurrentNoCompBlock-1, target);
+          if(offset>=0)
+          {         
+            iterBlockIndex = compBlockNum;
+            //System.out.println("found at pos" + offset + ", which is " + currentNoCompBlock[offset] + " against the target of " + target);
+            lastAccessedDocId = currentNoCompBlock[offset];            
+            cursor = iterBlockIndex * BATCH_SIZE + offset; 
+            return lastAccessedDocId;
+          }                   
+          else
           {
-            lastReturn = iterDecompBlock[pos];
+            cursor = sequenceSize; // hy: to avoid the next time repeated lookup once it reaches the end of the sequence
+            lastAccessedDocId = DocIdSetIterator.NO_MORE_DOCS;
+            return lastAccessedDocId;
           }
-          else 
-          { // iterBlockIndex must == compBlockNum
-            pos = 0;
-            lastReturn = currentNoCompBlock[pos];
-          }
+        }     
+      }
+      
+      // hy: if did not find it in the noComp block, check the comp blocks
+      if(baseListForOnlyCompBlocks.size()>0 && target <= baseListForOnlyCompBlocks.get(baseListForOnlyCompBlocks.size()-1))  
+      {
+        // hy: for the following cases, it must exist in one of the comp block since target<= the last base in the comp blocks
+        if(offset == 0)
+        {
+          // hy: searching the right block from the current block to the last block
+          lastAccessedDocId = advanceToTargetInTheFollowingCompBlocks(target);
+          return lastAccessedDocId;
         }
-     }
-     
-     if(posBlock<0 || pos<0)
-     {
-       lastReturn = DocIdSetIterator.NO_MORE_DOCS;
-       return DocIdSetIterator.NO_MORE_DOCS;
-     }
-     else
-     { 
-       cursor = iterBlockIndex * BATCH_SIZE + pos;
-       return lastReturn;
-     }
-    }
+        else // case 3: offset > 0, hy: the current block has been decompressed, so, first test the first block; and then do sth like case 2 
+        {
+          if(target <= baseListForOnlyCompBlocks.get(iterBlockIndex))
+          {
+            //System.out.println("target: " + target + " is <= baseListForOnlyCompBlocks.get(iterBlockIndex)" + ", iterBlockIndex:" + iterBlockIndex + ": " + baseListForOnlyCompBlocks.get(iterBlockIndex));
+            offset = binarySearchForFirstElementEqualOrLargerThanTarget(iterDecompBlock, offset, BATCH_SIZE-1, target);
+            
+            if(offset < 0)
+            {
+              System.err.println("case 3: Impossible, we must be able to find the target " + target + " in the block" + iterDecompBlock + ", offset: " + offset);
+              printArray(iterDecompBlock, 0, BATCH_SIZE-1);
+            }
+            cursor = iterBlockIndex * BATCH_SIZE + offset; 
+            lastAccessedDocId = iterDecompBlock[offset];
+            return lastAccessedDocId;
+          }
+          else // hy: there must exist other comp blocks between the current block and noComp block since target <= baseListForOnlyCompBlocks.get(baseListForOnlyCompBlocks.size()-1)
+          { 
+            lastAccessedDocId = advanceToTargetInTheFollowingCompBlocks(target);
+            return lastAccessedDocId;
+          }
+        }        
+      }
+    
+      lastAccessedDocId = DocIdSetIterator.NO_MORE_DOCS;
+      return lastAccessedDocId; 
+ }
  
   
     private void printSet() 

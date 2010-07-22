@@ -12,6 +12,7 @@
 	 <property name="ivy.install.version" value="2.0.0-beta1"/>
 	 <property name="ivy.jar.dir" value="${basedir}/ivy"/>
 	 <property name="ivy.jar.file" value="${ivy.jar.dir}/ivy.jar"/>
+     <property name="compile.optimize" value="true" />
 	 <property name="test.report.dir" location="${dist}/junit-reports" />
      <property name="test.html.dir" location="${test.report.dir}/html" />
 
@@ -70,7 +71,7 @@
 	</target>
 
 	<target name="compile" depends="init">
-		<javac destdir="${build}" debug="on">
+		<javac destdir="${build}" optimize="${compile.optimize}">
 			<src path="${src}" />
 			<classpath refid="compile.class.path" />
 		</javac>
