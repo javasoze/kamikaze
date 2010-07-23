@@ -2,6 +2,7 @@ package com.kamikaze.docidset.impl;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -18,6 +19,8 @@ public class AndDocIdSet extends ImmutableDocSet implements Serializable {
 
   private static Logger log = Logger.getLogger(AndDocIdSet.class);
 
+  private ArrayList<Integer> _interSectionResult = new ArrayList<Integer>();
+  
   public class DescDocIdSetComparator implements Comparator<StatefulDSIterator>,
       Serializable {
     private static final long serialVersionUID = 1L;
@@ -42,6 +45,11 @@ public class AndDocIdSet extends ImmutableDocSet implements Serializable {
     nonNullSize = size;
   }
 
+  public ArrayList<Integer> getIntersection()
+  {
+    return _interSectionResult;
+  }
+  
   class AndDocIdSetIterator extends DocIdSetIterator {
     int lastReturn = -1;
     private DocIdSetIterator[] iterators = null;
@@ -93,9 +101,12 @@ public class AndDocIdSet extends ImmutableDocSet implements Serializable {
         }
         i++;
       }
+      _interSectionResult.add(target);
       return (lastReturn = target);
     }
 
+
+    
     @Override
     public final int advance(int target) throws IOException {
 
