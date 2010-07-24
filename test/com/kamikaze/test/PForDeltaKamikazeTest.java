@@ -41,7 +41,7 @@ public class PForDeltaKamikazeTest extends TestCase
 //    assertEquals(true, true);
 //  }
   
-  public void testAndIntersections() throws Exception
+  public void nntestAndIntersections() throws Exception
   { 
      System.out.println("Running And Intersections Test case...");
      
@@ -120,7 +120,7 @@ public class PForDeltaKamikazeTest extends TestCase
  
 
 //  // hy: test the PForDeltaDocIdSet.find() 
-  public void testFind() throws Exception
+  public void nntestFind() throws Exception
   {     
     System.out.println("Running Find() Test case...");
     
@@ -207,72 +207,72 @@ public class PForDeltaKamikazeTest extends TestCase
      System.out.println("-------------------completed------------------------");
   } 
 //
-//  public void testDecompSpeed() throws Exception
-//  {     
-//    System.out.println("Running Comp Decomp Test case...");
-//    
-//    ArrayList<OpenBitSet> obs = new ArrayList<OpenBitSet>(); 
-//    ArrayList<DocIdSet> docs = new ArrayList<DocIdSet>(); 
-//    ArrayList<DocIdSet> docsOld = new ArrayList<DocIdSet>(); 
-//    
-//    int maxDoc   =   8000000;
-//    int numDocs =   5000000;
-//    String filename = "/Users/hyan/workspace/KamekazeTestDataDecompSpeed.txt";
-//    //saveRandomDataSetsToFileHY(maxDoc, numDocs, filename);
-//    //int[] input = new int[numDocs];
-//    
-//    //loadReandomDataSetsFromFileHY(filename, input,  numDocs);
-//    
-//   
-//    //saveRandomDataSetsToFile(maxDoc,  filename);
-//    
-//    //loadReandomDataSetsFromFile(filename, obs, docs, docsOld, maxDoc);
-//    loadReandomDataSetsFromFile(filename, obs, docs, docsOld, numDocs);
-//    
-//    ArrayList<Integer> input = bitSetToArrayList(obs.get(0));
-//    
-//    
-//    ArrayList<Integer> outputOld = new ArrayList<Integer>();
-//    
-//    int docId;
-//    
-//    long startOld = System.currentTimeMillis();
-//    P4DDocIdSet pfdOld = (P4DDocIdSet)docsOld.get(0);
-//    DocIdSetIterator iterOld = pfdOld.iterator();
-//    docId = iterOld.nextDoc();
-//    while(docId !=DocIdSetIterator.NO_MORE_DOCS)
-//    {      
-//      outputOld.add(docId);
-//      docId = iterOld.nextDoc();
-//      //docId = iterOld.advance(docId+1);
-//    }
-//    long endOld = System.currentTimeMillis();
-//    System.out.println("old took: "+(endOld-startOld));
-//    System.out.println("old compressed size: " + pfdOld.getCompressedBitSize()/32 + " ints");
-//    
-//    ArrayList<Integer> output = new ArrayList<Integer>();
-//    PForDeltaDocIdSet pfdDS = (PForDeltaDocIdSet)docs.get(0);
-//    System.out.println("compressed size: " + pfdDS.getCompressedBitSize()/32 + " ints");
-//    DocIdSetIterator iter = pfdDS.iterator();
-//    long start = System.currentTimeMillis();
-//    docId = iter.nextDoc();
-//    while(docId !=DocIdSetIterator.NO_MORE_DOCS)
-//    {      
-//      output.add(docId);
-//      docId = iter.nextDoc();
-//      //docId = iter.advance(docId+1);
-//    }
-//    long end = System.currentTimeMillis();
-//    System.out.println("took: "+(end-start));
-//   
-//    //printList(input, 0, input.size()-1);
-//    //printList(output, 0, output.size()-1);
-//    assertEquals(true, compareTwoLists(input, output));
-//    System.out.println("-------------------completed------------------------");
-//
-//   
-//  } 
-  
+  public void testDecompSpeed() throws Exception
+  {     
+    System.out.println("Running Comp Decomp Test case...");
+    
+    ArrayList<OpenBitSet> obs = new ArrayList<OpenBitSet>(); 
+    ArrayList<DocIdSet> docs = new ArrayList<DocIdSet>(); 
+    ArrayList<DocIdSet> docsOld = new ArrayList<DocIdSet>(); 
+    
+    int maxDoc   =   8000000;
+    int numDocs =   5000000;
+    String filename = "/Users/hyan/workspace/KamekazeTestDataDecompSpeed.txt";
+    saveRandomDataSetsToFileHY(maxDoc, numDocs, filename);
+    //int[] input = new int[numDocs];
+    
+    //loadReandomDataSetsFromFileHY(filename, input,  numDocs);
+    
+   
+    //saveRandomDataSetsToFile(maxDoc,  filename);
+    
+    //loadReandomDataSetsFromFile(filename, obs, docs, docsOld, maxDoc);
+    loadReandomDataSetsFromFile(filename, obs, docs, docsOld, numDocs);
+    
+    ArrayList<Integer> input = bitSetToArrayList(obs.get(0));
+    
+    
+    ArrayList<Integer> outputOld = new ArrayList<Integer>();
+    
+    int docId;
+    
+    long startOld = System.currentTimeMillis();
+    P4DDocIdSet pfdOld = (P4DDocIdSet)docsOld.get(0);
+    DocIdSetIterator iterOld = pfdOld.iterator();
+    docId = iterOld.nextDoc();
+    while(docId !=DocIdSetIterator.NO_MORE_DOCS)
+    {      
+      outputOld.add(docId);
+      docId = iterOld.nextDoc();
+      //docId = iterOld.advance(docId+1);
+    }
+    long endOld = System.currentTimeMillis();
+    System.out.println("old took: "+(endOld-startOld));
+    System.out.println("old compressed size: " + pfdOld.getCompressedBitSize()/32 + " ints");
+    
+    ArrayList<Integer> output = new ArrayList<Integer>();
+    PForDeltaDocIdSet pfdDS = (PForDeltaDocIdSet)docs.get(0);
+    System.out.println("compressed size: " + pfdDS.getCompressedBitSize()/32 + " ints");
+    DocIdSetIterator iter = pfdDS.iterator();
+    long start = System.currentTimeMillis();
+    docId = iter.nextDoc();
+    while(docId !=DocIdSetIterator.NO_MORE_DOCS)
+    {      
+      output.add(docId);
+      docId = iter.nextDoc();
+      //docId = iter.advance(docId+1);
+    }
+    long end = System.currentTimeMillis();
+    System.out.println("took: "+(end-start));
+   
+    //printList(input, 0, input.size()-1);
+    //printList(output, 0, output.size()-1);
+    assertEquals(true, compareTwoLists(input, output));
+    System.out.println("-------------------completed------------------------");
+
+   
+  } 
+//  
 //   hy: test compression and decompression, in particular, nextDoc() of PForDeltaDocIdIterator
 //  public void testCompDecomp() throws Exception
 //  {     
