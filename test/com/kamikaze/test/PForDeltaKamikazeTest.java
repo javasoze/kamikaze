@@ -41,7 +41,7 @@ public class PForDeltaKamikazeTest extends TestCase
 //    assertEquals(true, true);
 //  }
   
-  public void nntestAndIntersections() throws Exception
+  public void testAndIntersections() throws Exception
   { 
      System.out.println("Running And Intersections Test case...");
      
@@ -58,16 +58,9 @@ public class PForDeltaKamikazeTest extends TestCase
      int numDocs2 = rand.nextInt(maxDoc);
      int numDocs3 = rand.nextInt(maxDoc);
      
-     String filename1 = "/Users/hyan/workspace/KamekazeTestIntersectionA1.txt";
-     saveRandomDataSetsToFileHY(maxDoc, numDocs1, filename1);
-     String filename2 = "/Users/hyan/workspace/KamekazeTestIntersectionA2.txt";
-     saveRandomDataSetsToFileHY(maxDoc, numDocs2, filename2);
-     String filename3 = "/Users/hyan/workspace/KamekazeTestIntersectionA3.txt";
-     saveRandomDataSetsToFileHY(maxDoc, numDocs3, filename3);
-     
-     loadReandomDataSetsFromFile(filename1, obs, docs, docsOld, numDocs1);
-     loadReandomDataSetsFromFile(filename2, obs, docs, docsOld, numDocs2);
-     loadReandomDataSetsFromFile(filename3, obs, docs, docsOld, numDocs3);
+     loadRandomDataSets(generateRandomDataHY(maxDoc, numDocs1), obs, docs, docsOld, numDocs1);
+     loadRandomDataSets( generateRandomDataHY(maxDoc, numDocs2), obs, docs, docsOld, numDocs2);
+     loadRandomDataSets(generateRandomDataHY(maxDoc, numDocs3), obs, docs, docsOld, numDocs3);
      
      // hy: get the expected result using OpenBitSet
      OpenBitSet base = obs.get(0); 
@@ -86,17 +79,17 @@ public class PForDeltaKamikazeTest extends TestCase
      long card2Old = andsOld.size(); // hy: this calls the nextDoc() of AndDocIdIterator
      
      long endOld = System.currentTimeMillis();
-     System.out.println("old took: "+(endOld-startOld));
+     System.out.println("time spent for the old version: "+(endOld-startOld));
      
      
-     System.out.println("card1Old: "+ card1Old + ", card2Old: " + card2Old);
+     //System.out.println("card1Old: "+ card1Old + ", card2Old: " + card2Old);
      ArrayList<Integer> intersectionResultOld = andsOld.getIntersection();
      assertEquals(card1Old, card2Old); 
      //printList(expectedIntersectionResult, 0, expectedIntersectionResult.size()-1);
      //printList(intersectionResultOld, 0, intersectionResultOld.size()-1);
     //assertEquals(true, compareTwoLists(intersectionResultOld, expectedIntersectionResult));
     
-     System.out.println("old is correct");
+     //System.out.println("old is correct");
      // hy: get our results
      PForDeltaAndDocIdSet ands = new PForDeltaAndDocIdSet(docs); 
      long card1 = base.cardinality(); 
@@ -104,7 +97,7 @@ public class PForDeltaKamikazeTest extends TestCase
      long start = System.currentTimeMillis();
      long card2 = ands.size(); // hy: this calls the nextDoc() of AndDocIdIterator
      long end = System.currentTimeMillis();
-     System.out.println("took: "+(end-start));
+     System.out.println("time spent for the new version: "+(end-start));
      
      ArrayList<Integer> intersectionResult = ands.getIntersection();
      
@@ -120,7 +113,7 @@ public class PForDeltaKamikazeTest extends TestCase
  
 
 //  // hy: test the PForDeltaDocIdSet.find() 
-  public void nntestFind() throws Exception
+  public void testFind() throws Exception
   {     
     System.out.println("Running Find() Test case...");
     
@@ -137,18 +130,11 @@ public class PForDeltaKamikazeTest extends TestCase
     int numDocs2 = 2480781; // = rand.nextInt(maxDoc);
     int numDocs3 = 2377754; // = rand.nextInt(maxDoc);
     
-    System.out.println("numDocs1: " + numDocs1 + ", numDocs2: " + numDocs2 + ", numDocs3: " + numDocs3);
-    
-    String filename1 = "/Users/hyan/workspace/KamekazeTestFindA1.txt";
-    saveRandomDataSetsToFileHY(maxDoc, numDocs1, filename1);
-    String filename2 = "/Users/hyan/workspace/KamekazeTestFindA2.txt";
-    saveRandomDataSetsToFileHY(maxDoc, numDocs2, filename2);
-    String filename3 = "/Users/hyan/workspace/KamekazeTestFindA3.txt";
-    saveRandomDataSetsToFileHY(maxDoc, numDocs3, filename3);
-    
-    loadReandomDataSetsFromFile(filename1, obs, docs, docsOld, numDocs1);
-    loadReandomDataSetsFromFile(filename2, obs, docs, docsOld, numDocs2);
-    loadReandomDataSetsFromFile(filename3, obs, docs, docsOld, numDocs3);
+    //System.out.println("numDocs1: " + numDocs1 + ", numDocs2: " + numDocs2 + ", numDocs3: " + numDocs3);
+  
+    loadRandomDataSets(generateRandomDataHY(maxDoc, numDocs1), obs, docs, docsOld, numDocs1);
+    loadRandomDataSets(generateRandomDataHY(maxDoc, numDocs2), obs, docs, docsOld, numDocs2);
+    loadRandomDataSets(generateRandomDataHY(maxDoc, numDocs3), obs, docs, docsOld, numDocs3);
     
      OpenBitSet base = obs.get(0); 
      for(int i = 1; i < obs.size(); ++i) 
@@ -156,8 +142,6 @@ public class PForDeltaKamikazeTest extends TestCase
        base.intersect(obs.get(i)); 
      } 
      
-     //System.out.println("base's intersection:");
-     //ArrayList<Integer> expectedIntersectionResult = printBitSet(base);
      ArrayList<Integer> expectedIntersectionResult = bitSetToArrayList(base);
      
      ArrayList<Integer> intersectionResultOld = new ArrayList<Integer>();
@@ -176,7 +160,7 @@ public class PForDeltaKamikazeTest extends TestCase
         docIdOld = iterOld.nextDoc();
     }
      long endOld = System.currentTimeMillis();
-     System.out.println("old took: "+(endOld-startOld));
+     System.out.println("time spent for the old version:  "+(endOld-startOld));
      
      
      ArrayList<Integer> intersectionResult = new ArrayList<Integer>();
@@ -196,7 +180,7 @@ public class PForDeltaKamikazeTest extends TestCase
         docId = iter.nextDoc();
     }
      long end = System.currentTimeMillis();
-     System.out.println("took: "+(end-start));
+     System.out.println("time spent for the new version:  "+(end-start));
     
      //System.out.println("Intersectoin result");
      //printList(intersectionResult, 0, intersectionResult.size()-1);
@@ -217,17 +201,9 @@ public class PForDeltaKamikazeTest extends TestCase
     
     int maxDoc   =   8000000;
     int numDocs =   5000000;
-    String filename = "/Users/hyan/workspace/KamekazeTestDataDecompSpeed.txt";
-    saveRandomDataSetsToFileHY(maxDoc, numDocs, filename);
-    //int[] input = new int[numDocs];
+
     
-    //loadReandomDataSetsFromFileHY(filename, input,  numDocs);
-    
-   
-    //saveRandomDataSetsToFile(maxDoc,  filename);
-    
-    //loadReandomDataSetsFromFile(filename, obs, docs, docsOld, maxDoc);
-    loadReandomDataSetsFromFile(filename, obs, docs, docsOld, numDocs);
+    loadRandomDataSets(generateRandomDataHY(maxDoc, numDocs), obs, docs, docsOld, numDocs);
     
     ArrayList<Integer> input = bitSetToArrayList(obs.get(0));
     
@@ -247,12 +223,12 @@ public class PForDeltaKamikazeTest extends TestCase
       //docId = iterOld.advance(docId+1);
     }
     long endOld = System.currentTimeMillis();
-    System.out.println("old took: "+(endOld-startOld));
-    System.out.println("old compressed size: " + pfdOld.getCompressedBitSize()/32 + " ints");
+    System.out.println("time spent for the old version: : "+(endOld-startOld));
+    System.out.println("compressed size for the old version: " + pfdOld.getCompressedBitSize()/32 + " ints");
     
     ArrayList<Integer> output = new ArrayList<Integer>();
     PForDeltaDocIdSet pfdDS = (PForDeltaDocIdSet)docs.get(0);
-    System.out.println("compressed size: " + pfdDS.getCompressedBitSize()/32 + " ints");
+    System.out.println("compressed size for the new version: " + pfdDS.getCompressedBitSize()/32 + " ints");
     DocIdSetIterator iter = pfdDS.iterator();
     long start = System.currentTimeMillis();
     docId = iter.nextDoc();
@@ -263,7 +239,7 @@ public class PForDeltaKamikazeTest extends TestCase
       //docId = iter.advance(docId+1);
     }
     long end = System.currentTimeMillis();
-    System.out.println("took: "+(end-start));
+    System.out.println("time spent for the new version: "+(end-start));
    
     //printList(input, 0, input.size()-1);
     //printList(output, 0, output.size()-1);
@@ -402,6 +378,13 @@ public class PForDeltaKamikazeTest extends TestCase
     return bitSet; 
   } 
   
+  private OpenBitSet createObs(int nums[], int maxDoc) { 
+    OpenBitSet bitSet = new OpenBitSet(maxDoc); 
+    for(int num:nums) 
+      bitSet.set(num); 
+    return bitSet; 
+  } 
+  
   private DocIdSet createDocSet(ArrayList<Integer> nums) throws Exception{ 
     DocSet p4d = DocSetFactory.getPForDeltaDocSetInstance(); 
     for(int num:nums) 
@@ -411,7 +394,25 @@ public class PForDeltaKamikazeTest extends TestCase
     return p4d; 
   } 
   
+  private DocIdSet createDocSet(int[] nums) throws Exception{ 
+    DocSet p4d = DocSetFactory.getPForDeltaDocSetInstance(); 
+    for(int num:nums) 
+    {         
+      p4d.addDoc(num);
+    }
+    return p4d; 
+  } 
+  
   private DocIdSet createDocSetOld(ArrayList<Integer> nums) throws Exception{ 
+    DocSet p4d = DocSetFactory.getP4DDocSetInstance(); 
+    for(int num:nums) 
+    {         
+      p4d.addDoc(num);
+    }
+    return p4d; 
+  } 
+  
+  private DocIdSet createDocSetOld(int[] nums) throws Exception{ 
     DocSet p4d = DocSetFactory.getP4DDocSetInstance(); 
     for(int num:nums) 
     {         
@@ -437,7 +438,7 @@ public class PForDeltaKamikazeTest extends TestCase
     
   }
   
-  private void loadReandomDataSetsFromFile(String filename, ArrayList<OpenBitSet> obs, ArrayList<DocIdSet>docs, ArrayList<DocIdSet> docsOld, int maxDoc) throws Exception
+  private void loadRandomDataSetsFromFile(String filename, ArrayList<OpenBitSet> obs, ArrayList<DocIdSet>docs, ArrayList<DocIdSet> docsOld, int maxDoc) throws Exception
   {
     DataInputStream inStrm = new DataInputStream(new FileInputStream(filename));
     ArrayList<Integer> data = new ArrayList<Integer>();
@@ -447,6 +448,15 @@ public class PForDeltaKamikazeTest extends TestCase
     }
     inStrm.close();
     
+    obs.add(createObs(data, maxDoc)); 
+    docs.add(createDocSet(data)); 
+    
+    docsOld.add(createDocSetOld(data));
+    
+  }
+  
+  private void loadRandomDataSets(int[] data, ArrayList<OpenBitSet> obs, ArrayList<DocIdSet>docs, ArrayList<DocIdSet> docsOld, int maxDoc) throws Exception
+  {
     obs.add(createObs(data, maxDoc)); 
     docs.add(createDocSet(data)); 
     
@@ -666,7 +676,7 @@ public class PForDeltaKamikazeTest extends TestCase
     // hy: compare two arrays, print out the difference        
     private void compareTwoArrays(int[] input,  int[] output)
     {
-      System.out.println("inputSize:" + input.length + "outputSize:" + output.length);
+      //System.out.println("inputSize:" + input.length + "outputSize:" + output.length);
       int i=0;
       for(i=0; i<input.length && i<output.length; ++i)
       {
