@@ -9,14 +9,12 @@
 	<property name="doc" value="doc" />
 	<property name="build.test" value="build-test" />
 	<property name="project.name" value="kamikaze" />
-	 <property name="ivy.install.version" value="2.0.0-beta1"/>
-	 <property name="ivy.jar.dir" value="${basedir}/ivy"/>
-	 <property name="ivy.jar.file" value="${ivy.jar.dir}/ivy.jar"/>
-     <property name="compile.optimize" value="true" />
-	 <property name="test.report.dir" location="${dist}/junit-reports" />
-     <property name="test.html.dir" location="${test.report.dir}/html" />
-
-	 	
+	<property name="ivy.install.version" value="2.0.0-beta1"/>
+	<property name="ivy.jar.dir" value="${basedir}/ivy"/>
+	<property name="ivy.jar.file" value="${ivy.jar.dir}/ivy.jar"/>
+        <property name="compile.optimize" value="true" />
+	<property name="test.report.dir" location="${dist}/junit-reports" />
+        <property name="test.html.dir" location="${test.report.dir}/html" />
 
 	<property file="${basedir}/version.properties" />
 		
@@ -85,7 +83,13 @@
 		</javac>
 	</target>
 
-
+<target name="perfTest" depends="compile-test">
+   <java classname="com.kamikaze.test.perf.TestCompDecomp" fork="true">
+   <classpath refid="compile.class.path" />
+   <classpath refid="java.class.path" />
+   <classpath refid="test.class.path" />
+</java>
+</target>
 
 
 	<target name="test" description="Runs JUnit Tests" depends="compile-test">
@@ -118,6 +122,7 @@
         </junitreport>
 	</target>
 
+       <echo>"jar destfile is : ${dist}/${project.name}-${version}.jar"</echo> 
 	<target name="jar" depends="compile">
 		<jar destfile="${dist}/${project.name}-${version}.jar" basedir="${build}" />
 	</target>

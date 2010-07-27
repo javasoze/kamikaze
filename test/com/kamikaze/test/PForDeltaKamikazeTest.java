@@ -41,213 +41,7 @@ public class PForDeltaKamikazeTest extends TestCase
 //    assertEquals(true, true);
 //  }
   
-  public void testAndIntersections() throws Exception
-  { 
-     System.out.println("Running And Intersections Test case...");
-     
-     ArrayList<OpenBitSet> obs = new ArrayList<OpenBitSet>(); 
-     ArrayList<DocIdSet> docs = new ArrayList<DocIdSet>(); 
-     ArrayList<DocIdSet> docsOld = new ArrayList<DocIdSet>(); 
-     
-     int maxDoc = 3500000;
-     int listNum = 3;
-     
-     Random rand = new Random(System.currentTimeMillis()); 
-     
-     int numDocs1 = rand.nextInt(maxDoc);
-     int numDocs2 = rand.nextInt(maxDoc);
-     int numDocs3 = rand.nextInt(maxDoc);
-     
-     loadRandomDataSets(generateRandomDataHY(maxDoc, numDocs1), obs, docs, docsOld, numDocs1);
-     loadRandomDataSets( generateRandomDataHY(maxDoc, numDocs2), obs, docs, docsOld, numDocs2);
-     loadRandomDataSets(generateRandomDataHY(maxDoc, numDocs3), obs, docs, docsOld, numDocs3);
-     
-     // hy: get the expected result using OpenBitSet
-     OpenBitSet base = obs.get(0); 
-     for(int i = 1; i < obs.size(); ++i) 
-     { 
-       base.intersect(obs.get(i)); 
-     }     
-     ArrayList<Integer> expectedIntersectionResult = bitSetToArrayList(base);
-     
-     // hy: get our results
-     AndDocIdSet andsOld = new AndDocIdSet(docs); 
-     long card1Old = base.cardinality(); 
-     
-     long startOld = System.currentTimeMillis();
-     
-     long card2Old = andsOld.size(); // hy: this calls the nextDoc() of AndDocIdIterator
-     
-     long endOld = System.currentTimeMillis();
-     System.out.println("time spent for the old version: "+(endOld-startOld));
-     
-     
-     //System.out.println("card1Old: "+ card1Old + ", card2Old: " + card2Old);
-     ArrayList<Integer> intersectionResultOld = andsOld.getIntersection();
-     assertEquals(card1Old, card2Old); 
-     //printList(expectedIntersectionResult, 0, expectedIntersectionResult.size()-1);
-     //printList(intersectionResultOld, 0, intersectionResultOld.size()-1);
-    //assertEquals(true, compareTwoLists(intersectionResultOld, expectedIntersectionResult));
-    
-     //System.out.println("old is correct");
-     // hy: get our results
-     PForDeltaAndDocIdSet ands = new PForDeltaAndDocIdSet(docs); 
-     long card1 = base.cardinality(); 
-     
-     long start = System.currentTimeMillis();
-     long card2 = ands.size(); // hy: this calls the nextDoc() of AndDocIdIterator
-     long end = System.currentTimeMillis();
-     System.out.println("time spent for the new version: "+(end-start));
-     
-     ArrayList<Integer> intersectionResult = ands.getIntersection();
-     
-     // System.out.println("Intersectoin result");
-     // printList(expectedIntersectionResult, 0, expectedIntersectionResult.size()-1);
-     // printList(intersectionResult, 0, intersectionResult.size()-1);
-     
-     assertEquals(card1, card2); 
-     assertEquals(true, compareTwoLists(intersectionResult, expectedIntersectionResult));
-     
-     System.out.println("----------------completed---------------------------");
-  } 
- 
 
-//  // hy: test the PForDeltaDocIdSet.find() 
-  public void testFind() throws Exception
-  {     
-    System.out.println("Running Find() Test case...");
-    
-    ArrayList<OpenBitSet> obs = new ArrayList<OpenBitSet>(); 
-    ArrayList<DocIdSet> docs = new ArrayList<DocIdSet>(); 
-    ArrayList<DocIdSet> docsOld = new ArrayList<DocIdSet>(); 
-    
-    int maxDoc = 3500000;
-    int listNum = 3;
-    
-    Random rand = new Random(System.currentTimeMillis()); 
-    
-    int numDocs1 = 1493699; //= rand.nextInt(maxDoc);
-    int numDocs2 = 2480781; // = rand.nextInt(maxDoc);
-    int numDocs3 = 2377754; // = rand.nextInt(maxDoc);
-    
-    //System.out.println("numDocs1: " + numDocs1 + ", numDocs2: " + numDocs2 + ", numDocs3: " + numDocs3);
-  
-    loadRandomDataSets(generateRandomDataHY(maxDoc, numDocs1), obs, docs, docsOld, numDocs1);
-    loadRandomDataSets(generateRandomDataHY(maxDoc, numDocs2), obs, docs, docsOld, numDocs2);
-    loadRandomDataSets(generateRandomDataHY(maxDoc, numDocs3), obs, docs, docsOld, numDocs3);
-    
-     OpenBitSet base = obs.get(0); 
-     for(int i = 1; i < obs.size(); ++i) 
-     { 
-       base.intersect(obs.get(i)); 
-     } 
-     
-     ArrayList<Integer> expectedIntersectionResult = bitSetToArrayList(base);
-     
-     ArrayList<Integer> intersectionResultOld = new ArrayList<Integer>();
-     P4DDocIdSet pfd0Old = (P4DDocIdSet)docsOld.get(0);
-     P4DDocIdSet pfd1Old = (P4DDocIdSet)docsOld.get(1);
-     P4DDocIdSet pfd2Old = (P4DDocIdSet)docsOld.get(2);
-     DocIdSetIterator iterOld = pfd0Old.iterator();
-     long startOld = System.currentTimeMillis();
-     int docIdOld=iterOld.nextDoc();
-     while(docIdOld !=DocIdSetIterator.NO_MORE_DOCS)
-     {
-        if(pfd1Old.find(docIdOld) && pfd2Old.find(docIdOld))
-        {
-          intersectionResultOld.add(docIdOld);
-        }
-        docIdOld = iterOld.nextDoc();
-    }
-     long endOld = System.currentTimeMillis();
-     System.out.println("time spent for the old version:  "+(endOld-startOld));
-     
-     
-     ArrayList<Integer> intersectionResult = new ArrayList<Integer>();
-     PForDeltaDocIdSet pfd0 = (PForDeltaDocIdSet)docs.get(0);
-     PForDeltaDocIdSet pfd1 = (PForDeltaDocIdSet)docs.get(1);
-     PForDeltaDocIdSet pfd2 = (PForDeltaDocIdSet)docs.get(2);
-     DocIdSetIterator iter = pfd0.iterator();
-     
-     long start = System.currentTimeMillis();
-     int docId=iter.nextDoc();
-     while(docId !=DocIdSetIterator.NO_MORE_DOCS)
-     {
-        if(pfd1.find(docId) && pfd2.find(docId))
-        {
-          intersectionResult.add(docId);
-        }
-        docId = iter.nextDoc();
-    }
-     long end = System.currentTimeMillis();
-     System.out.println("time spent for the new version:  "+(end-start));
-    
-     //System.out.println("Intersectoin result");
-     //printList(intersectionResult, 0, intersectionResult.size()-1);
-     // printList(expectedIntersectionResult, 0, expectedIntersectionResult.size()-1);
-     
-     assertEquals(true, intersectionResult.equals(expectedIntersectionResult));
-     
-     System.out.println("-------------------completed------------------------");
-  } 
-//
-  public void testDecompSpeed() throws Exception
-  {     
-    System.out.println("Running Comp Decomp Test case...");
-    
-    ArrayList<OpenBitSet> obs = new ArrayList<OpenBitSet>(); 
-    ArrayList<DocIdSet> docs = new ArrayList<DocIdSet>(); 
-    ArrayList<DocIdSet> docsOld = new ArrayList<DocIdSet>(); 
-    
-    int maxDoc   =   8000000;
-    int numDocs =   5000000;
-
-    
-    loadRandomDataSets(generateRandomDataHY(maxDoc, numDocs), obs, docs, docsOld, numDocs);
-    
-    ArrayList<Integer> input = bitSetToArrayList(obs.get(0));
-    
-    
-    ArrayList<Integer> outputOld = new ArrayList<Integer>();
-    
-    int docId;
-    
-    long startOld = System.currentTimeMillis();
-    P4DDocIdSet pfdOld = (P4DDocIdSet)docsOld.get(0);
-    DocIdSetIterator iterOld = pfdOld.iterator();
-    docId = iterOld.nextDoc();
-    while(docId !=DocIdSetIterator.NO_MORE_DOCS)
-    {      
-      outputOld.add(docId);
-      docId = iterOld.nextDoc();
-      //docId = iterOld.advance(docId+1);
-    }
-    long endOld = System.currentTimeMillis();
-    System.out.println("time spent for the old version: : "+(endOld-startOld));
-    System.out.println("compressed size for the old version: " + pfdOld.getCompressedBitSize()/32 + " ints");
-    
-    ArrayList<Integer> output = new ArrayList<Integer>();
-    PForDeltaDocIdSet pfdDS = (PForDeltaDocIdSet)docs.get(0);
-    System.out.println("compressed size for the new version: " + pfdDS.getCompressedBitSize()/32 + " ints");
-    DocIdSetIterator iter = pfdDS.iterator();
-    long start = System.currentTimeMillis();
-    docId = iter.nextDoc();
-    while(docId !=DocIdSetIterator.NO_MORE_DOCS)
-    {      
-      output.add(docId);
-      docId = iter.nextDoc();
-      //docId = iter.advance(docId+1);
-    }
-    long end = System.currentTimeMillis();
-    System.out.println("time spent for the new version: "+(end-start));
-   
-    //printList(input, 0, input.size()-1);
-    //printList(output, 0, output.size()-1);
-    assertEquals(true, compareTwoLists(input, output));
-    System.out.println("-------------------completed------------------------");
-
-   
-  } 
 //  
 //   hy: test compression and decompression, in particular, nextDoc() of PForDeltaDocIdIterator
 //  public void testCompDecomp() throws Exception
@@ -378,12 +172,7 @@ public class PForDeltaKamikazeTest extends TestCase
     return bitSet; 
   } 
   
-  private OpenBitSet createObs(int nums[], int maxDoc) { 
-    OpenBitSet bitSet = new OpenBitSet(maxDoc); 
-    for(int num:nums) 
-      bitSet.set(num); 
-    return bitSet; 
-  } 
+  
   
   private DocIdSet createDocSet(ArrayList<Integer> nums) throws Exception{ 
     DocSet p4d = DocSetFactory.getPForDeltaDocSetInstance(); 
@@ -394,8 +183,24 @@ public class PForDeltaKamikazeTest extends TestCase
     return p4d; 
   } 
   
+  private OpenBitSet createObs(int nums[], int maxDoc) { 
+    OpenBitSet bitSet = new OpenBitSet(maxDoc); 
+    for(int num:nums) 
+      bitSet.set(num); 
+    return bitSet; 
+  } 
+  
   private DocIdSet createDocSet(int[] nums) throws Exception{ 
     DocSet p4d = DocSetFactory.getPForDeltaDocSetInstance(); 
+    for(int num:nums) 
+    {         
+      p4d.addDoc(num);
+    }
+    return p4d; 
+  } 
+  
+  private DocIdSet createDocSetOld(int[] nums) throws Exception{ 
+    DocSet p4d = DocSetFactory.getP4DDocSetInstance(); 
     for(int num:nums) 
     {         
       p4d.addDoc(num);
@@ -412,14 +217,7 @@ public class PForDeltaKamikazeTest extends TestCase
     return p4d; 
   } 
   
-  private DocIdSet createDocSetOld(int[] nums) throws Exception{ 
-    DocSet p4d = DocSetFactory.getP4DDocSetInstance(); 
-    for(int num:nums) 
-    {         
-      p4d.addDoc(num);
-    }
-    return p4d; 
-  } 
+  
   
   private void saveRandomDataSetsToFile(int maxDoc, String filename) throws Exception
   {

@@ -88,6 +88,7 @@ public class AndDocIdSet extends ImmutableDocSet implements Serializable {
         if (i != skip) {
           dcit = iterators[i];
           int docid = dcit.advance(target);
+          
           if (docid > target) {
             target = docid;
             if(i != 0) {
@@ -101,7 +102,8 @@ public class AndDocIdSet extends ImmutableDocSet implements Serializable {
         }
         i++;
       }
-      _interSectionResult.add(target);
+//      if(target != DocIdSetIterator.NO_MORE_DOCS)
+//        _interSectionResult.add(target);
       return (lastReturn = target);
     }
 

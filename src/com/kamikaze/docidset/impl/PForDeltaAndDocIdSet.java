@@ -118,7 +118,7 @@ public class PForDeltaAndDocIdSet extends ImmutableDocSet implements Serializabl
         i++;
       }
       
-      _interSectionResult.add(target);
+      //_interSectionResult.add(target);
       //System.out.println("all lists find docId:" + target);
       // hy: find the target
       return (lastReturn = target);
