@@ -64,13 +64,16 @@ class CompDecomp{
   
    public void init() throws Exception
    {
-     int randomBase = _maxDoc/2;
+     int randomRange = _maxDoc;
+     int randomBase = 0;
      
      Random rand = new Random(System.currentTimeMillis()); 
      
-      _numDocs1 = randomBase + rand.nextInt(randomBase);
-      _numDocs2 = randomBase + rand.nextInt(randomBase);  
-      _numDocs3 = randomBase + rand.nextInt(randomBase);
+      _numDocs1 = randomBase + rand.nextInt(randomRange);
+      _numDocs2 = randomBase + rand.nextInt(_maxDoc);  
+      _numDocs3 = randomBase + rand.nextInt(randomRange);
+      
+    
      
      _input1 = generateRandomDataHY(_maxDoc, _numDocs1);
      _input2 = generateRandomDataHY(_maxDoc, _numDocs2);

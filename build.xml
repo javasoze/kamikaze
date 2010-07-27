@@ -88,6 +88,10 @@
    <classpath refid="compile.class.path" />
    <classpath refid="java.class.path" />
    <classpath refid="test.class.path" />
+   <jvmarg value="-d64" />
+   <jvmarg value="-server" />
+   <jvmarg value="-Xms2G" />
+   <jvmarg value="-Xmx4G" />
 </java>
 </target>
 

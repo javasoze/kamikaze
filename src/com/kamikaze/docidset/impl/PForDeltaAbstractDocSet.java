@@ -15,7 +15,7 @@ public abstract class PForDeltaAbstractDocSet extends DocSet implements Serializ
  
   public static final int DEFAULT_BATCH_SIZE = 128;
     
-  private static final int[] POSSIBLE_B = {1,2,3,4,5,6,7,8,9,10,11,12,13,16,20};
+  private static final int[] POSSIBLE_B = {0, 1,2,3,4,5,6,7,8,9,10,11,12,13,16,20};
  
   /**
    * Default batch size for compression blobs
@@ -208,19 +208,19 @@ public abstract class PForDeltaAbstractDocSet extends DocSet implements Serializ
       return null;
     }
     
-//    for (int i = 1; i < POSSIBLE_B.length; ++i)
-//    {
-//      tmpB = POSSIBLE_B[i];
-//      CompResult curRes = PForDeltaCompressOneBlock(currentNoCompBlock, tmpB);
-//      if(curRes.getCompressedSize() < optRes.getCompressedSize())
-//      {
-//        currentB = tmpB;
-//        optRes = curRes;
-//      }
-//    }
+    for (int i = 1; i < POSSIBLE_B.length; ++i)
+    {
+      tmpB = POSSIBLE_B[i];
+      CompResult curRes = PForDeltaCompressOneBlock(currentNoCompBlock, tmpB);
+      if(curRes.getCompressedSize() < optRes.getCompressedSize())
+      {
+        currentB = tmpB;
+        optRes = curRes;
+      }
+    }
     
 //    System.out.println("print final one with b: " + currentB);
-//    optRes = PForDeltaCompressOneBlock(currentNoCompBlock, currentB);
+    optRes = PForDeltaCompressOneBlock(currentNoCompBlock, currentB);
     return optRes;  
   }
  

@@ -43,47 +43,47 @@ public class PForDeltaKamikazeTest extends TestCase
   
 
 //  
-//   hy: test compression and decompression, in particular, nextDoc() of PForDeltaDocIdIterator
-//  public void testCompDecomp() throws Exception
-//  {     
-//    System.out.println("Running Comp Decomp Test case...");
-//    
-//    ArrayList<OpenBitSet> obs = new ArrayList<OpenBitSet>(); 
-//    ArrayList<DocIdSet> docs = new ArrayList<DocIdSet>(); 
-//    
-//    int maxDoc = 150;
-//    int listNum = 1;
-//   
-//    getRandomDataSets(obs, docs, maxDoc, listNum, false);
-//    //getSpecificDataSets(obs, docs, maxDoc, listNum);
-//    
-//    ArrayList<Integer> input = bitSetToArrayList(obs.get(0));
-//    
-//    PForDeltaDocIdSet pfdDS = (PForDeltaDocIdSet)docs.get(0);
-//    DocIdSetIterator iter = pfdDS.iterator();
-//    
-//   
-//    ArrayList<Integer> output = new ArrayList<Integer>();
-//    int docId = iter.nextDoc();
-//   
-//    long start = System.currentTimeMillis();
-//    
-//    
-//    
-//    while(docId !=DocIdSetIterator.NO_MORE_DOCS)
-//    {      
-//      output.add(docId);
-//      docId = iter.nextDoc();
-//    }
-//    long end = System.currentTimeMillis();
-//    System.out.println("took: "+(end-start));
-//   
-//    //printList(input, 0, input.size()-1);
-//    //printList(output, 0, output.size()-1);
-//    assertEquals(true, compareTwoLists(input, output));
-//    System.out.println("-------------------completed------------------------");
-//
-//  } 
+ //  hy: test compression and decompression, in particular, nextDoc() of PForDeltaDocIdIterator
+  public void testCompDecomp() throws Exception
+  {     
+    System.out.println("Running Comp Decomp Test case...");
+    
+    ArrayList<OpenBitSet> obs = new ArrayList<OpenBitSet>(); 
+    ArrayList<DocIdSet> docs = new ArrayList<DocIdSet>(); 
+    
+    int maxDoc = 35000;
+    int listNum = 1;
+   
+    getRandomDataSets(obs, docs, maxDoc, listNum, false);
+    //getSpecificDataSets(obs, docs, maxDoc, listNum);
+    
+    ArrayList<Integer> input = bitSetToArrayList(obs.get(0));
+    
+    PForDeltaDocIdSet pfdDS = (PForDeltaDocIdSet)docs.get(0);
+    DocIdSetIterator iter = pfdDS.iterator();
+    
+   
+    ArrayList<Integer> output = new ArrayList<Integer>();
+    int docId = iter.nextDoc();
+   
+    long start = System.currentTimeMillis();
+    
+    
+    
+    while(docId !=DocIdSetIterator.NO_MORE_DOCS)
+    {      
+      output.add(docId);
+      docId = iter.nextDoc();
+    }
+    long end = System.currentTimeMillis();
+    System.out.println("took: "+(end-start));
+   
+    //printList(input, 0, input.size()-1);
+    //printList(output, 0, output.size()-1);
+    assertEquals(true, compareTwoLists(input, output));
+    System.out.println("-------------------completed------------------------");
+
+  } 
 
 //  public void testForOutOfBounds() throws Exception
 //  {     

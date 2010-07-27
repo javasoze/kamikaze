@@ -1,6 +1,7 @@
 package com.kamikaze.docidset.compression;
 
 import java.io.Serializable;
+import java.util.Arrays;
 //import java.util.BitSet;
 //import org.apache.lucene.util.OpenBitSet;
 //import com.kamikaze.docidset.bitset.MyOpenBitSet;
@@ -168,6 +169,8 @@ public class PForDeltaSetWithBase implements PForDeltaCompressedSortedIntegerSeg
  
   static private void writeBits(int[] out, int val, int outOffset, int bits) {
     // hy: length must > 0
+    if(bits == 0)
+      return;
     final int index = outOffset >>> 5;
     final int skip = outOffset & 0x1f;
     val &= (0xffffffff >>> (32 - bits));   
@@ -177,6 +180,7 @@ public class PForDeltaSetWithBase implements PForDeltaCompressedSortedIntegerSeg
     }
   }
   
+  // bits must > 0, unlike writeBits, readBits will not deal with bits==0 for fast process, when b ==0, we will just skip the entire b-bit slots
 static private int readBits(int[] in, final int inOffset, final int bits) {
     final int index = inOffset >>> 5;
     final int skip = inOffset & 0x1f;
@@ -216,8 +220,15 @@ static private int readBits(int[] in, final int inOffset, final int bits) {
     int offset = HEADER_MASK*HEADER_NUM;
     int compressedBits = 0;
     //System.out.println("decompressOneBlock(): _batchSize:" + _batchSize + "_b:" + _b + "expNum" + _expNum);
-    
-    compressedBits = decompressBBitSlots(decompBlock, compBlock, _batchSize, _b);
+    if(_b == 0)
+    {
+      Arrays.fill(decompBlock,0);
+      System.out.println("decomp: b=0");
+    }
+    else
+    {
+      compressedBits = decompressBBitSlots(decompBlock, compBlock, _batchSize, _b);
+    }
     offset += compressedBits;
     
     //compressedBits = decompressExpPosByS16(expPos, compBlock, _expNum, offset);
@@ -264,8 +275,16 @@ static private int readBits(int[] in, final int inOffset, final int bits) {
     int offset = HEADER_MASK*HEADER_NUM;
     int compressedBits = 0;
     //System.out.println("decompressOneBlock(): _batchSize:" + _batchSize + "_b:" + _b + "expNum" + _expNum);
-    
-    compressedBits = decompressBBitSlots(decompBlock, compBlock, _batchSize, _b);
+    if(_b == 0)
+    {
+      Arrays.fill(decompBlock,0);
+      //System.out.println("decomp: b=0");
+    }
+    else
+    {
+      compressedBits = decompressBBitSlots(decompBlock, compBlock, _batchSize, _b);
+    }
+    //compressedBits = decompressBBitSlotsFast(decompBlock, compBlock, _batchSize, _b);
     offset += compressedBits;
     
     //compressedBits = decompressExpPosByS16(expPos, compBlock, _expNum, offset);
