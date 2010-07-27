@@ -1,4 +1,4 @@
-<project xmlns:ivy="antlib:org.apache.ivy.ant" name="lucene-ext" default="dist" basedir=".">
+<project xmlns:ivy="antlib:org.apache.ivy.ant" name="kamikaze" default="dist" basedir=".">
 	<property name="src" value="src" />
 	<property name="test" value="test" />
 	<property name="lib" location="lib" />
