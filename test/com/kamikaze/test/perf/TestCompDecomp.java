@@ -3,6 +3,9 @@ package com.kamikaze.test.perf;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Random;
 
 import junit.framework.TestCase;
@@ -10,9 +13,13 @@ import junit.framework.TestCase;
 import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.util.OpenBitSet;
+import org.junit.Test;
 
 import com.kamikaze.docidset.api.DocSet;
+import com.kamikaze.docidset.api.StatefulDSIterator;
 import com.kamikaze.docidset.impl.AndDocIdSet;
+import com.kamikaze.docidset.impl.IntArrayDocIdSet;
+import com.kamikaze.docidset.impl.OBSDocIdSet;
 import com.kamikaze.docidset.impl.P4DDocIdSet;
 import com.kamikaze.docidset.impl.PForDeltaAndDocIdSet;
 import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
@@ -21,18 +28,20 @@ import com.kamikaze.docidset.utils.DocSetFactory;
 public class TestCompDecomp  {
   public static void main(String args[]) throws Exception {
     CompDecomp testObj = new CompDecomp();
-    testObj.init();
-    for (int i = 0; i < 10; i++) 
+    int batchSize = 256;
+    testObj.init(batchSize);
+    for (int i = 0; i < 1; i++) 
     {
       System.out.println("");
       System.out.println("");
       System.out.println("Round " + i);
       System.out.println("");
-      testObj.init();
+      testObj.init(batchSize);
       testObj.testAndIntersections();
       testObj.testFind();
       testObj.testCompSizeAndDecompSpeedOfAdvance();
       testObj.testCompSizeAndDecompSpeedOfNextDoc();
+      testObj.testSkipPerformance();
       testObj.freeMem();
     }      
   }
@@ -46,8 +55,12 @@ class CompDecomp{
    
    private int _maxDoc =  1500000;
    private int _numDocs = 650000;
+//   private int _maxDoc =  2550;
+//   private int _numDocs = 2000;
+   
    private int _listNum = 3;
    
+   private int _batchSize = 256;
    
    private int _numDocs1;
    private int _numDocs2;
@@ -62,8 +75,9 @@ class CompDecomp{
    private long _expectedIntersectionSize ;
    
   
-   public void init() throws Exception
+   public void init(int batchSize) throws Exception
    {
+     _batchSize = batchSize;
      int randomRange = _maxDoc;
      int randomBase = 0;
      
@@ -88,6 +102,7 @@ class CompDecomp{
      loadRandomDataSets(_input3, _obs, _docs, _docsOld, _numDocs3);
      
      // get the expected result
+
      _base = _obs.get(0); 
      for(int i = 1; i < _obs.size(); ++i) 
      { 
@@ -262,7 +277,7 @@ class CompDecomp{
     
     // test the new version
     //ArrayList<Integer> output = new ArrayList<Integer>();
-    int intersectionSize = 0;
+   
     PForDeltaDocIdSet pfdDS = (PForDeltaDocIdSet)_docs.get(0);
     System.out.println("compressed size for the new version: " + pfdDS.getCompressedBitSize()/32 + " ints");
     DocIdSetIterator iter = pfdDS.iterator();
@@ -271,7 +286,7 @@ class CompDecomp{
     while(docId !=DocIdSetIterator.NO_MORE_DOCS)
     {      
       //output.add(docId);
-      intersectionSize++;
+      //intersectionSize++;
       docId = iter.nextDoc();
       //docId = iter.advance(docId+1);
     }
@@ -281,19 +296,97 @@ class CompDecomp{
     //printList(input, 0, input.size()-1);
     //printList(output, 0, output.size()-1);
     //if(!compareTwoLists(_input1, _numDocs1, output))
-    if(intersectionSize != _expectedIntersectionSize)
-    {
-      System.out.println("the result does not match the expectation");
-    }
+   
     pfdOld = null;
     pfdDS = null;
     System.out.println("-------------------completed------------------------");
   } 
   
+
+  public void testSkipPerformance() throws IOException
+  {
+    System.out.println("");
+    System.out.println("Running Doc Skip Performance");
+    System.out.println("----------------------------");
+    
+    int length = _numDocs1/_batchSize;
+    
+    double booster  = 5;
+    P4DDocIdSet set = new P4DDocIdSet(_batchSize);
+    System.out.println("");
+    System.out.println("Running skip performance test");
+    System.out.println("----------------------------");
+    Random random = new Random();
+
+    int NN = 1000;
+  
+    int randomizer = 0;
+    double totalDecompressionTime = 0;
+    List<Integer> list = new LinkedList<Integer>();
+    LinkedList<Integer> list2 = new LinkedList<Integer>();
+
+    for (int i = 1; i < length; i++) {
+
+      for (int k = 0; k < _batchSize; k++) {
+        list.add(randomizer + (int) (random.nextDouble() * NN));
+      }
+
+      randomizer += NN*booster;
+    }
+    
+    Collections.sort(list);
+    //System.out.println("Largest Element in the List:"+list.get( list.size() -1 ));
+  
+    
+      //P4D
+      P4DDocIdSet p4dOld = new P4DDocIdSet();
+      int counter=0;
+      
+      for (Integer c : list) {
+        counter++;
+        p4dOld.addDoc(c);
+      }
+      StatefulDSIterator dcitOld = p4dOld.iterator();
+     _testSkipPerformance(list.get(list.size()-1),dcitOld, false);
+   
+     
+  
+    PForDeltaDocIdSet p4d = new PForDeltaDocIdSet();
+    counter=0;
+    
+    for (Integer c : list) {
+      counter++;
+      p4d.addDoc(c);
+    }
+    StatefulDSIterator dcit = p4d.iterator();
+   _testSkipPerformance(list.get(list.size()-1),dcit, true);
+   
+  
+  }
+  
+   
+  
+  private void _testSkipPerformance(int max, StatefulDSIterator dcit, boolean usingNewVersion) throws IOException {
+    
+ 
+    long now = System.currentTimeMillis();
+    int ctr = 0;
+    for(int i=0;i<max;i++)
+    {
+        dcit.advance(i);
+    }
+    if(usingNewVersion)
+      System.out.println("New Skip performance on "+ dcit.getClass().getName()+ ":"+  ( System.currentTimeMillis() - now )+" ms..");
+    else
+      System.out.println("Old Skip performance on "+ dcit.getClass().getName()+ ":"+  ( System.currentTimeMillis() - now )+" ms..");
+    System.out.flush();
+    
+  }
+  
 //test decompression speed using nextDoc 
   public void testCompSizeAndDecompSpeedOfAdvance() throws Exception
   {     
-    System.out.println("Running Comp Decomp Test case...");
+    System.out.println("Running Comp Decomp Test case for advance()...");
     
    
     //ArrayList<Integer> input = bitSetToArrayList(_obs.get(0));
@@ -320,7 +413,7 @@ class CompDecomp{
     
     // test the new version
     //ArrayList<Integer> output = new ArrayList<Integer>();
-    int intersectionsize = 0;
+   
     PForDeltaDocIdSet pfdDS = (PForDeltaDocIdSet)_docs.get(0);
     System.out.println("compressed size for the new version: " + pfdDS.getCompressedBitSize()/32 + " ints");
     DocIdSetIterator iter = pfdDS.iterator();
@@ -329,7 +422,7 @@ class CompDecomp{
     while(docId !=DocIdSetIterator.NO_MORE_DOCS)
     {      
       //output.add(docId);
-      intersectionsize++;
+ 
       //docId = iter.nextDoc();
       docId = iter.advance(docId+1);
     }
@@ -339,10 +432,7 @@ class CompDecomp{
     //printList(input, 0, input.size()-1);
     //printList(output, 0, output.size()-1);
     //if(!compareTwoLists(_input1, _numDocs1, output))
-    if(intersectionsize != _expectedIntersectionSize)
-    {
-      System.out.println("the result does not match the expectation");
-    }
+ 
     pfdDS = null;
     pfdOld = null;
     System.out.println("-------------------completed------------------------");

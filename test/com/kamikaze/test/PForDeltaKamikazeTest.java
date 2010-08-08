@@ -51,7 +51,7 @@ public class PForDeltaKamikazeTest extends TestCase
     ArrayList<OpenBitSet> obs = new ArrayList<OpenBitSet>(); 
     ArrayList<DocIdSet> docs = new ArrayList<DocIdSet>(); 
     
-    int maxDoc = 35000;
+    int maxDoc = 350000;
     int listNum = 1;
    
     getRandomDataSets(obs, docs, maxDoc, listNum, false);

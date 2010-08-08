@@ -95,7 +95,6 @@
 </java>
 </target>
 
-
 	<target name="test" description="Runs JUnit Tests" depends="compile-test">
 	    <echo>=== Running JUnit Tests ===</echo>
         <mkdir dir="${test.report.dir}" />
@@ -114,7 +113,7 @@
 			<jvmarg value="-Xms1g" />
 			<jvmarg value="-Xmx1500m" />
 			
-			<test name="com.kamikaze.test.TestDocIdSetSuite" todir="${test.report.dir}" haltonfailure="yes" fork="yes">
+			<test name="com.kamikaze.test.PForDeltaKamikazeTest" todir="${test.report.dir}" haltonfailure="yes" fork="yes">
 				<formatter type="xml"/>
 			</test>
 		</junit>

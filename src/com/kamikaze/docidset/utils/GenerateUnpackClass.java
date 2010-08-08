@@ -6,7 +6,32 @@ import java.io.PrintWriter;
 
 public class GenerateUnpackClass {
   
-  static int[] POSSIBLE_B = {1,2,3,4,5,6,7,8,9,10,11,12,13,16,20};
+  
+  
+  static public void generatePForDeltaUnpackClass(int blockSize, String filename) throws IOException
+  {
+    PrintWriter pw = new PrintWriter(new FileOutputStream(filename));
+    pw.println("package com.kamikaze.docidset.compression;");
+    pw.println(" ");
+    pw.println(" ");    
+    
+    pw.println("public class PForDeltaUnpack{");
+    pw.println(" ");
+    generatePForDeltaFunctionSelectionFile(pw);
+    int HEADER_BITS = 32 * 2; // two int header
+    for(int i=0; i<POSSIBLE_B.length; ++i)
+    {
+      pw.println(" ");
+      generatePForDeltaUnpackFile(pw, HEADER_BITS, blockSize, POSSIBLE_B[i]);
+    }
+    
+    
+    pw.println("}");
+    pw.close();
+   
+  }
+  
+  private static int[] POSSIBLE_B = {1,2,3,4,5,6,7,8,9,10,11,12,13,16,20};
   
   private static final int[] MASK = {0x00000000,
     0x00000001, 0x00000003, 0x00000007, 0x0000000f, 0x0000001f, 0x0000003f,
@@ -16,30 +41,7 @@ public class GenerateUnpackClass {
     0x01ffffff, 0x03ffffff, 0x07ffffff, 0x0fffffff, 0x1fffffff, 0x3fffffff,
     0x7fffffff, 0xffffffff};
   
-  static public void generateUnpackClass(int blockSize, String filename) throws IOException
-  {
-    PrintWriter pw = new PrintWriter(new FileOutputStream(filename));
-    pw.println("package com.kamikaze.docidset.compression;");
-    pw.println(" ");
-    pw.println(" ");    
-    
-    pw.println("public class PForDeltaUnpack{");
-    pw.println(" ");
-    generateFunctionSelectionFile(pw);
-    int HEADER_BITS = 32 * 2; // two int header
-    for(int i=0; i<POSSIBLE_B.length; ++i)
-    {
-      pw.println(" ");
-      generateUnpackFile(pw, HEADER_BITS, blockSize, POSSIBLE_B[i]);
-    }
-    
-    
-    pw.println("}");
-    pw.close();
-   
-  }
-  
-  static private void generateUnpackFile(PrintWriter pw, int inOffset, int n, int bits)
+  static private void generatePForDeltaUnpackFile(PrintWriter pw, int inOffset, int n, int bits)
   {
     pw.println("  static private void unpack" + bits + "(int[] out, int[] in)");
     pw.println("  {");
@@ -62,7 +64,7 @@ public class GenerateUnpackClass {
     pw.println("  }");
   }
 
-  static private void generateFunctionSelectionFile(PrintWriter pw)
+  static private void generatePForDeltaFunctionSelectionFile(PrintWriter pw)
   {
      pw.println("  static public void unpack(int[] out, int[] in, int bits) {" );
      pw.println("    switch (bits) {");
@@ -77,4 +79,6 @@ public class GenerateUnpackClass {
      pw.println("  }");
   }
     
+  
+  
 }

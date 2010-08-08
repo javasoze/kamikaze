@@ -33,32 +33,38 @@ public class PForDeltaDocIdSet extends PForDeltaAbstractDocSet implements Serial
   
   public PForDeltaDocIdSet(int batchSize) {
     this();
-    this.BATCH_SIZE = batchSize;      
+    this.batchSize = batchSize;      
   }
   
-  private int[] curDecompBlock = new int[BATCH_SIZE];
+  private int[] curDecompBlock = new int[batchSize];
   @Override
   public final boolean isCacheable() {
     return true;
   }
   
   @Override
-  protected CompResult PForDeltaCompressOneBlock(int[] srcData, int b)
+  protected CompResult PForDeltaCompressOneBlock(int[] srcData, int b, boolean flag)
   {    
-    compressedBlocksNoBase.setParam(b, BATCH_SIZE);
-    CompResult compRes = compressedBlocksNoBase.compressOneBlock(srcData);
+    CompResult compRes = compressedBlocksNoBase.compressOneBlock(srcData, b, batchSize, flag);
     return compRes;
   }
    
+  @Override
+  protected CompResult PForDeltaEstimateCompSize(int[] srcData, int b)
+  {    
+    return compressedBlocksNoBase.estimateCompSize(srcData, b, batchSize);
+  }
+  
   /**
    * Method to decompress the entire block
    * 
-   * @param compressedBlock the compressed block as an array of ints
+   * @param outDecompBlock the decompressed block as an array of ints
+   * @param compBlock the compressed block as an array of ints
    * @return the decompressed block stored as ints 
    */
-  protected int[] decompress(int[] compressedBlock) {
-    return new PForDeltaSetWithBase().decompress(compressedBlock);
-  }
+//  protected int decompress(int[] outDecompBlock, int[] compBlock) {
+//    return new PForDeltaSetWithBase().decompress(outDecompBlock, compBlock);
+//  }
 
   // hy: the baseListForOnlyCompBlocks (in) contains all last elements of the compressed block. 
   protected int binarySearchInBaseListForBlockThatMayContainTarget(IntArray in, int start, int end, int target)
@@ -128,7 +134,7 @@ public class PForDeltaDocIdSet extends PForDeltaAbstractDocSet implements Serial
   /**
    * Regular Binary search for the the target 
    * 
-   * @param in must be sorted
+   * @param vals must be sorted
    * @param start
    * @param end
    * @param target
@@ -172,6 +178,14 @@ public class PForDeltaDocIdSet extends PForDeltaAbstractDocSet implements Serial
     if(size()==0)
       return false;
    
+    if(lastAdded != currentNoCompBlock[sizeOfCurrentNoCompBlock-1])
+    {
+      System.err.println("Error: lastAdded " + lastAdded + " is != " + currentNoCompBlock[sizeOfCurrentNoCompBlock-1]);
+    }
+    if(target > lastAdded)
+    {
+      return false;
+    }
     // hy: first search noComp block
     if(sizeOfCurrentNoCompBlock > 0)
     {
@@ -193,12 +207,13 @@ public class PForDeltaDocIdSet extends PForDeltaAbstractDocSet implements Serial
    if(posBlock<0)
      return false;
    
-   compressedBlocksNoBase.setParam(0, BATCH_SIZE);
+   //compressedBlocksNoBase.setParam(0, batchSize);
    //int[] decompBlock = compressedBlocksNoBase.decompressOneBlock(sequenceOfCompBlocks.get(posBlock));
-   compressedBlocksNoBase.decompressOneBlockFast(curDecompBlock, sequenceOfCompBlocks.get(posBlock));
-   postProcessBlock(curDecompBlock, BATCH_SIZE);
+   //System.out.println("find: posBlock:" + posBlock);
+   compressedBlocksNoBase.decompressOneBlock(curDecompBlock, sequenceOfCompBlocks.get(posBlock), batchSize);
+   postProcessBlock(curDecompBlock, batchSize);
         
-   int pos = binarySearchForTarget(curDecompBlock, 0, BATCH_SIZE-1, target);
+   int pos = binarySearchForTarget(curDecompBlock, 0, batchSize-1, target);
    if(pos>=0) 
       return true;
    
@@ -224,7 +239,7 @@ public class PForDeltaDocIdSet extends PForDeltaAbstractDocSet implements Serial
     // P4dDocIdSet Overhead 110
     optimize();
     int headInBytes = baseListForOnlyCompBlocks.length()*4*2; // 1 int for storing b and expNum; the other int is for storing base
-    return (long) (headInBytes + 64 +sequenceOfCompBlocks.length()*BATCH_SIZE*1.1 + BATCH_SIZE*4 + 24 + 110);
+    return (long) (headInBytes + 64 +sequenceOfCompBlocks.length()*batchSize*1.1 + batchSize*4 + 24 + 110);
     
   }
   
@@ -264,7 +279,7 @@ public class PForDeltaDocIdSet extends PForDeltaAbstractDocSet implements Serial
 
     int compBlockNum=0; // hy: the number of compressed blocks
     
-    int[] iterDecompBlock = new int[BATCH_SIZE];
+    int[] iterDecompBlock = new int[batchSize];
    
     PForDeltaSetWithBase iterPForDeltaSetNoBase = new PForDeltaSetWithBase();
 
@@ -274,17 +289,17 @@ public class PForDeltaDocIdSet extends PForDeltaAbstractDocSet implements Serial
       iterBlockIndex = 0;
      // offset = 0;
       cursor = -1;
-      // hy: BATCH_INDEX_SHIFT_BITS = log2(BATCH_SIZE); assuming BATCH_SIZE = 2^k, e.g., BATCH_SIZE=32 =2^5 ; => BATCH_INDEX_SHIFT_BITS = 5 bits = lg(32) = bitShiftLoopNum-1
+      // hy: BATCH_INDEX_SHIFT_BITS = log2(batchSize); assuming batchSize = 2^k, e.g., batchSize=32 =2^5 ; => BATCH_INDEX_SHIFT_BITS = 5 bits = lg(32) = bitShiftLoopNum-1
       // that is why i is initialized as -1, then we can get blockIndex = (docIdIndex >> BATCH_INDEX_SHIFT_BITS); for example, in the above example,
       // if docIdIndex = 32, it belongs to the No ((32>>5)=1) block, that is, the 2nd block (the first block is No 0). 
       int i=-1;
-      for(int x=BATCH_SIZE; x>0; ++i, x>>>=1);  
+      for(int x=batchSize; x>0; ++i, x>>>=1);  
       BATCH_INDEX_SHIFT_BITS = i;
       //System.out.println("BATCH_INDEX_SHIFT_BITS" + BATCH_INDEX_SHIFT_BITS);
       // hy: assume that b=31 results in 0 exps, in this Iterator, we do not need to set b and expCount since
       // we do not need to compress one block. In contrast, we only need to decompress one block.
-      // However, we still need to set BATCH_SIZE.
-      iterPForDeltaSetNoBase.setParam(31, BATCH_SIZE);  
+      // However, we still need to set batchSize.
+      //iterPForDeltaSetNoBase.setParam(31, batchSize);  
     }
 
     @Override
@@ -308,7 +323,7 @@ public class PForDeltaDocIdSet extends PForDeltaAbstractDocSet implements Serial
       }
       
       iterBlockIndex = batchIndex(cursor);
-      int offset = cursor % BATCH_SIZE; // hy: sync offset with cursor
+      int offset = cursor % batchSize; // hy: sync offset with cursor
       //System.out.println("iterBlockIndex:" + iterBlockIndex + ", compBlockNum" + compBlockNum + ",cursor:" + cursor + ",sequenceSize:" + sequenceSize + ",offset" + offset);
       if(iterBlockIndex == compBlockNum) // hy: case 1: in the currentNoCompBlock[] array which has never been compressed yet and therefore not added into sequenceOfCompBlocks yet.
       { 
@@ -320,9 +335,10 @@ public class PForDeltaDocIdSet extends PForDeltaAbstractDocSet implements Serial
         //System.out.println("again, iterBlockIndex:" + iterBlockIndex + ", compBlockNum" + compBlockNum + ",cursor:" + cursor + ",sequenceSize:" + sequenceSize + ",offset" + offset);
        
         //iterDecompBlock = iterPForDeltaSetNoBase.decompressOneBlock(sequenceOfCompBlocks.get(iterBlockIndex));
-        iterPForDeltaSetNoBase.decompressOneBlockFast(iterDecompBlock, sequenceOfCompBlocks.get(iterBlockIndex));
+        //System.out.println("nextDoc(): decomp block , iterBlockIndex:" + iterBlockIndex);
+        iterPForDeltaSetNoBase.decompressOneBlock(iterDecompBlock, sequenceOfCompBlocks.get(iterBlockIndex), batchSize);
         
-        postProcessBlock(iterDecompBlock, BATCH_SIZE);        
+        postProcessBlock(iterDecompBlock, batchSize);        
         lastAccessedDocId = iterDecompBlock[offset];
       }
       else // hy: case 3: a specialin the lately decompressed block (different from blockIndex == compBlockNum where the currentNoCompBlock[] has never been compressed)
@@ -357,16 +373,17 @@ public class PForDeltaDocIdSet extends PForDeltaAbstractDocSet implements Serial
       //iterBlockIndex = posBlock;
       
       //System.out.println("sequenceOfCompBlocks.size():" + sequenceOfCompBlocks.size() + ",posBlock:" + posBlock);
+    //System.out.println("sequenceOfCompBlocks.size(): decomp block , posBlock:" + posBlock);
+      iterPForDeltaSetNoBase.decompressOneBlock(iterDecompBlock, sequenceOfCompBlocks.get(posBlock), batchSize);        
+      postProcessBlock(iterDecompBlock, batchSize);
       
-      iterPForDeltaSetNoBase.decompressOneBlockFast(iterDecompBlock, sequenceOfCompBlocks.get(posBlock));        
-      postProcessBlock(iterDecompBlock, BATCH_SIZE);
-      
-      int pos = binarySearchForFirstElementEqualOrLargerThanTarget(iterDecompBlock, 0, BATCH_SIZE-1, target);
+      int pos = binarySearchForFirstElementEqualOrLargerThanTarget(iterDecompBlock, 0, batchSize-1, target);
       if(pos < 0)
       {
         System.err.println("ERROR: case 2: advanceToTargetInTheFollowingCompBlocks(), Impossible, we must be able to find the target" + target + " in the block " + posBlock);
       }
-      cursor = posBlock * BATCH_SIZE + pos; 
+      //cursor = posBlock * batchSize + pos; 
+      cursor = (posBlock << BATCH_INDEX_SHIFT_BITS) + pos;
       //System.out.println("case 2: cursor: " + cursor);
       return iterDecompBlock[pos];
     }
@@ -406,7 +423,7 @@ public class PForDeltaDocIdSet extends PForDeltaAbstractDocSet implements Serial
         return DocIdSetIterator.NO_MORE_DOCS;
       }
       
-      int offset = cursor % BATCH_SIZE;
+      int offset = cursor % batchSize;
       iterBlockIndex = batchIndex(cursor);
       
       //System.out.println("cursor: " + cursor + ", offset: " + offset);
@@ -423,7 +440,7 @@ public class PForDeltaDocIdSet extends PForDeltaAbstractDocSet implements Serial
             iterBlockIndex = compBlockNum;
             //System.out.println("found at pos" + offset + ", which is " + currentNoCompBlock[offset] + " against the target of " + target);
             lastAccessedDocId = currentNoCompBlock[offset];            
-            cursor = iterBlockIndex * BATCH_SIZE + offset; 
+            cursor = iterBlockIndex * batchSize + offset; 
             return lastAccessedDocId;
           }                   
           else
@@ -450,14 +467,15 @@ public class PForDeltaDocIdSet extends PForDeltaAbstractDocSet implements Serial
           if(target <= baseListForOnlyCompBlocks.get(iterBlockIndex))
           {
             //System.out.println("target: " + target + " is <= baseListForOnlyCompBlocks.get(iterBlockIndex)" + ", iterBlockIndex:" + iterBlockIndex + ": " + baseListForOnlyCompBlocks.get(iterBlockIndex));
-            offset = binarySearchForFirstElementEqualOrLargerThanTarget(iterDecompBlock, offset, BATCH_SIZE-1, target);
+            offset = binarySearchForFirstElementEqualOrLargerThanTarget(iterDecompBlock, offset, batchSize-1, target);
             
             if(offset < 0)
             {
               System.err.println("case 3: Impossible, we must be able to find the target " + target + " in the block" + iterDecompBlock + ", offset: " + offset);
-              printArray(iterDecompBlock, 0, BATCH_SIZE-1);
+              printArray(iterDecompBlock, 0, batchSize-1);
             }
-            cursor = iterBlockIndex * BATCH_SIZE + offset; 
+            //cursor = iterBlockIndex * batchSize + offset; 
+            cursor = (iterBlockIndex << BATCH_INDEX_SHIFT_BITS)  + offset;
             lastAccessedDocId = iterDecompBlock[offset];
             return lastAccessedDocId;
           }
@@ -476,10 +494,10 @@ public class PForDeltaDocIdSet extends PForDeltaAbstractDocSet implements Serial
   
     private void printSet() 
     {
-       for (int i = 0; i < BATCH_SIZE; i++) 
+       for (int i = 0; i < batchSize; i++) 
        {
-          iterPForDeltaSetNoBase.decompressOneBlockFast(iterDecompBlock, sequenceOfCompBlocks.get(i));
-          postProcessBlock(iterDecompBlock, BATCH_SIZE);
+          iterPForDeltaSetNoBase.decompressOneBlock(iterDecompBlock, sequenceOfCompBlocks.get(i), batchSize);
+          postProcessBlock(iterDecompBlock, batchSize);
           System.out.print(iterDecompBlock + ",");
         }
      }
