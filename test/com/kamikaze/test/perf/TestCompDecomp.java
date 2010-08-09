@@ -22,7 +22,7 @@ import com.kamikaze.docidset.impl.IntArrayDocIdSet;
 import com.kamikaze.docidset.impl.OBSDocIdSet;
 import com.kamikaze.docidset.impl.P4DDocIdSet;
 import com.kamikaze.docidset.impl.PForDeltaAndDocIdSet;
-import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
+import com.kamikaze.docidset.impl.PForDeltaDocId;
 import com.kamikaze.docidset.utils.DocSetFactory;
 
 public class TestCompDecomp  {
@@ -170,7 +170,7 @@ class CompDecomp{
   } 
  
 
-// test the PForDeltaDocIdSet.find() 
+// test the PForDeltaDocId.find() 
   public void testFind() throws Exception
   {     
     System.out.println("Running Find() Test case...");
@@ -209,9 +209,9 @@ class CompDecomp{
      
      // test the new version
      //ArrayList<Integer> intersectionResult = new ArrayList<Integer>();
-     PForDeltaDocIdSet pfd0 = (PForDeltaDocIdSet)_docs.get(0);
-     PForDeltaDocIdSet pfd1 = (PForDeltaDocIdSet)_docs.get(1);
-     PForDeltaDocIdSet pfd2 = (PForDeltaDocIdSet)_docs.get(2);
+     PForDeltaDocId pfd0 = (PForDeltaDocId)_docs.get(0);
+     PForDeltaDocId pfd1 = (PForDeltaDocId)_docs.get(1);
+     PForDeltaDocId pfd2 = (PForDeltaDocId)_docs.get(2);
      DocIdSetIterator iter = pfd0.iterator();
      
      long start = System.currentTimeMillis();
@@ -278,7 +278,7 @@ class CompDecomp{
     // test the new version
     //ArrayList<Integer> output = new ArrayList<Integer>();
    
-    PForDeltaDocIdSet pfdDS = (PForDeltaDocIdSet)_docs.get(0);
+    PForDeltaDocId pfdDS = (PForDeltaDocId)_docs.get(0);
     System.out.println("compressed size for the new version: " + pfdDS.getCompressedBitSize()/32 + " ints");
     DocIdSetIterator iter = pfdDS.iterator();
     long start = System.currentTimeMillis();
@@ -351,7 +351,7 @@ class CompDecomp{
    
      
   
-    PForDeltaDocIdSet p4d = new PForDeltaDocIdSet();
+    PForDeltaDocId p4d = new PForDeltaDocId();
     counter=0;
     
     for (Integer c : list) {
@@ -414,7 +414,7 @@ class CompDecomp{
     // test the new version
     //ArrayList<Integer> output = new ArrayList<Integer>();
    
-    PForDeltaDocIdSet pfdDS = (PForDeltaDocIdSet)_docs.get(0);
+    PForDeltaDocId pfdDS = (PForDeltaDocId)_docs.get(0);
     System.out.println("compressed size for the new version: " + pfdDS.getCompressedBitSize()/32 + " ints");
     DocIdSetIterator iter = pfdDS.iterator();
     long start = System.currentTimeMillis();

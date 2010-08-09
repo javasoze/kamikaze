@@ -5,7 +5,7 @@ import com.kamikaze.docidset.impl.AbstractDocSet;
 import com.kamikaze.docidset.impl.IntArrayDocIdSet;
 import com.kamikaze.docidset.impl.OBSDocIdSet;
 import com.kamikaze.docidset.impl.P4DDocIdSet;
-import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
+import com.kamikaze.docidset.impl.PForDeltaDocId;
 
 /** 
  * Utility class to make appropriate measurement calls to recognize optimal
@@ -36,7 +36,7 @@ public class DocSetFactory
   
   public static DocSet getPForDeltaDocSetInstance()
   {
-    return new PForDeltaDocIdSet();
+    return new PForDeltaDocId();
   }
   
   public static DocSet getP4DDocSetInstance()

@@ -24,7 +24,7 @@ import com.kamikaze.docidset.compression.PForDeltaCompressedSortedIntegerSegment
 import com.kamikaze.docidset.impl.PForDeltaAndDocIdSet;
 import com.kamikaze.docidset.impl.AndDocIdSet;
 import com.kamikaze.docidset.impl.OrDocIdSet;
-import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
+import com.kamikaze.docidset.impl.PForDeltaDocId;
 import com.kamikaze.docidset.utils.DocSetFactory;
 import com.sun.tools.javac.code.Attribute.Array;
 import com.kamikaze.docidset.utils.GenerateUnpackClass;
@@ -59,7 +59,7 @@ public class PForDeltaKamikazeTest extends TestCase
     
     ArrayList<Integer> input = bitSetToArrayList(obs.get(0));
     
-    PForDeltaDocIdSet pfdDS = (PForDeltaDocIdSet)docs.get(0);
+    PForDeltaDocId pfdDS = (PForDeltaDocId)docs.get(0);
     DocIdSetIterator iter = pfdDS.iterator();
     
    
@@ -99,7 +99,7 @@ public class PForDeltaKamikazeTest extends TestCase
 //      
 //      ArrayList<Integer> input = bitSetToArrayList(obs.get(0));
 //      
-//      DocSet docSet = new PForDeltaDocIdSet(); 
+//      DocSet docSet = new PForDeltaDocId(); 
 //      
 //      boolean saw403 = false;
 //      for (Integer integer : input) 
@@ -122,8 +122,8 @@ public class PForDeltaKamikazeTest extends TestCase
 //    {
 //        System.out.println("Running Partial Empty And    Test case...");       
 //          
-//        DocSet ds1 = new PForDeltaDocIdSet(); 
-//        DocSet ds2 = new PForDeltaDocIdSet(); 
+//        DocSet ds1 = new PForDeltaDocId(); 
+//        DocSet ds2 = new PForDeltaDocId(); 
 //        ds2.addDoc(42); 
 //        ds2.addDoc(43); 
 //        ds2.addDoc(44); 
@@ -131,8 +131,8 @@ public class PForDeltaKamikazeTest extends TestCase
 //        docs.add(ds1);  // hy: ds1 is empty
 //        docs.add(ds2);         
 //        
-//        DocSet ds3 = new PForDeltaDocIdSet(); 
-//        DocSet ds4 = new PForDeltaDocIdSet(); 
+//        DocSet ds3 = new PForDeltaDocId(); 
+//        DocSet ds4 = new PForDeltaDocId(); 
 //        ds4.addDoc(42); 
 //        ds4.addDoc(43); 
 //        ds4.addDoc(44);         
@@ -146,7 +146,7 @@ public class PForDeltaKamikazeTest extends TestCase
 //        docs3.add(orlist1); 
 //        docs3.add(orlist2); 
 //        
-//        PForDeltaDocIdSet andlist = new PForDeltaDocIdSet(docs3); 
+//        PForDeltaDocId andlist = new PForDeltaDocId(docs3); 
 //        
 //        DocIdSetIterator iter = andlist.iterator(); 
 //        @SuppressWarnings("unused") 

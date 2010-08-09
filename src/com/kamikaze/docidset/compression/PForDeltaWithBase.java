@@ -6,7 +6,8 @@ import com.kamikaze.docidset.utils.CompResult;
 import com.kamikaze.docidset.compression.PForDeltaUnpack;
 
 /**
- * Implementation of the pForDelta algorithm for sorted integer arrays based on
+ * Implementation of the PForDelta algorithm for sorted integer arrays based on
+ * @author hao yan
  * 
  * 1. Original Algorithm from
  * http://homepages.cwi.nl/~heman/downloads/msthesis.pdf 2. Optimization and
@@ -16,7 +17,7 @@ import com.kamikaze.docidset.compression.PForDeltaUnpack;
  *  http://www2009.org/proceedings/pdf/p401.pdf
  * 
  */
-public class PForDeltaSetWithBase implements PForDeltaCompressedSortedIntegerSegment, Serializable {
+public class PForDeltaWithBase implements PForDeltaCompressedSortedIntegerSegment, Serializable {
 
   private static final long serialVersionUID = 1L;
 
@@ -247,22 +248,11 @@ public class PForDeltaSetWithBase implements PForDeltaCompressedSortedIntegerSeg
       }
       
       int i=0;
-      int curExpPos; // this makes sense since expNum is > 0
+      int curExpPos;
       int curHighBits;
-      if(flagFixedBitExpPos)
-      {
-        curExpPos = _expPos[0]; // this makes sense since expNum is > 0
-        curHighBits = _expHighBits[0];
-      }
-      else
-      {
-        curExpPos = _expAux[0]; // this makes sense since expNum is > 0
-        curHighBits = _expAux[expNum];
-      }
-      outDecompBlock[curExpPos] = (outDecompBlock[curExpPos] & MASK[bits]) | ((curHighBits & MASK[32-bits] ) << bits);
-      for (i = 1; i < expNum; i++) 
+      
+      for (i = 0; i < expNum; i++) 
       { 
-        //curExpPos += _expAux[i]  + 1;
         if(flagFixedBitExpPos)
         {
           curExpPos = _expPos[i]; // this makes sense since expNum is > 0
