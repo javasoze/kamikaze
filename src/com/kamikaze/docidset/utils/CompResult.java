@@ -1,10 +1,15 @@
 package com.kamikaze.docidset.utils;
 
+/** The class is to represent the compression result derived from PForDeltaWithBase. 
+ * 
+ *   @author hao yan
+*/
+
 public class CompResult {
 
-  private int _compressedSize;
-  private int[] _compressedBlock = null;
-  private boolean _usingFixedBitCoding = false;
+  private int _compressedSize; // the size in bits of the compressed block
+  private int[] _compressedBlock = null;  // the compressed block
+  private boolean _usingFixedBitCoding = false; // indicating if we use fixed bits to encode expPos (positions of exceptions)
   public CompResult() {
     _compressedSize = 0;
     _compressedBlock = null;

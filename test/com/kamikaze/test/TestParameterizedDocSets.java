@@ -51,9 +51,11 @@ public class TestParameterizedDocSets {
 
   @Parameters
   public static List data() {
-    return Arrays.asList(new Object[][] { { 2000, 30000000 },
-        { 4000, 30000000 }, { 8000, 30000000 }, { 12000, 30000000 }, { 16000, 30000000 }
-        ,{32000,30000000}, {64000,40000000}
+//    return Arrays.asList(new Object[][] { { 200, 3000000 },
+//        { 400, 3000000 }, { 800, 3000000 }, { 1200, 3000000 }, { 1600, 3000000 }
+//        ,{3200,3000000}, {6400,4000000}
+//    });
+    return Arrays.asList(new Object[][] {  { 800, 3000000 }, { 1600, 3000000 }, {6400,4000000}
     });
   }
 

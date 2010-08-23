@@ -200,7 +200,6 @@ public class P4DDocIdSet extends AbstractDocSet implements Serializable {
       // increment the cursor and check if it falls in the range for the
       // number of batches, if not return false else, its within range
       if (++cursor < size) {
-
         // We are already in the array
         if (bi == blobSize) {
           if (offset == -1) {
@@ -212,9 +211,7 @@ public class P4DDocIdSet extends AbstractDocSet implements Serializable {
         // if we are not in the array but on the boundary of a batch
         // update local blob and set params
         else if (offset == 0) {
-
           bi = batchIndex(cursor);
-
           if (bi < blobSize) {
             lastReturn = baseList.get(bi);
             ref = blob.get(bi);
@@ -477,7 +474,6 @@ public class P4DDocIdSet extends AbstractDocSet implements Serializable {
     // We are in the set
     else if(val>=current_base)
     {
-      
         int i=0;
         for( i=0;i<current_size;i++)
         {
@@ -525,8 +521,6 @@ public class P4DDocIdSet extends AbstractDocSet implements Serializable {
         else
         return (local-localCompressedSet.get(ref,i))==val;
       }
-
-    
   }
 
   private int findIn(MyOpenBitSet myOpenBitSet, int baseVal, int val) {

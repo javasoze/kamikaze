@@ -7,6 +7,12 @@ import java.io.PrintWriter;
 public class GenerateUnpackClass {
   
   
+  /*example usage 
+  public void writeUnpackFile() throws IOException
+  {
+    GenerateUnpackClass.generatePForDeltaUnpackClass(256, "/Users/hyan/workspace/UnpackTmp.txt");
+  }
+  */
   
   static public void generatePForDeltaUnpackClass(int blockSize, String filename) throws IOException
   {
@@ -22,7 +28,8 @@ public class GenerateUnpackClass {
     for(int i=0; i<POSSIBLE_B.length; ++i)
     {
       pw.println(" ");
-      generatePForDeltaUnpackFile(pw, HEADER_BITS, blockSize, POSSIBLE_B[i]);
+      //generatePForDeltaUnpackFile(pw, HEADER_BITS, blockSize, POSSIBLE_B[i]);
+      generatePForDeltaUnpackFileEach32(pw, HEADER_BITS, blockSize, POSSIBLE_B[i]);
     }
     
     
@@ -41,6 +48,35 @@ public class GenerateUnpackClass {
     0x01ffffff, 0x03ffffff, 0x07ffffff, 0x0fffffff, 0x1fffffff, 0x3fffffff,
     0x7fffffff, 0xffffffff};
   
+  static private void generatePForDeltaUnpackFileEach32(PrintWriter pw, int inOffset, int n, int bits)
+  {
+    pw.println("  static private void unpack" + bits + "(int[] out, int[] in)");
+    pw.println("  {");
+    pw.println("  int i, w;");
+    int index,skip;
+    pw.println("  for(i=0, w=" + (inOffset>>>5) + "; i<" + (n/32) + "; ++i, w+=" + bits + "){");
+      int localInOffset = 0;
+      for(int i=0 ; i<32; ++i, localInOffset+=bits)
+      {
+        index = localInOffset >>> 5;
+        skip = localInOffset & 0x1f;
+        if(skip == 0)
+          pw.println("    out[" + i + "+(i<<5)] = ((in[w+" + index + "]) & " + MASK[bits] + ");");
+        else
+        {
+          if (32 - skip < bits) {
+            pw.println("    out[" + i + "+(i<<5)] = ((in[w+" + index + "] >>> " + (skip) + ") & " + MASK[bits] + ");");
+            pw.println("    out[" + i + "+(i<<5)] |= ((in[w+" + (index+1) + "] << " +  (32-skip) + ") & " + MASK[bits] + ");");
+          }
+          else
+            pw.println("    out[" + i + "+(i<<5)] = ((in[w+" + index + "] >>> " + (skip) + ") & " + MASK[bits] + ");");
+        }
+       
+      }
+      pw.println("  }");
+    pw.println("  }");
+  }
+
   static private void generatePForDeltaUnpackFile(PrintWriter pw, int inOffset, int n, int bits)
   {
     pw.println("  static private void unpack" + bits + "(int[] out, int[] in)");
@@ -63,7 +99,7 @@ public class GenerateUnpackClass {
     }  
     pw.println("  }");
   }
-
+  
   static private void generatePForDeltaFunctionSelectionFile(PrintWriter pw)
   {
      pw.println("  static public void unpack(int[] out, int[] in, int bits) {" );

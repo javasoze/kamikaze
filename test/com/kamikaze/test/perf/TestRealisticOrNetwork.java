@@ -39,8 +39,6 @@ public class TestRealisticOrNetwork {
   private static DocSet loadDegree(int degree) throws IOException {
     
     
-    
-    
     switch (degree)
     {
       case 0:

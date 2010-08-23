@@ -4,6 +4,12 @@ import java.io.Serializable;
 
 import com.kamikaze.docidset.bitset.MyOpenBitSet;
 
+/** 
+ * Utility class to provide integer arrays whose sizes can be changed dynamically
+ * 
+ * @author hao yan
+ */
+
 public class PForDeltaIntSegmentArray extends PrimitiveArray<MyOpenBitSet>  implements Serializable{
 
   

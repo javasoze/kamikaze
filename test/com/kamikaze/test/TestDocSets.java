@@ -1253,51 +1253,51 @@ public class TestDocSets {
   }*/
   
   
-  @Test
-  public void testContainsCalls() throws Exception
-  {
-    System.out.println("");
-    System.out.println("Running Find time test case...");
-    System.out.println("----------------------------");
-    
-    for(int test=0;test<5;test++)
-    {
-        IntArrayDocIdSet docSet = new IntArrayDocIdSet(20000000);
-        for(int i=0;i<20000000;i++)
-        {
-          docSet.addDoc(i);
-        }
-        long time =  System.nanoTime();
-         for(int i=0;i<20000000;i+=5) 
-           docSet.find(i);
-         System.out.println("Time for"+(20000000/5)+ " IntArray Find:"+(System.nanoTime()-time)+" ns");
-        time =  System.nanoTime();
-        
-        OBSDocIdSet docSet2 = new OBSDocIdSet(20000000);
-        for(int i=0;i<20000000;i++)
-        {
-          docSet2.addDoc(i);
-        }
-        time =  System.nanoTime();
-        for(int i=0;i<20000000;i+=5) 
-          docSet2.find(i);
-        System.out.println("Time for"+(20000000/5)+ " OBSDocSet Find:"+(System.nanoTime()-time)+" ns");
-       
-        time =  System.nanoTime();
-        P4DDocIdSet docSet3 = new P4DDocIdSet();
-        for(int i=0;i<20000000;i++)
-        {
-          docSet3.addDoc(i+5);
-        }
-        
-        time =  System.nanoTime();
-        for(int i=0;i<20000000;i+=6) 
-          docSet3.find(i);
-        System.out.println("Time for"+(20000000/6)+ " P4D Find:"+(System.nanoTime()-time)+" ns");
-        
-        
-    }
-  }
+//  @Test
+//  public void testContainsCalls() throws Exception
+//  {
+//    System.out.println("");
+//    System.out.println("Running Find time test case...");
+//    System.out.println("----------------------------");
+//    
+//    for(int test=0;test<5;test++)
+//    {
+//        IntArrayDocIdSet docSet = new IntArrayDocIdSet(20000);
+//        for(int i=0;i<20000;i++)
+//        {
+//          docSet.addDoc(i);
+//        }
+//        long time =  System.nanoTime();
+//         for(int i=0;i<20000;i+=5) 
+//           docSet.find(i);
+//         System.out.println("Time for"+(20000/5)+ " IntArray Find:"+(System.nanoTime()-time)+" ns");
+//        time =  System.nanoTime();
+//        
+//        OBSDocIdSet docSet2 = new OBSDocIdSet(20000);
+//        for(int i=0;i<20000;i++)
+//        {
+//          docSet2.addDoc(i);
+//        }
+//        time =  System.nanoTime();
+//        for(int i=0;i<20000000;i+=5) 
+//          docSet2.find(i);
+//        System.out.println("Time for"+(20000/5)+ " OBSDocSet Find:"+(System.nanoTime()-time)+" ns");
+//       
+//        time =  System.nanoTime();
+//        P4DDocIdSet docSet3 = new P4DDocIdSet();
+//        for(int i=0;i<20000;i++)
+//        {
+//          docSet3.addDoc(i+5);
+//        }
+//        
+//        time =  System.nanoTime();
+//        for(int i=0;i<20000;i+=6) 
+//          docSet3.find(i);
+//        System.out.println("Time for"+(20000/6)+ " P4D Find:"+(System.nanoTime()-time)+" ns");
+//        
+//        
+//    }
+//  }
 
   @Test 
   public void testFindOnP4D()
@@ -1309,7 +1309,7 @@ public class TestDocSets {
     
     P4DDocIdSet docSet3 = new P4DDocIdSet();
     ArrayList<Integer> list = new ArrayList<Integer>();
-    for(int i=0;i<20000000;i+=5)
+    for(int i=0;i<20000;i+=5)
     {
       list.add(i);
       docSet3.addDoc(i);
@@ -1324,7 +1324,7 @@ public class TestDocSets {
     
     list.clear();
     docSet3 = new P4DDocIdSet();
-    for(int i=0;i<20000000;i+=6)
+    for(int i=0;i<20000;i+=6)
     {
       list.add(i);
       docSet3.addDoc(i);
@@ -1615,7 +1615,7 @@ public class TestDocSets {
     System.out.println("Running P4DeltaDocSet No Exception Compression Ratio test");
     System.out.println("----------------------------");
 
-    final int max = 100000;
+    final int max = 10000;
 
     for(int j = 0; j < 31; j++)
     {

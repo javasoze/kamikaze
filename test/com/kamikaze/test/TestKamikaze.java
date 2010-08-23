@@ -19,7 +19,7 @@ import com.kamikaze.docidset.impl.P4DDocIdSet;
 import com.kamikaze.docidset.utils.DocSetFactory;
 
 
-public class KamikazeTest extends TestCase 
+public class TestKamikaze extends TestCase 
 { 
 
       public void testMultipleIntersections() throws Exception
@@ -28,8 +28,8 @@ public class KamikazeTest extends TestCase
         System.out.println("Running Multiple Intersections Test case...");
         System.out.println("-------------------------------------------");
         
-              ArrayList<OpenBitSet> obs = new ArrayList<OpenBitSet>(); 
-              ArrayList<DocIdSet> docs = new ArrayList<DocIdSet>(); 
+        ArrayList<OpenBitSet> obs = new ArrayList<OpenBitSet>(); 
+        ArrayList<DocIdSet> docs = new ArrayList<DocIdSet>(); 
               Random rand = new Random(System.currentTimeMillis()); 
               int maxDoc = 350000; 
               for(int i=0; i < 3; ++i) 

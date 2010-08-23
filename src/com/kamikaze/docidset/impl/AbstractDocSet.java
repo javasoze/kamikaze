@@ -15,7 +15,6 @@ public abstract class AbstractDocSet extends DocSet implements Serializable {
 
   public static final int DEFAULT_BATCH_SIZE = 256;
 
- 
 
   /**
    * Default batch size for compression blobs

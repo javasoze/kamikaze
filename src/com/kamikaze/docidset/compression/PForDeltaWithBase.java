@@ -6,16 +6,18 @@ import com.kamikaze.docidset.utils.CompResult;
 import com.kamikaze.docidset.compression.PForDeltaUnpack;
 
 /**
- * Implementation of the PForDelta algorithm for sorted integer arrays based on
- * @author hao yan
+ * Implementation of the optimized PForDelta algorithm for sorted integer arrays. The basic ideas are based on
  * 
  * 1. Original Algorithm from
- * http://homepages.cwi.nl/~heman/downloads/msthesis.pdf 2. Optimization and
- * variation from http://www2008.org/papers/pdf/p387-zhangA.pdf 3. Further optimization
- * http://www2009.org/proceedings/pdf/p401.pdf 
- *  2. The optimized algorithm from 
- *  http://www2009.org/proceedings/pdf/p401.pdf
+ * http://homepages.cwi.nl/~heman/downloads/msthesis.pdf 
  * 
+ * 2. Optimization and
+ * variation from http://www2008.org/papers/pdf/p387-zhangA.pdf 
+ * 
+ * 3. Further optimization
+ * http://www2009.org/proceedings/pdf/p401.pdf
+ *  
+ * @author hao yan
  */
 public class PForDeltaWithBase implements PForDeltaCompressedSortedIntegerSegment, Serializable {
 
@@ -40,13 +42,16 @@ public class PForDeltaWithBase implements PForDeltaCompressedSortedIntegerSegmen
   private static final int POSBITS = 8;
   
   // Auxiliary spaces to store temporary compressed/decompressed results
-  private static int[] _expPos = new int[MAX_EXPECTED_BLOCKSIZE];
-  private static int[] _expHighBits = new int[MAX_EXPECTED_BLOCKSIZE];
-  private static int[] _expAux = new int[MAX_EXPECTED_BLOCKSIZE * 2];
-  private static int[]  _EstCompBlock = new int[MAX_EXPECTED_BLOCKSIZE * 2]; 
+  transient private int[] _expPos = new int[MAX_EXPECTED_BLOCKSIZE];
+  transient private int[] _expHighBits = new int[MAX_EXPECTED_BLOCKSIZE];
+  transient private int[] _expAux = new int[MAX_EXPECTED_BLOCKSIZE * 2];
+  transient private int[]  _EstCompBlock = new int[MAX_EXPECTED_BLOCKSIZE * 2]; 
   
-  // The compressed size in bits of the block 
-  private int _compressedBitSize = 0;
+  private int _expNum=0;  // the number of exceptions in a block
+  private int _bits=0;        // the value of b in the PForDelta algorithm
+  private boolean _flagFixedBitExpPos; // indicating if the expPos (positions of excpetions) is encoded in fixed number of bits
+  private int _compressedBitSize = 0;  // The compressed size in bits of the block 
+  private int _offset; 
   
   /**
    * Get the compressed size in bits of the block 
@@ -108,11 +113,13 @@ public class PForDeltaWithBase implements PForDeltaCompressedSortedIntegerSegmen
   }
 
   /**
-   * Compress a block of non-negative integers
+   * Compress an integer array
    * 
-   * @param inputBlock
-   * @param flag true if fixed bit size is used to encode exception positions
-   * @return CompResult
+   * @param inputBlock the integer input array
+   * @param bits the value of b in the PForDelta algorithm
+   * @param blockSize the block size which is 256 by default
+   * @param flagFixedBitExpPos true if fixed bit size is used to encode exception positions
+   * @return CompResult which contains the compressed size in number of bits and the reference to the compressed data
    * @throws IllegalArgumentException
    */
   public CompResult compressOneBlock(int[] inputBlock, int bits, int blockSize, boolean flagFixedBitExpPos) throws IllegalArgumentException {
@@ -156,7 +163,7 @@ public class PForDeltaWithBase implements PForDeltaCompressedSortedIntegerSegmen
       outputOffset += bits;
     }    
     
-    // The first HEADER stores:  flag | bits | expNum, assuming expNum < 2^10 and bits<2^10
+    // The first HEADER stores:  flagFixedBitExpPos | bits | expNum, assuming expNum < 2^10 and bits<2^10
     if(flagFixedBitExpPos) // using fixed bits to encode expPos
     {
       compressedBlock[0] = (1<<20) | ((bits & MASK[10]) << 10) | (expNum & 0x3ff);
@@ -189,15 +196,26 @@ public class PForDeltaWithBase implements PForDeltaCompressedSortedIntegerSegmen
     
     _compressedBitSize = outputOffset;
     
+    int[] sealedCompBlock = new int[(outputOffset+31)>>>5];
+    System.arraycopy(compressedBlock,0, sealedCompBlock, 0, (outputOffset+31)>>>5);
+    
     CompResult compRes = new CompResult();
     compRes.setUsingFixedBitCoding(flagFixedBitExpPos);
-    compRes.setCompressedBlock(compressedBlock);
+    compRes.setCompressedBlock(sealedCompBlock);
     compRes.setCompressedSize(outputOffset);
     
     return compRes;
   }
  
- //call this function only after setParam() is called
+  
+  /**
+   * Decompress a compressed block into an integer array
+   * 
+   * @param outDecompBlock the decompressed output block
+   * @param compBlock the compressed input block
+   * @param blockSize the block size which is 256 by default 
+   * @return the processed data size (the number of bits in the compressed form)
+   */  
   public int decompressOneBlock(int[] outDecompBlock, int[] compBlock, int blockSize)
   {
     if(blockSize > MAX_EXPECTED_BLOCKSIZE)
@@ -208,17 +226,17 @@ public class PForDeltaWithBase implements PForDeltaCompressedSortedIntegerSegmen
        _EstCompBlock = new int[blockSize * 2]; 
     }
     
-    // first decompress the bits and expNum
+    // first decompress the flagFixedBitExpPos, bits and expNum
     if(compBlock == null)
     {
       System.out.println("compBlock is null");
       return 0;
     }
-    
     int expNum = compBlock[0] & 0x3ff; 
     int bits = (compBlock[0]>>>10) & (0x1f);    
     boolean flagFixedBitExpPos = ((compBlock[0]>>>20) & (0x1)) > 0 ? true : false;
     
+    // decompress the b-bit slots
     int offset = HEADER_SIZE;
     int compressedBits = 0;
     if(bits == 0)
@@ -227,11 +245,12 @@ public class PForDeltaWithBase implements PForDeltaCompressedSortedIntegerSegmen
     }
     else
     {
-      compressedBits = decompressBBitSlots(outDecompBlock, compBlock, blockSize, bits);
-      //compressedBits = decompressBBitSlotsWithHardCodes(decompBlock, compBlock, blockSize, bits);
+      //compressedBits = decompressBBitSlots(outDecompBlock, compBlock, blockSize, bits);
+      compressedBits = decompressBBitSlotsWithHardCodes(outDecompBlock, compBlock, blockSize, bits);
     }
     offset += compressedBits;
     
+    // decompress the expPos and expHighBits and assemble them with the above b-bit slots values into the final results
     if(expNum>0)
     {
       if(flagFixedBitExpPos)
@@ -269,6 +288,15 @@ public class PForDeltaWithBase implements PForDeltaCompressedSortedIntegerSegmen
     return offset;
   }
   
+  /**
+   * Decompress the b-bit slots
+   * 
+   * @param decompressedSlots the decompressed output 
+   * @param compBlock the compressed input block
+   * @param blockSize the block size which is 256 by default 
+   * @param bits the value of b
+   * @return the processed data size (the number of bits in the compressed form)
+   */ 
   private int decompressBBitSlots(int[] decompressedSlots, int[] compBlock, int blockSize, int bits)
   {
     int compressedBitSize = 0;
@@ -283,7 +311,16 @@ public class PForDeltaWithBase implements PForDeltaCompressedSortedIntegerSegmen
     return compressedBitSize;    
   } 
   
-  public int decompressBBitSlotsWithHardCodes(int[] decompressedSlots, int[] compBlock, int blockSize, int bits)
+  /**
+   * Decompress the b-bit slots using hardcoded unpack methods
+   * 
+   * @param decompressedSlots the decompressed output 
+   * @param compBlock the compressed input block
+   * @param blockSize the block size which is 256 by default 
+   * @param bits the value of b
+   * @return the processed data size (the number of bits in the compressed form)
+   */ 
+  private int decompressBBitSlotsWithHardCodes(int[] decompressedSlots, int[] compBlock, int blockSize, int bits)
   {
     int compressedBitSize = 0;
     PForDeltaUnpack.unpack(decompressedSlots, compBlock, bits);
@@ -292,7 +329,15 @@ public class PForDeltaWithBase implements PForDeltaCompressedSortedIntegerSegmen
     return compressedBitSize;    
   } 
   
-  // compress a block by Simple16
+  /**
+   * Compress an integer array using Simple16 (used to compress positions and highBits of exceptions)
+   * 
+   * @param outCompBlock the compressed output 
+   * @param offset the bit offset in the compressed input block
+   * @param inBlock the compressed input block 
+   * @param expsize the number of exceptions
+   * @return the compressed data size (the number of bits in the compressed form)
+   */ 
   private int compressBlockByS16(int[] outCompBlock, int offset, int[] inBlock, int expSize)
   {
     int outOffset  = (offset+31)>>>5; 
@@ -308,7 +353,15 @@ public class PForDeltaWithBase implements PForDeltaCompressedSortedIntegerSegmen
     return compressedBitSize;    
   }
   
-  // decompress a block by Simple16
+  /**
+   * Decompress an integer array using Simple16 (used to decompress positions and highBits of exceptions)
+   * 
+   * @param outDecompBlock the decompressed output 
+   * @param inCompBlock the compressed input block 
+   * @param expsize the number of exceptions
+   * @param offset the bit offset in the compressed input block
+   * @return the processed data size (the number of bits in the compressed form)
+   */ 
   private int decompressBlockByS16(int[] outDecompBlock, int[] inCompBlock, int expSize, int offset)
   {    
     int inOffset  = (offset+31)>>>5;
@@ -323,7 +376,16 @@ public class PForDeltaWithBase implements PForDeltaCompressedSortedIntegerSegmen
     return compressedBitSize;    
   }
   
-  // compress expPos using fixed number of bits
+  /**
+   * Compress the exception positions using fixed number of bits
+   * 
+   * @param compBlock the compressed output 
+   * @param offset the bit offset in the compressed output block
+   * @param expPos the input which is an integer array of exception positions 
+   * @param expsize the number of exceptions
+   * @param bits the value of b in the PForDelta algorithm
+   * @return the compressed data size (the number of bits in the compressed form)
+   */ 
   private int compressExpPosFixedBits(int[] compBlock, int offset, int[] expPos, int expSize, int bits)
   {
     int outputOffset = offset;
@@ -337,7 +399,16 @@ public class PForDeltaWithBase implements PForDeltaCompressedSortedIntegerSegmen
     return compressedBitSize;    
   }
   
-  // decompress expPos using fixed number of bits
+  /**
+   * Decompress the exception positions using fixed number of bits
+   * 
+   * @param expPos the output which is an integer array of exception positions 
+   * @param compBlock the compressed input 
+   * @param expsize the number of exceptions
+   * @param offset the bit offset in the compressed input block
+   * @param bits the value of b in the PForDelta algorithm
+   * @return the processed data size (the number of bits in the compressed form)
+   */ 
   private int decompressExpPosFixedBits(int[] expPos, int []compBlock, int expSize, int offset, int bits)
   {
     int outputOffset = offset;
@@ -352,7 +423,14 @@ public class PForDeltaWithBase implements PForDeltaCompressedSortedIntegerSegmen
     return compressedBitSize;    
   }
   
-//bits can be = 0
+  /**
+   * Write certain number of bits of an integer into an integer array starting from the given offset
+   * 
+   * @param out the output array 
+   * @param val the integer to be written
+   * @param outOffset the offset in the number of bits in the output array, where the integer will be written
+   * @param bits the number of bits to be written
+   */
   static private void writeBits(int[] out, int val, int outOffset, int bits) {
     if(bits == 0)
       return;
@@ -365,8 +443,14 @@ public class PForDeltaWithBase implements PForDeltaCompressedSortedIntegerSegmen
     }
   }
   
-  // bits must > 0, unlike writeBits, readBits does not deal with bits==0. 
-  //When bits ==0, the calling functions will just skip the entire bits-bit slots without decoding them
+  /**
+   * Read certain number of bits of an integer into an integer array starting from the given offset
+   * 
+   * @param in the input array 
+   * @param val the integer to be written
+   * @param inOffset the offset in the number of bits in the input array, where the integer will be read
+   * @param bits the number of bits to be read, unlike writeBits(), readBits() does not deal with bits==0 and thus bits must > 0. When bits ==0, the calling functions will just skip the entire bits-bit slots without decoding them
+   */
 static private int readBits(int[] in, final int inOffset, final int bits) {
     final int index = inOffset >>> 5;
     final int skip = inOffset & 0x1f;
@@ -382,6 +466,10 @@ static private int readBitsForS16(int[] in, final int inIntOffset, final int inW
   return val & (0xffffffff >>> (32 - bits));
 }
 
+/**
+ * Codes for encoding/decoding of the Simple16 compression algorithm
+ * 
+ */
   private static final int[] MASK = {0x00000000,
     0x00000001, 0x00000003, 0x00000007, 0x0000000f, 0x0000001f, 0x0000003f,
     0x0000007f, 0x000000ff, 0x000001ff, 0x000003ff, 0x000007ff, 0x00000fff,
@@ -410,7 +498,16 @@ static private int readBitsForS16(int[] in, final int inIntOffset, final int inW
       {14,14,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
       {28,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0} };
   
-  // hy: n is the number to be compressed, after the call, inOffset+=returnValue, outOffset++;
+  /**
+   * Compress an integer array using Simple16
+   * 
+   * @param out the compressed output 
+   * @param outOffset the offset of the output in the number of integers
+   * @param in the integer input array
+   * @param inOffset the offset of the input in the number of integers
+   * @param n the number of elements to be compressed
+   * @return the number of compressed integers
+   */ 
   private static final int s16Compress(int[] out, int outOffset, int[] in, int inOffset, int n)
   {
      int numIdx, j, num, bits;
@@ -433,6 +530,16 @@ static private int readBitsForS16(int[] in, final int inIntOffset, final int inW
     return -1;
   }
   
+  /**
+   * Decompress an integer array using Simple16
+   * 
+   * @param out the decompressed output 
+   * @param outOffset the offset of the output in the number of integers
+   * @param in the compressed input array
+   * @param inOffset the offset of the input in the number of integers
+   * @param n the number of elements to be compressed
+   * @return the number of processed integers
+   */ 
   private static final int s16Decompress(int[] out, int outOffset, int[] in, int inOffset, int n)
   {
      int numIdx, j=0, bits=0;
@@ -446,7 +553,10 @@ static private int readBitsForS16(int[] in, final int inIntOffset, final int inW
      return num;
   }
   
-//hy: no compression (just use int to represent them) 
+  /**
+   * Using integer to represent exception positions, no compression 
+   * 
+   */ 
   private int compressExpPosBasic(int[] compBlock, int offset, int[] expPos, int expSize)
   {
     if(offset%32 !=0)
@@ -483,7 +593,11 @@ static private int readBitsForS16(int[] in, final int inIntOffset, final int inW
     return compressedBitSize;    
   }
   
-  // hy: just use 32-bits to represent the high bits of exps 
+  
+  /**
+   * Using integer to represent exception highBits, no compression 
+   * 
+   */  
   private int compressExpHighBitsBasic(int[] compBlock, int offset, int[] expHighBits, int expSize, int bits)
   {   
     int compressedBitSize = 0;    
@@ -527,4 +641,75 @@ static private int readBitsForS16(int[] in, final int inIntOffset, final int inW
     System.out.println("]");
   }
   
+  /**
+   * Decompress one element in the compressed block (currently this function is never called)
+   * 
+   * @param compBlock the compressed input block
+   * @param index which element to decompress
+   * @param blockSize the size of the block which is 256 by default
+   * @return the integer value of the decompressed element
+   * @throws IllegalArgumentException
+   */
+  public int decompressOneElement(int[] outDecompBlock, int[] compBlock, int index, int blockSize)
+  {
+    if(blockSize > MAX_EXPECTED_BLOCKSIZE)
+    {
+      _expPos = new int[blockSize];
+      _expHighBits = new int[blockSize];
+      _expAux = new int[blockSize * 2];
+       _EstCompBlock = new int[blockSize * 2]; 
+    }
+    
+    int compressedBits = 0;
+    
+    if(index == 0) // the first element in the block
+    {
+      Arrays.fill(outDecompBlock, 0);
+      _expNum = compBlock[0] & 0x3ff; 
+      _bits = (compBlock[0]>>>10) & (0x1f);    
+      _flagFixedBitExpPos = ((compBlock[0]>>>20) & (0x1)) > 0 ? true : false;
+      _offset = HEADER_SIZE + blockSize * _bits;
+      if(_expNum>0)
+      {
+        if(_flagFixedBitExpPos)
+        {
+          compressedBits =  decompressExpPosFixedBits(_expPos, compBlock, _expNum, _offset, 8);
+          _offset += compressedBits;
+          compressedBits = decompressBlockByS16(_expHighBits, compBlock, _expNum, _offset);
+          _offset += compressedBits;
+        }
+        else
+        {
+          compressedBits = decompressBlockByS16(_expAux, compBlock, _expNum*2, _offset);
+          _offset += compressedBits;
+        }
+        
+        
+        int i=0;
+        int curExpPos;
+        int curHighBits;
+        
+        for (i = 0; i < _expNum; i++) 
+        { 
+          if(_flagFixedBitExpPos)
+          {
+            curExpPos = _expPos[i]; // this makes sense since expNum is > 0
+            curHighBits = _expHighBits[i];
+          }
+          else
+          {
+            curExpPos = _expAux[i]  ;
+            curHighBits = _expAux[i+_expNum];
+          }
+          outDecompBlock[curExpPos] = (outDecompBlock[curExpPos] & MASK[_bits]) | ((curHighBits & MASK[32-_bits] ) << _bits);
+        }
+      } // if _expNum
+      _offset = HEADER_SIZE;
+    } // if index=0;
+    
+    outDecompBlock[index] = outDecompBlock[index]  | (readBits(compBlock, _offset, _bits));
+    _offset += _bits;
+    return outDecompBlock[index];
+  }
+
 }

@@ -32,8 +32,6 @@ public class OrDocIdSet extends ImmutableDocSet implements Serializable {
   
   private int _size = INVALID;
 
-  
-
   public OrDocIdSet(List<DocIdSet> docSets) {
     this.sets = docSets;
     int size = 0;

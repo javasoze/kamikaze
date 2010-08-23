@@ -5,7 +5,7 @@ import com.kamikaze.docidset.impl.AbstractDocSet;
 import com.kamikaze.docidset.impl.IntArrayDocIdSet;
 import com.kamikaze.docidset.impl.OBSDocIdSet;
 import com.kamikaze.docidset.impl.P4DDocIdSet;
-import com.kamikaze.docidset.impl.PForDeltaDocId;
+import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
 
 /** 
  * Utility class to make appropriate measurement calls to recognize optimal
@@ -34,10 +34,7 @@ public class DocSetFactory
   
   public static enum FOCUS {PERFORMANCE, SPACE, OPTIMAL};
   
-  public static DocSet getPForDeltaDocSetInstance()
-  {
-    return new PForDeltaDocId();
-  }
+ 
   
   public static DocSet getP4DDocSetInstance()
   {
