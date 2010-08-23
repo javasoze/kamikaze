@@ -36,7 +36,11 @@ import com.kamikaze.docidset.utils.DocSetFactory;
 import com.kamikaze.docidset.utils.PForDeltaDocSetFactory;
 
 /**
- * This class provides a variety of tests to compare the performance of the old and new versions of Kamikaze 
+ * This class provides a variety of tests to compare the performance of the old and new versions of Kamikaze. In particular,
+ * 1) the compression size and decompression speed for DocIdSet
+ * 2) the serialized size of DocIdSet objects
+ * 3) the speed to find the intersection of multiple DocIdSets (AndDocIdSet.nextDoc()).
+ * 4) the speed of DocIdSet.find()
  * @author hao yan
  *
  */
@@ -45,27 +49,40 @@ public class PForDeltaPerfTest  {
 
   public static void main(String args[]) throws Exception {
     PerfTests testObj = new PerfTests();
-   
+    
+    // for each of the following tests, we use three lists with different lengths for each run. 
+    // For example, in test 1, we run 4 runs. For the first run we use three lists with 15000, 37500, 75000 random integers respectively 
+    // For the second run, we use lists with 150000,375000,750000 random integers respectively
+    
+    // test 1
     int[][] inputSizeCompDecomp = {
       {15000,37500,75000},
       {150000,375000,750000}, 
       {1500000, 3750000, 7500000},
       {1500,3750,7500}};
+    System.out.println("COMPDECOMP test ---------- ");
     for(int i=0; i<inputSizeCompDecomp.length; ++i)
     {
        doTests(testObj, METHODS.COMPDECOMP, inputSizeCompDecomp[i]);
     }
+    System.out.println("--------- COMPDECOMP test is completed ----------------");
+    System.out.println(" ");
     
+    // test 2
     int[][] inputSizeCompSerial = {
         {15000,37500,75000},
         {150000,375000,750000}, 
         {1500000, 3750000, 7500000},
         {1500,3750,7500}};
+    System.out.println("SERIAL test ---------- ");
     for(int i=0; i<inputSizeCompSerial.length; ++i)
     {
        doTests(testObj, METHODS.SERIAL,inputSizeCompSerial[i]);
     }
+    System.out.println("--------- SERIAL test is completed ----------------");
+    System.out.println(" ");
     
+    // test 3
     int[][] inputSizeCompAnd = {
         {15000,37500,75000},
         {150000,375000,750000}, 
@@ -74,11 +91,15 @@ public class PForDeltaPerfTest  {
         {15000,3750000,750000},
         {15000,375000,75000},
         {1500,375000,75000}};
+    System.out.println("AND test ---------- ");
     for(int i=0; i<inputSizeCompAnd.length; ++i)
     {
-       doTests(testObj, METHODS.COMPDECOMP, inputSizeCompAnd[i]);
+       doTests(testObj, METHODS.AND, inputSizeCompAnd[i]);
     }
+    System.out.println("--------- AND test is completed ----------------");
+    System.out.println(" ");
       
+    // test 4
     int[][] inputSizeCompFind = {
           {15000,37500,75000},
           {150000,375000,750000}, 
@@ -87,11 +108,15 @@ public class PForDeltaPerfTest  {
           {15000,3750000,750000},
           {15000,375000,75000},
           {1500,375000,75000}};
+    System.out.println("FIND test ---------- ");
     for(int i=0; i<inputSizeCompFind.length; ++i)
     {
      doTests(testObj, METHODS.FIND,inputSizeCompFind[i]);
     }
+    System.out.println("--------- FIND test is completed ----------------");
+    System.out.println(" ");
       
+    // test 5
     int[][] inputSizeIPAND = {{15000,37500,75000},
         {150000,375000,750000}, 
         {1500000, 3750000, 7500000},
@@ -99,10 +124,13 @@ public class PForDeltaPerfTest  {
         {15000,3750000,750000},
         {15000,375000,75000},
         {1500,375000,75000}};
+    System.out.println("IPAND test ---------- ");
     for(int i=0; i<inputSizeIPAND.length; ++i)
     {
       doTests(testObj, METHODS.IPAND, inputSizeIPAND[i]);
     }
+    System.out.println("--------- IPAND test is completed ----------------");
+    System.out.println(" ");
     
   }
 
