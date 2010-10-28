@@ -2,7 +2,9 @@ package com.kamikaze.test;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -38,11 +40,11 @@ import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
   public class PForDeltaMultiThreadedAccessTest {
   int _length = 10;
   int _max = 300000;
-  @Test
+  //@Test
   public void testSkipPerformance() throws IOException, InterruptedException
   {
     System.out.println("");
-    System.out.println("Running Doc Skip Multithreaded");
+    System.out.println("Running PForDelta Doc Skip Multithreaded");
     System.out.println("----------------------------");
     
     int[] list = new int[_length*256];
@@ -66,7 +68,8 @@ import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
       }
       System.out.println("Set Size:"+ p4d.size());
       
-      Thread arr [] = new Thread[3]; 
+      Thread arr [] = new Thread[5]; 
+      
       for(int i=0;i<arr.length;i++)
       {
           Thread t = new Thread() {
@@ -76,11 +79,16 @@ import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
               
               try {
                 int docid;
+//                String filename = "/Users/hyan/cloudData/" + this.getId(); 
+//                PrintWriter pw = new PrintWriter(new FileOutputStream(filename, true));
                 while((docid = dcit.nextDoc()) != DocIdSetIterator.NO_MORE_DOCS)
                 { 
-                  //System.out.println("Thread " + this.getId() + ": " + docid);
+                  System.out.println("Thread " + this.getId() + ": " + docid);
+                  //pw.print(docid + ",");
                   //Thread.sleep(0, 25000);
                 }
+//                pw.flush();
+//                pw.close();
               } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -105,7 +113,7 @@ import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
   public void testMultiThreadedFind() throws IOException, InterruptedException
   {
     System.out.println("");
-    System.out.println("Running Doc Find Multithreaded");
+    System.out.println("Running PForDelta Doc Find Multithreaded");
     System.out.println("----------------------------");
     
     int[] list = new int[_length*256];
@@ -138,15 +146,23 @@ import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
               
               try {
                 int docid;
+                //String filename = "/Users/hyan/cloudData/" + this.getId(); 
+                //PrintWriter pw = new PrintWriter(new FileOutputStream(filename, true));
                 while((docid = dcit.nextDoc()) != DocIdSetIterator.NO_MORE_DOCS)
                 { 
-                  if(!p4d.findSyncItself(docid))
+                  if(!p4d.find(docid))
                   {
                     System.out.println("thread "  + this.getId() + " cannot find " + docid);
                   }
-                  //assertEquals(true, p4d.find(docid));
-                  //assertEquals(false,p4d.find(35));
+//                  else
+//                  {
+//                    pw.print(docid + ",");
+//                  }
+                  assertEquals(true, p4d.find(docid));
+                  assertEquals(false,p4d.find(35));
                 }
+//                pw.flush();
+//                pw.close();
               } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();

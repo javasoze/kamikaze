@@ -163,3 +163,4 @@ public class OrDocIdSetIterator extends DocIdSetIterator {
   }
 
 }
+

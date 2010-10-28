@@ -28,13 +28,8 @@ import com.kamikaze.docidset.api.StatefulDSIterator;
 import com.kamikaze.docidset.impl.AndDocIdSet;
 import com.kamikaze.docidset.impl.IntArrayDocIdSet;
 import com.kamikaze.docidset.impl.OrDocIdSet;
-import com.kamikaze.docidset.impl.PForDeltaAndDocIdSet;
-import com.kamikaze.docidset.impl.PForDeltaOrDocIdSet;
 import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
-import com.kamikaze.docidset.utils.PForDeltaDocSetFactory;
 import com.kamikaze.docidset.utils.DocSetFactory;
-import com.kamikaze.docidset.utils.GenerateUnpackClass;
-import com.kamikaze.docidset.utils.PForDeltaDocSetFactory.FOCUS;
 
 
 public class PForDeltaKamikazeTest extends TestCase 
@@ -120,7 +115,7 @@ public void testPartialEmptyAnd() throws IOException
     try 
     {
         ArrayList<Integer> output = new ArrayList<Integer>();
-        System.out.println("Running test case:  partial empty and ...");       
+        System.out.println("Running OrDocIdSet of PForDeltaDocIdSet test case:  partial empty and ...");       
           
         DocSet ds1 = new PForDeltaDocIdSet(); 
         DocSet ds2 = new PForDeltaDocIdSet(); 
@@ -140,13 +135,18 @@ public void testPartialEmptyAnd() throws IOException
         docs2.add(ds3); // ds3 is empty
         docs2.add(ds4); 
         
-        PForDeltaOrDocIdSet orlist1 = new PForDeltaOrDocIdSet(docs); 
-        PForDeltaOrDocIdSet orlist2 = new PForDeltaOrDocIdSet(docs2); 
+       // PForDeltaOrDocIdSet orlist1 = new PForDeltaOrDocIdSet(docs); 
+       // PForDeltaOrDocIdSet orlist2 = new PForDeltaOrDocIdSet(docs2); 
+        OrDocIdSet orlist1 = new OrDocIdSet(docs); 
+        OrDocIdSet orlist2 = new OrDocIdSet(docs2); 
+        
         ArrayList<DocIdSet> docs3 = new ArrayList<DocIdSet>(); 
         docs3.add(orlist1); 
         docs3.add(orlist2); 
         
-        PForDeltaAndDocIdSet andlist = new PForDeltaAndDocIdSet(docs3); 
+        //PForDeltaAndDocIdSet andlist = new PForDeltaAndDocIdSet(docs3); 
+        AndDocIdSet andlist = new AndDocIdSet(docs3); 
+
         
         DocIdSetIterator iter = andlist.iterator(); 
         int docId = iter.nextDoc(); 
@@ -214,7 +214,8 @@ public void testAndIntersections() throws Exception
      
      // get the results from PForDeltaAndDocIdSet
      ArrayList<Integer> intersectionResult = new ArrayList<Integer>();
-     PForDeltaAndDocIdSet ands = new PForDeltaAndDocIdSet(docs); 
+     //PForDeltaAndDocIdSet ands = new PForDeltaAndDocIdSet(docs); 
+     AndDocIdSet ands = new AndDocIdSet(docs); 
      DocIdSetIterator iter = ands.iterator();
      int docId = iter.nextDoc();
      while(docId != DocIdSetIterator.NO_MORE_DOCS)
@@ -532,7 +533,8 @@ public void testOrDocIdSetWithIntArrayPForDelta() throws Exception
     }
     DocList[i]=docset;
   }
-  PForDeltaOrDocIdSet orset = new PForDeltaOrDocIdSet(Arrays.asList(DocList));
+  //PForDeltaOrDocIdSet orset = new PForDeltaOrDocIdSet(Arrays.asList(DocList));
+  OrDocIdSet orset = new OrDocIdSet(Arrays.asList(DocList));
   DocIdSetIterator iter = orset.iterator();
   int doc;
   while((doc=iter.nextDoc())!=DocIdSetIterator.NO_MORE_DOCS)
@@ -558,7 +560,8 @@ public void testAndDocIdSetWithIntArrayPForDelta() throws Exception
     }
     DocList[i]=docset;
   }
-  PForDeltaAndDocIdSet orset = new PForDeltaAndDocIdSet(Arrays.asList(DocList));
+  //PForDeltaAndDocIdSet orset = new PForDeltaAndDocIdSet(Arrays.asList(DocList));
+  AndDocIdSet orset = new AndDocIdSet(Arrays.asList(DocList));
   DocIdSetIterator iter = orset.iterator();
   int doc;
   while((doc=iter.nextDoc())!=DocIdSetIterator.NO_MORE_DOCS)
@@ -567,30 +570,30 @@ public void testAndDocIdSetWithIntArrayPForDelta() throws Exception
   System.out.println("--------completed-----------");
 }
 
-@Test
-public void testPForDeltaDocSetFactory() {
-  int min = 1;
-  int max  = 100;
-  int count  = 100;
-  
-  DocIdSet set = PForDeltaDocSetFactory.getDocSetInstance(min, max, count, FOCUS.PERFORMANCE);
-  assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.IntArrayDocIdSet");
-  set = PForDeltaDocSetFactory.getDocSetInstance(min, max, count, FOCUS.SPACE);
-  assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.IntArrayDocIdSet");
-  set = PForDeltaDocSetFactory.getDocSetInstance(min, max, count, FOCUS.OPTIMAL);
-  assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.IntArrayDocIdSet");
-  
-  min = 1;
-  max = 10000;
-  count = 10000;
-
-  set = PForDeltaDocSetFactory.getDocSetInstance(min, max, count, FOCUS.PERFORMANCE);
-  assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.IntArrayDocIdSet");
-  set = PForDeltaDocSetFactory.getDocSetInstance(min, max, count, FOCUS.SPACE);
-  assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.PForDeltaDocIdSet");
-  set = PForDeltaDocSetFactory.getDocSetInstance(min, max, count, FOCUS.OPTIMAL);
-  assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.PForDeltaDocIdSet");
-}
+//@Test
+//public void testPForDeltaDocSetFactory() {
+//  int min = 1;
+//  int max  = 100;
+//  int count  = 100;
+//  
+//  DocIdSet set = PForDeltaDocSetFactory.getDocSetInstance(min, max, count, FOCUS.PERFORMANCE);
+//  assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.IntArrayDocIdSet");
+//  set = PForDeltaDocSetFactory.getDocSetInstance(min, max, count, FOCUS.SPACE);
+//  assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.IntArrayDocIdSet");
+//  set = PForDeltaDocSetFactory.getDocSetInstance(min, max, count, FOCUS.OPTIMAL);
+//  assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.IntArrayDocIdSet");
+//  
+//  min = 1;
+//  max = 10000;
+//  count = 10000;
+//
+//  set = PForDeltaDocSetFactory.getDocSetInstance(min, max, count, FOCUS.PERFORMANCE);
+//  assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.IntArrayDocIdSet");
+//  set = PForDeltaDocSetFactory.getDocSetInstance(min, max, count, FOCUS.SPACE);
+//  assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.PForDeltaDocIdSet");
+//  set = PForDeltaDocSetFactory.getDocSetInstance(min, max, count, FOCUS.OPTIMAL);
+//  assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.PForDeltaDocIdSet");
+//}
 
 
   private OpenBitSet createObs(ArrayList<Integer> nums, int maxDoc) { 
@@ -608,7 +611,7 @@ public void testPForDeltaDocSetFactory() {
   } 
   
   private DocIdSet createDocSet(ArrayList<Integer> nums) throws Exception{ 
-    DocSet p4d = PForDeltaDocSetFactory.getPForDeltaDocSetInstance(); 
+    DocSet p4d = DocSetFactory.getPForDeltaDocSetInstance(); 
     for(int num:nums) 
     {         
       p4d.addDoc(num);
@@ -617,7 +620,7 @@ public void testPForDeltaDocSetFactory() {
   } 
   
   private DocIdSet createDocSet(int[] nums) throws Exception{ 
-    DocSet p4d = PForDeltaDocSetFactory.getPForDeltaDocSetInstance(); 
+    DocSet p4d = DocSetFactory.getPForDeltaDocSetInstance(); 
     for(int num:nums) 
     {         
       p4d.addDoc(num);

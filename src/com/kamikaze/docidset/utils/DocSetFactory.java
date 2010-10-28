@@ -41,6 +41,11 @@ public class DocSetFactory
     return new P4DDocIdSet();
   }
   
+  public static DocSet getPForDeltaDocSetInstance()
+  {
+    return new PForDeltaDocIdSet();
+  }
+  
   public static DocSet getDocSetInstance(int min, int max, int count, FOCUS hint)
   {
     // Default to Medians
@@ -79,7 +84,8 @@ public class DocSetFactory
             return new OBSDocIdSet(max-min+1);
        
           else
-            return new P4DDocIdSet();
+            return new PForDeltaDocIdSet();
+            //return new P4DDocIdSet();
           
         // All cases in consideration  
         case OPTIMAL:
@@ -88,7 +94,8 @@ public class DocSetFactory
            if(count < AbstractDocSet.DEFAULT_BATCH_SIZE)
               return new IntArrayDocIdSet(count);
            else 
-             return new P4DDocIdSet();
+             return new PForDeltaDocIdSet();
+             //return new P4DDocIdSet();
           }   
           else if((((max-min)>>>LONG_SHIFT)+1)*2*INT_SIZE >  count * INT_SIZE)
             return new IntArrayDocIdSet(count);

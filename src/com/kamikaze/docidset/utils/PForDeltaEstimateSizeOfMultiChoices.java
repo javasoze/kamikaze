@@ -84,7 +84,7 @@ public class PForDeltaEstimateSizeOfMultiChoices {
   }
   
   static DocIdSet createDocSet(int[] nums) throws Exception{ 
-    DocSet p4d = PForDeltaDocSetFactory.getPForDeltaDocSetInstance(); 
+    DocSet p4d = DocSetFactory.getPForDeltaDocSetInstance(); 
     for(int num:nums) 
     {         
       p4d.addDoc(num);

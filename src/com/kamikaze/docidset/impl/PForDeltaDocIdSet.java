@@ -42,15 +42,12 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
   transient private IntArray baseListForOnlyCompBlocks; // the base lists for skipping
   transient private int[] currentNoCompBlock;  // the memory used to store the uncompressed elements. Once the block is full, all its elements are compressed into sequencOfCompBlock and the block is cleared.
   transient private int sizeOfCurrentNoCompBlock = 0; // the number of uncompressed elements that is hold in the currentNoCompBlock  
-  transient private int[] curDecompBlock; // temporary space to hold the decompressed data
   
   public PForDeltaDocIdSet() {
     sequenceOfCompBlocks = new PForDeltaIntSegmentArray();
     baseListForOnlyCompBlocks = new IntArray();
     currentNoCompBlock = new int[_blockSize];
     sizeOfCurrentNoCompBlock = 0;
-    curDecompBlock = new int[_blockSize];
-    
     compressedBitSize = 0;
   }
   
@@ -59,7 +56,6 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
     if(_blockSize < batchSize)
     {
       currentNoCompBlock = new int[batchSize];
-      curDecompBlock = new int[batchSize];
     }
     sizeOfCurrentNoCompBlock = 0;
     _blockSize = batchSize;      
@@ -93,7 +89,6 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
   {
     inStrm.defaultReadObject();
     
-    curDecompBlock = new int[_blockSize];
     compBlockWithBase = new PForDeltaWithBase();
     
     int[] baseArray = (int[])inStrm.readObject();
@@ -130,65 +125,16 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
     return -1;
   }
   
-  public boolean findSyncItself(int target)
-  { 
-    int[] localCurDecompBlock = new int[_blockSize];
-    PForDeltaWithBase localCompBlockWithBase = new PForDeltaWithBase();
-    int localLastAdded;
-    if(size()==0 || sizeOfCurrentNoCompBlock==0)
-      return false;
-    
-    localLastAdded = currentNoCompBlock[sizeOfCurrentNoCompBlock-1];
-    if(target > localLastAdded)
-    {
-      return false;
-    }
-    
-    // hy: first search noComp block
-    if(baseListForOnlyCompBlocks.size()==0 || target>baseListForOnlyCompBlocks.get(baseListForOnlyCompBlocks.size()-1))
-    {
-      int i;
-      for(i=0; i<sizeOfCurrentNoCompBlock; ++i)
-      {
-        if(currentNoCompBlock[i] >= target)
-          break;
-      }
-      if(i == sizeOfCurrentNoCompBlock) 
-        return false;
-      return currentNoCompBlock[i] == target; 
-    }
-
-   int iterDecompBlock = binarySearchInBaseListForBlockThatMayContainTarget(baseListForOnlyCompBlocks, 0, baseListForOnlyCompBlocks.size()-1, target);
-   if(iterDecompBlock<0)
-     return false;
-   
-   localCompBlockWithBase.decompressOneBlock(localCurDecompBlock, sequenceOfCompBlocks.get(iterDecompBlock), _blockSize);
-   int idx ;
-   localLastAdded = localCurDecompBlock[0];
-   if (localLastAdded == target) return true;
-   
-   for(idx = 1; idx<_blockSize; ++idx)
-   {
-     localLastAdded += (localCurDecompBlock[idx]+1);
-     if (localLastAdded >= target)
-       break;
-   }
-   if(idx == _blockSize)
-     return false;
-   return (localLastAdded == target);
-   
-  }
-  
   @Override
   public boolean find(int target)
   { 
     // this func is in PForDeltaDocIdSet instead of in PForDeltaDocIdSetIterator, therefore it cannot use iterBlockIndex, cursor, etc.
-    
+    int[] myDecompBlock = new int[_blockSize]; 
     if(size()==0 || sizeOfCurrentNoCompBlock==0)
       return false;
     
-    lastAdded = currentNoCompBlock[sizeOfCurrentNoCompBlock-1];
-    if(target > lastAdded)
+    int lastId = currentNoCompBlock[sizeOfCurrentNoCompBlock-1];
+    if(target > lastId)
     {
       return false;
     }
@@ -196,8 +142,6 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
     // first search noComp block
     if(baseListForOnlyCompBlocks.size()==0 || target>baseListForOnlyCompBlocks.get(baseListForOnlyCompBlocks.size()-1))
     {
-      //if(binarySearchForTarget(currentNoCompBlock, 0, sizeOfCurrentNoCompBlock-1, target) >= 0)
-        //return true;
       int i;
       for(i=0; i<sizeOfCurrentNoCompBlock; ++i)
       {
@@ -214,72 +158,22 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
    if(iterDecompBlock<0)
      return false;
    
-   compBlockWithBase.decompressOneBlock(curDecompBlock, sequenceOfCompBlocks.get(iterDecompBlock), _blockSize);
-
+  // compBlockWithBase.decompressOneBlock(curDecompBlock, sequenceOfCompBlocks.get(iterDecompBlock), _blockSize);
+   compBlockWithBase.decompressOneBlock(myDecompBlock, sequenceOfCompBlocks.get(iterDecompBlock), _blockSize);
    int idx ;
-   lastAdded = curDecompBlock[0];
-   if (lastAdded == target) return true;
+   lastId = myDecompBlock[0];
+   if (lastId == target) return true;
    
    // searching while doing prefix sum (to get docIds instead of d-gaps)
    for(idx = 1; idx<_blockSize; ++idx)
    {
-     lastAdded += (curDecompBlock[idx]+1);
-     if (lastAdded >= target)
+     lastId += (myDecompBlock[idx]+1);
+     if (lastId >= target)
        break;
    }
    if(idx == _blockSize)
      return false;
-   return (lastAdded == target);
-   
-  }
-  
-  /**
-   * Implements the same functionality as find() except by decompressing one single element at a time (instead of decompressing the entire block and then search in the resulting block)
-   * 
-   */
-  public boolean findUsingSingleElementDecompresion(int target)
-  { 
-    // this func is in PForDeltaDocIdSet instead of in PForDeltaDocIdSetIterator, therefore it cannot use iterBlockIndex, cursor, etc.
-    if(size()==0 || sizeOfCurrentNoCompBlock==0)
-      return false;
-    
-    lastAdded = currentNoCompBlock[sizeOfCurrentNoCompBlock-1];
-    if(target > lastAdded)
-    {
-      return false;
-    }
-    
-    // first search noComp block
-    if(baseListForOnlyCompBlocks.size()==0 || target>baseListForOnlyCompBlocks.get(baseListForOnlyCompBlocks.size()-1))
-    {
-      int i;
-      for(i=0; i<sizeOfCurrentNoCompBlock; ++i)
-      {
-        if(currentNoCompBlock[i] >= target)
-          break;
-      }
-      if(i == sizeOfCurrentNoCompBlock) 
-        return false;
-      return currentNoCompBlock[i] == target; 
-    }
-
-   int iterDecompBlock = binarySearchInBaseListForBlockThatMayContainTarget(baseListForOnlyCompBlocks, 0, baseListForOnlyCompBlocks.size()-1, target);
-   if(iterDecompBlock<0)
-     return false;
-   
-   int idx ;
-   lastAdded = compBlockWithBase.decompressOneElement(curDecompBlock,sequenceOfCompBlocks.get(iterDecompBlock), 0, _blockSize);
-   if (lastAdded == target) return true;
-   
-   for(idx = 1; idx<_blockSize; ++idx)
-   {
-     lastAdded += (compBlockWithBase.decompressOneElement(curDecompBlock,sequenceOfCompBlocks.get(iterDecompBlock), idx, _blockSize)+1);
-     if (lastAdded >= target)
-       break;
-   }
-   if(idx == _blockSize)
-     return false;
-   return (lastAdded == target);
+   return (lastId == target);
    
   }
 
@@ -296,15 +190,57 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
   @Override
   public long sizeInBytes()
   {
-    // the size returned by this function is not precise and not guaranteed to be correct
-    // 64 is the overhead for an int array
-    // blobsize * numberofelements * 1.1 (Object Overhead, assuming each element is encoded in about 1.1 bytes)
-    // batch_size * 4 + int array overhead
-    // P4dDocIdSet Overhead 110
+    // estimated size of the serialized object in Bytes
+    // blobsize * numberofelements * EstimatedBitsPerInteger ( this factor is achieved from experiments)
     optimize();
-    int headInBytes = baseListForOnlyCompBlocks.length()*4*2; // 1 int for storing b and expNum; the other int is for storing base
-    return (long) (headInBytes + 64 +sequenceOfCompBlocks.length()*_blockSize*1.1 + _blockSize*4 + 24 + 110);
+    long estimatedBitsPerInteger;
+    if(totalDocIdNum < 100)
+    {
+      estimatedBitsPerInteger = 320;
+    }
+    else if(totalDocIdNum < 200)
+    {
+      estimatedBitsPerInteger = 114;
+    }
+    else if(totalDocIdNum < 400)
+    {
+      estimatedBitsPerInteger = 66;
+    }
+    else if(totalDocIdNum < 800)
+    {
+      estimatedBitsPerInteger = 43;
+    }
+    else if(totalDocIdNum < 1600)
+    {
+      estimatedBitsPerInteger = 31;
+    }
+    else if(totalDocIdNum < 3200)
+    {
+      estimatedBitsPerInteger = 24;
+    }
+    else if(totalDocIdNum < 6400)
+    {
+      estimatedBitsPerInteger = 20;
+    }
+    else if(totalDocIdNum < 12800)
+    {
+      estimatedBitsPerInteger = 17;
+    }
+    else if(totalDocIdNum < 25600)
+    {
+      estimatedBitsPerInteger = 15;
+    }
+    else if(totalDocIdNum < 51200)
+    {
+      estimatedBitsPerInteger = 14;
+    }
+    else
+    {
+      estimatedBitsPerInteger = 11;
+    }
     
+    long sizeBytes = (sequenceOfCompBlocks.length() * _blockSize *estimatedBitsPerInteger)>>>3;
+    return sizeBytes;
   }
   
   /**
@@ -320,7 +256,7 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
    * The total number of elements in the compressed blocks
    * 
    */
-  public int totalSequenceSize()
+  private int totalSequenceSize()
   {
     int total = 0;
     for(int i = sequenceOfCompBlocks.length() - 1; i >= 0; i--)
@@ -773,42 +709,6 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
       return cursor;
     }
     
-    /**
-     * Implement the same functionality as nextDoc() except that each element is decompressed individually
-     */
-    private int nextDocSingle() 
-    {
-      if(totalDocIdNum <= 0 || cursor == totalDocIdNum)
-      { 
-        lastAccessedDocId = DocIdSetIterator.NO_MORE_DOCS;
-        return lastAccessedDocId;
-      }
-      
-      if(++cursor == totalDocIdNum)
-      {
-        lastAccessedDocId = DocIdSetIterator.NO_MORE_DOCS;
-        return DocIdSetIterator.NO_MORE_DOCS;
-      }
-      
-      int iterBlockIndex = getBlockIndex(cursor);
-      int offset = cursor % _blockSize; 
-      
-      if(iterBlockIndex == compBlockNum) 
-      { 
-        lastAccessedDocId = currentNoCompBlock[offset];
-      }
-      else if(offset == 0) 
-      {
-        lastAccessedDocId = iterPForDeltaSetWithBase.decompressOneElement(iterDecompBlock,sequenceOfCompBlocks.get(iterBlockIndex), offset, _blockSize);
-       
-        
-      }
-      else 
-      {
-        lastAccessedDocId += (iterPForDeltaSetWithBase.decompressOneElement(iterDecompBlock,sequenceOfCompBlocks.get(iterBlockIndex), offset, _blockSize) +1);
-      }        
-      return lastAccessedDocId;
-    }
 
     /**
      * Get the index of the batch this cursor position falls into
@@ -885,50 +785,6 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
       return -1;
     }
     
-    /**
-     * Linear search (each time decompress one single element)
-     * 
-     */
-    private int getNextLargerOrEqualTo(int[] compBlock, int target) {
-      int idx = 0;
-      lastAccessedDocId = iterPForDeltaSetWithBase.decompressOneElement(iterDecompBlock,compBlock, idx, _blockSize);
-      if (lastAccessedDocId >= target)
-        return idx;
-      idx++;
-
-      for (idx=1; idx < _blockSize; idx++) 
-      {
-        lastAccessedDocId += (iterPForDeltaSetWithBase.decompressOneElement(iterDecompBlock,compBlock, idx, _blockSize)+1);
-        if (lastAccessedDocId >= target) {
-          return idx;
-        }
-      }
-      return -1;
-    }
-    
-    /**
-     * Implements the same functionality as advanceToTargetInTheFollowingCompBlocks() except using linear search and single element decompression each time
-     * 
-     */
-    private int advanceToTargetInTheFollowingCompBlocksUsingLinearSearchAndSingleElementDecomp(int target, int startBlockIndex)
-    {
-      int iterBlockIndex = binarySearchInBaseListForBlockThatMayContainTarget(baseListForOnlyCompBlocks, startBlockIndex, baseListForOnlyCompBlocks.size()-1, target);
-      
-      if(iterBlockIndex < 0)
-      {
-        System.err.println("ERROR: advanceToTargetInTheFollowingCompBlocks(): Impossible, we must be able to find the block");
-      }
-      
-      int offset = getNextLargerOrEqualTo(sequenceOfCompBlocks.get(iterBlockIndex), target);
-      if(offset < 0)
-      {
-        System.err.println("ERROR: advanceToTargetInTheFollowingCompBlocks(): Impossible, we must be able to find the element in the block");
-        System.out.println("target: " + target + ", lastID: " + baseListForOnlyCompBlocks.get(iterBlockIndex));
-      }
-      
-      cursor = (iterBlockIndex << BLOCK_INDEX_SHIFT_BITS) + offset;
-      return lastAccessedDocId;
-    }
     
     private void printArray(int[] list, int start, int end)
     {
@@ -941,95 +797,6 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
       System.out.println("]");
     }
     
- 
-    
-    /**
-     * Implements the same functionality as advance() except using single element decompression
-     * 
-     */
-    public int advanceSingle(int target) {
-      if(totalDocIdNum <= 0 || cursor == totalDocIdNum)
-      {
-        lastAccessedDocId = DocIdSetIterator.NO_MORE_DOCS;
-        return lastAccessedDocId;
-      }
-      
-      if(++cursor == totalDocIdNum)
-      {
-        lastAccessedDocId = DocIdSetIterator.NO_MORE_DOCS;
-        return DocIdSetIterator.NO_MORE_DOCS;
-      }
-      
-      if(target <= lastAccessedDocId)
-      {
-        target = lastAccessedDocId + 1;
-      }
-      
-      int iterBlockIndex = getBlockIndex(cursor);
-      int offset = cursor % _blockSize;
-      
-      if(sizeOfCurrentNoCompBlock>0) 
-      {
-        if(iterBlockIndex == compBlockNum || (baseListForOnlyCompBlocks.size()>0 && target > baseListForOnlyCompBlocks.get(baseListForOnlyCompBlocks.size()-1)))
-        {   
-          offset = binarySearchForFirstElementEqualOrLargerThanTarget(currentNoCompBlock, 0, sizeOfCurrentNoCompBlock-1, target);
-          
-          if(offset>=0)
-          {         
-            iterBlockIndex = compBlockNum;
-            lastAccessedDocId = currentNoCompBlock[offset];            
-            cursor = (iterBlockIndex << BLOCK_INDEX_SHIFT_BITS) + offset;
-            return lastAccessedDocId;
-          }                   
-          else
-          {
-            cursor = totalDocIdNum; // to avoid the repeated lookup next time once it reaches the end of the sequence
-            lastAccessedDocId = DocIdSetIterator.NO_MORE_DOCS;
-            return lastAccessedDocId;
-          }
-        }     
-      }
-      
-      //  if did not find it in the noComp block, check the comp blocks
-      if(baseListForOnlyCompBlocks.size()>0 && target <= baseListForOnlyCompBlocks.get(baseListForOnlyCompBlocks.size()-1))  
-      {
-        if(offset == 0)
-        {
-          lastAccessedDocId = advanceToTargetInTheFollowingCompBlocksUsingLinearSearchAndSingleElementDecomp(target, iterBlockIndex);
-          return lastAccessedDocId;
-        }
-        else  
-        {
-          if(target <= baseListForOnlyCompBlocks.get(iterBlockIndex))
-          {
-            while(offset < _blockSize)
-            {
-              lastAccessedDocId += (iterPForDeltaSetWithBase.decompressOneElement(iterDecompBlock,sequenceOfCompBlocks.get(iterBlockIndex), offset, _blockSize)+1);
-              if (lastAccessedDocId >= target) {
-                break; 
-              }
-              offset++;
-            }
-            if (offset == _blockSize)
-            {
-              System.err.println("case 3: Impossible, we must be able to find the target " + target + " in the block" + iterDecompBlock + ", offset: " + offset);
-            }
-            cursor = (iterBlockIndex << BLOCK_INDEX_SHIFT_BITS)  + offset;
-            return lastAccessedDocId;
-          }
-          else // hy: there must exist other comp blocks between the current block and noComp block since target <= baseListForOnlyCompBlocks.get(baseListForOnlyCompBlocks.size()-1)
-          { 
-            lastAccessedDocId = advanceToTargetInTheFollowingCompBlocksUsingLinearSearchAndSingleElementDecomp(target, iterBlockIndex);
-            return lastAccessedDocId;
-          }
-        }        
-      }
-    
-      lastAccessedDocId = DocIdSetIterator.NO_MORE_DOCS;
-      return lastAccessedDocId; 
- }
- 
-  
     private void printSet() 
     {
        for (int i = 0; i < _blockSize; i++) 

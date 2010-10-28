@@ -33,7 +33,6 @@ import com.kamikaze.docidset.impl.P4DDocIdSet;
 import com.kamikaze.docidset.impl.PForDeltaAndDocIdSet;
 import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
 import com.kamikaze.docidset.utils.DocSetFactory;
-import com.kamikaze.docidset.utils.PForDeltaDocSetFactory;
 
 /**
  * This class provides a variety of tests to compare the performance of the old and new versions of Kamikaze. In particular,
@@ -55,49 +54,49 @@ public class PForDeltaPerfTest  {
     // For the second run, we use lists with 150000,375000,750000 random integers respectively
     
     // test 1
-    int[][] inputSizeCompDecomp = {
-      {15000,37500,75000},
-      {150000,375000,750000}, 
-      {1500000, 3750000, 7500000},
-      {1500,3750,7500}};
-    System.out.println("COMPDECOMP test ---------- ");
-    for(int i=0; i<inputSizeCompDecomp.length; ++i)
-    {
-       doTests(testObj, METHODS.COMPDECOMP, inputSizeCompDecomp[i]);
-    }
-    System.out.println("--------- COMPDECOMP test is completed ----------------");
-    System.out.println(" ");
+//    int[][] inputSizeCompDecomp = {
+//      {15000,37500,75000},
+//      {150000,375000,750000}, 
+//      {1500000, 3750000, 7500000},
+//      {1500,3750,7500}};
+//    System.out.println("COMPDECOMP test ---------- ");
+//    for(int i=0; i<inputSizeCompDecomp.length; ++i)
+//    {
+//       doTests(testObj, METHODS.COMPDECOMP, inputSizeCompDecomp[i]);
+//    }
+//    System.out.println("--------- COMPDECOMP test is completed ----------------");
+//    System.out.println(" ");
     
-    // test 2
-    int[][] inputSizeCompSerial = {
-        {15000,37500,75000},
-        {150000,375000,750000}, 
-        {1500000, 3750000, 7500000},
-        {1500,3750,7500}};
-    System.out.println("SERIAL test ---------- ");
-    for(int i=0; i<inputSizeCompSerial.length; ++i)
-    {
-       doTests(testObj, METHODS.SERIAL,inputSizeCompSerial[i]);
-    }
-    System.out.println("--------- SERIAL test is completed ----------------");
-    System.out.println(" ");
-    
-    // test 3
-    int[][] inputSizeCompAnd = {
-        {15000,37500,75000},
-        {150000,375000,750000}, 
-        {1500000, 3750000, 7500000},
-        {3750000,7500000,15000000},
-        {15000,3750000,750000},
-        {15000,375000,75000},
-        {1500,375000,75000}};
-    System.out.println("AND test ---------- ");
-    for(int i=0; i<inputSizeCompAnd.length; ++i)
-    {
-       doTests(testObj, METHODS.AND, inputSizeCompAnd[i]);
-    }
-    System.out.println("--------- AND test is completed ----------------");
-    System.out.println(" ");
+//    // test 2
+//    int[][] inputSizeCompSerial = {
+//        {15000,37500,75000},
+//        {150000,375000,750000}, 
+//        {1500000, 3750000, 7500000},
+//        {1500,3750,7500}};
+//    System.out.println("SERIAL test ---------- ");
+//    for(int i=0; i<inputSizeCompSerial.length; ++i)
+//    {
+//       doTests(testObj, METHODS.SERIAL,inputSizeCompSerial[i]);
+//    }
+//    System.out.println("--------- SERIAL test is completed ----------------");
+//    System.out.println(" ");
+//    
+//    // test 3
+//    int[][] inputSizeCompAnd = {
+//        {15000,37500,75000},
+//        {150000,375000,750000}, 
+//        {1500000, 3750000, 7500000},
+//        {3750000,7500000,15000000},
+//        {15000,3750000,750000},
+//        {15000,375000,75000},
+//        {1500,375000,75000}};
+//    System.out.println("AND test ---------- ");
+//    for(int i=0; i<inputSizeCompAnd.length; ++i)
+//    {
+//       doTests(testObj, METHODS.AND, inputSizeCompAnd[i]);
+//    }
+//    System.out.println("--------- AND test is completed ----------------");
+//    System.out.println(" ");
       
     // test 4
     int[][] inputSizeCompFind = {
@@ -116,22 +115,22 @@ public class PForDeltaPerfTest  {
     System.out.println("--------- FIND test is completed ----------------");
     System.out.println(" ");
       
-    // test 5
-    int[][] inputSizeIPAND = {{15000,37500,75000},
-        {150000,375000,750000}, 
-        {1500000, 3750000, 7500000},
-        {3750000,7500000,15000000},
-        {15000,3750000,750000},
-        {15000,375000,75000},
-        {1500,375000,75000}};
-    System.out.println("IPAND test ---------- ");
-    for(int i=0; i<inputSizeIPAND.length; ++i)
-    {
-      doTests(testObj, METHODS.IPAND, inputSizeIPAND[i]);
-    }
-    System.out.println("--------- IPAND test is completed ----------------");
-    System.out.println(" ");
-    
+//    // test 5
+//    int[][] inputSizeIPAND = {{15000,37500,75000},
+//        {150000,375000,750000}, 
+//        {1500000, 3750000, 7500000},
+//        {3750000,7500000,15000000},
+//        {15000,3750000,750000},
+//        {15000,375000,75000},
+//        {1500,375000,75000}};
+//    System.out.println("IPAND test ---------- ");
+//    for(int i=0; i<inputSizeIPAND.length; ++i)
+//    {
+//      doTests(testObj, METHODS.IPAND, inputSizeIPAND[i]);
+//    }
+//    System.out.println("--------- IPAND test is completed ----------------");
+//    System.out.println(" ");
+//    
   }
 
  // we do tryTimes times of tests and get the average results of the last (tryTimes-1) tests
@@ -601,7 +600,7 @@ class PerfTests{
       docId = iter.nextDoc();
       while(docId !=DocIdSetIterator.NO_MORE_DOCS)
       {      
-        //output.add(docId);
+        output.add(docId);
         docId = iter.nextDoc();
       }
       long end = System.currentTimeMillis();
@@ -610,12 +609,12 @@ class PerfTests{
       System.out.println("compressed size for the new version: " + pfd.getCompressedBitSize()/8 + " bytes");
       _newCompByteSize[testNo] += pfd.getCompressedBitSize()/8;
       _newTime[testNo] += (end-start);
-//      if(!compareTwoLists(_input[testNo], _numDocs[testNo], output))
-//      {
-//        System.out.println("wrong output");
-//        return;
-//      }
-//      
+      if(!compareTwoLists(_input[testNo], _numDocs[testNo], output))
+      {
+        System.out.println("wrong output");
+        return;
+      }
+      
       pfdOld = null;
       pfd = null;
     }
@@ -860,7 +859,7 @@ class PerfTests{
   } 
   
   private DocIdSet createDocSet(int[] nums) throws Exception{ 
-    DocSet p4d = PForDeltaDocSetFactory.getPForDeltaDocSetInstance(); 
+    DocSet p4d = DocSetFactory.getPForDeltaDocSetInstance(); 
     for(int num:nums) 
     {         
       p4d.addDoc(num);
