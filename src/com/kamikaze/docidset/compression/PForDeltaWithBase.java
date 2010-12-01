@@ -51,6 +51,8 @@ public class PForDeltaWithBase implements PForDeltaCompressedSortedIntegerSegmen
    * Estimate the compressed size of a block 
    * 
    * @param inputBlock a block of non-negative integers to be compressed
+   * @param bits the value of b in the PForDelta algorithm
+   * @param blockSize the block size which is 256 by default
    * @return CompResult 
    * @throws IllegalArgumentException
    */
@@ -78,6 +80,42 @@ public class PForDeltaWithBase implements PForDeltaCompressedSortedIntegerSegmen
     return compRes;
   }
 
+  /**
+   * 
+   * Estimate the compressed size of a block 
+   * 
+   * @param inputBlock a block of non-negative integers to be compressed
+   * @param start the starting offset of the input block
+   * @param bits the value of b in the PForDelta algorithm
+   * @param blockSize the block size which is 256 by default
+   * @return CompResult 
+   * @throws IllegalArgumentException
+   */
+  public CompResult estimateCompSize(int[] inputBlock, int start, int bits, int blockSize) throws IllegalArgumentException {
+    // The header and the bits-bit slots have the deterministic size. However, the compressed size for expPos and expHighBits are estimated.
+    if (bits == INVALID)
+      throw new IllegalArgumentException(" Codec not initialized correctly ");        
+   
+    int maxNoExp = (1<<bits)-1;
+    int outputOffset = HEADER_SIZE + bits * blockSize; //  Size of the header and the bits-bit slots
+    int expNum = 0;      
+    
+    int end = start + blockSize;
+    for (int i = start; i<end; ++i)
+    {      
+      if (inputBlock[i] > maxNoExp) 
+      {
+        expNum++;
+      }
+    }    
+    outputOffset += (expNum<<5);
+    CompResult compRes = new CompResult();
+    compRes.setUsingFixedBitCoding(false);
+    compRes.setCompressedSize(outputOffset);
+      
+    return compRes;
+  }
+  
   /**
    * Compress an integer array
    * 
@@ -107,6 +145,83 @@ public class PForDeltaWithBase implements PForDeltaCompressedSortedIntegerSegmen
     int expNum = 0;      
     
     for (int i = 0; i<blockSize; ++i)
+    {      
+      if (inputBlock[i] < maxNoExp) 
+      {
+        writeBits(compressedBlock, inputBlock[i], outputOffset, bits);
+      } 
+      else // exp
+      {
+        writeBits(compressedBlock, inputBlock[i] & MASK[bits], outputOffset, bits); // store the lower bits-bits of the exception
+        expAux[expNum] = i; // write the position of exception
+        expAux[expNum+blockSize] = (inputBlock[i] >>> bits) & MASK[32-bits];   // write the higher 32-bits bits of the exception
+        
+        expNum++;
+      }
+      outputOffset += bits;
+    }    
+    
+    // The first HEADER stores:  flagFixedBitExpPos | bits | expNum, assuming expNum < 2^10 and bits<2^10
+    if(flagFixedBitExpPos) // using fixed bits to encode expPos
+    {
+      compressedBlock[0] = (1<<20) | ((bits & MASK[10]) << 10) | (expNum & 0x3ff);
+    }
+    else
+    {
+      compressedBlock[0] = ((bits & MASK[10]) << 10) | (expNum & 0x3ff);
+    }
+    
+    int compressedBitSize;
+    if(expNum>0)
+    {
+      System.arraycopy(expAux, blockSize, expAux, expNum, expNum);
+      compressedBitSize = compressBlockByS16(compressedBlock, outputOffset, expAux, expNum * 2);
+      outputOffset += compressedBitSize;
+    }
+    
+    _compressedBitSize = outputOffset;
+    
+    int[] sealedCompBlock = new int[(outputOffset+31)>>>5];
+    System.arraycopy(compressedBlock,0, sealedCompBlock, 0, (outputOffset+31)>>>5);
+    
+    CompResult compRes = new CompResult();
+    compRes.setUsingFixedBitCoding(flagFixedBitExpPos);
+    compRes.setCompressedBlock(sealedCompBlock);
+    compRes.setCompressedSize(outputOffset);
+    
+    return compRes;
+  }
+  
+  /**
+   * Compress an integer array
+   * 
+   * @param inputBlock the integer input array
+   * @param bits the value of b in the PForDelta algorithm
+   * @param blockSize the block size which is 256 by default
+   * @param flagFixedBitExpPos true if fixed bit size is used to encode exception positions
+   * @return CompResult which contains the compressed size in number of bits and the reference to the compressed data
+   * @throws IllegalArgumentException
+   */
+  public CompResult compressOneBlockOpt(int[] inputBlock, int start, int bits, int blockSize, boolean flagFixedBitExpPos) throws IllegalArgumentException {
+    // hy: compress a sequence of gaps except the first element (which is the original docId) 
+    if (bits == INVALID)
+      throw new IllegalArgumentException(" Codec not initialized correctly ");        
+   
+    int[] expAux = new int[blockSize * 2];
+    
+    int maxNoExp = 1<<bits;
+   
+    int maxCompBitSize =  HEADER_SIZE + blockSize * (bits  + MAX_BITS + MAX_BITS) + 32;
+    int[] compressedBlock = new int[(maxCompBitSize>>>5)];
+    
+    // The second HEADER: the last (uncompressed) docId of the block 
+    compressedBlock[1] = inputBlock[blockSize-1];
+    
+    int outputOffset = HEADER_SIZE;
+    int expNum = 0;      
+    
+    int end = start + blockSize;
+    for (int i = start; i<end; ++i)
     {      
       if (inputBlock[i] < maxNoExp) 
       {

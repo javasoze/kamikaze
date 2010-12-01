@@ -74,9 +74,45 @@ public class PForDeltaKamikazeTest extends TestCase
     System.out.println("-------------------completed------------------------");
   } 
 
+  @Test
+  public void testAddDocsNextDoc() throws Exception
+  {     
+    // test the accuracy of PForDeltaDocIdSet.addDoc() (Compression) and PForDeltaDocIdSet.PForDeltaDocIdIterator.nextDoc() (Decompression).
+    System.out.println("Running test case: addDocs() (compression) and nextDoc() (decompression)...");
+    
+    ArrayList<OpenBitSet> obs = new ArrayList<OpenBitSet>(); 
+    ArrayList<DocIdSet> docs = new ArrayList<DocIdSet>(); 
+    
+    int maxDoc = 35000;
+    int listNum = 1;
+   
+    // compresssion (generate random data sets and add them into PForDeltaDocIdSet docs)
+    getRandomDataSetsBatch(obs, docs, maxDoc, listNum);
+    //getRandomDataSets(obs, docs, maxDoc, listNum);
+    
+    // get the original input (used to verify the accuracy of nextDoc())
+    ArrayList<Integer> input = bitSetToArrayList(obs.get(0));
+    
+    // decompression (iterating the compressed object)
+    PForDeltaDocIdSet pfdDS = (PForDeltaDocIdSet)docs.get(0);
+    DocIdSetIterator iter = pfdDS.iterator();
+    ArrayList<Integer> output = new ArrayList<Integer>();
+    int docId = iter.nextDoc();
+    while(docId !=DocIdSetIterator.NO_MORE_DOCS)
+    {      
+      output.add(docId);
+      docId = iter.nextDoc();
+    }
+   
+    //printList(input, 0, input.size()-1);
+    //printList(output, 0, output.size()-1);
+    assertEquals(true, compareTwoLists(input, output));
+    System.out.println("-------------------completed------------------------");
+  } 
+  
   
   @Test
-  public void testFind() throws Exception
+  public void _testFind() throws Exception
   {     
       // test the accuracy of PForDeltaDocIdSet.find()
       System.out.println("Running test case: PForDeltaDocIdSet.find() ...");
@@ -109,7 +145,7 @@ public class PForDeltaKamikazeTest extends TestCase
   
   
 @Test
-public void testPartialEmptyAnd() throws IOException 
+public void _testPartialEmptyAnd() throws IOException 
 { 
     // test the accuracy of PForDeltaOrDocIdSet
     try 
@@ -144,7 +180,6 @@ public void testPartialEmptyAnd() throws IOException
         docs3.add(orlist1); 
         docs3.add(orlist2); 
         
-        //PForDeltaAndDocIdSet andlist = new PForDeltaAndDocIdSet(docs3); 
         AndDocIdSet andlist = new AndDocIdSet(docs3); 
 
         
@@ -169,9 +204,8 @@ public void testPartialEmptyAnd() throws IOException
  
 
 @Test
-public void testAndIntersections() throws Exception
+public void _testAndIntersections() throws Exception
 { 
-     //test the accuracy of PForDeltaAndDocIdSet (nextDoc()).
      System.out.println("Running test case: intersections, PForDeltaAndDocIdSet.nextDoc() ...");
   
      ArrayList<OpenBitSet> obs = new ArrayList<OpenBitSet>(); 
@@ -214,7 +248,6 @@ public void testAndIntersections() throws Exception
      
      // get the results from PForDeltaAndDocIdSet
      ArrayList<Integer> intersectionResult = new ArrayList<Integer>();
-     //PForDeltaAndDocIdSet ands = new PForDeltaAndDocIdSet(docs); 
      AndDocIdSet ands = new AndDocIdSet(docs); 
      DocIdSetIterator iter = ands.iterator();
      int docId = iter.nextDoc();
@@ -233,7 +266,7 @@ public void testAndIntersections() throws Exception
 
 
 @Test
-public void testPForDeltaDocSetSerialization() throws Exception{
+public void _testPForDeltaDocSetSerialization() throws Exception{
    //test the accuracy of the serializaton and deserialization of PForDeltaDocIdSet objects by verifying if the deserialized object's nextDoc() results match the original object's nextDoc() results
   
   System.out.println("");
@@ -350,7 +383,7 @@ public void testPForDeltaDocSetSerialization() throws Exception{
   
 
 @Test
-public void testPForDeltaDocSetSerializationAndFind() throws Exception{
+public void _testPForDeltaDocSetSerializationAndFind() throws Exception{
 //test the accuracy of the serialization and deserialization of PForDeltaDocIdSet objects by using two data sets (one is the subset of the other) and verifying the
 //deserialized super set can always find() the deserialized subset's elements
   System.out.println("");
@@ -560,7 +593,6 @@ public void testAndDocIdSetWithIntArrayPForDelta() throws Exception
     }
     DocList[i]=docset;
   }
-  //PForDeltaAndDocIdSet orset = new PForDeltaAndDocIdSet(Arrays.asList(DocList));
   AndDocIdSet orset = new AndDocIdSet(Arrays.asList(DocList));
   DocIdSetIterator iter = orset.iterator();
   int doc;
@@ -646,6 +678,42 @@ public void testAndDocIdSetWithIntArrayPForDelta() throws Exception
     return p4d; 
   } 
   
+  private DocIdSet createDocSetBatch(ArrayList<Integer> nums) throws Exception{ 
+    DocSet p4d = DocSetFactory.getPForDeltaDocSetInstance(); 
+    int[] numsArray = new int[nums.size()];
+    int i=0;
+    for(Integer num : nums)
+    {
+      numsArray[i++] = num;
+    }
+    p4d.addDocs(numsArray, 0, numsArray.length); 
+    return p4d; 
+  } 
+  
+  private DocIdSet createDocSetBatch(int[] nums) throws Exception{ 
+    DocSet p4d = DocSetFactory.getPForDeltaDocSetInstance(); 
+    p4d.addDocs(nums, 0, nums.length); 
+    return p4d; 
+  } 
+  
+  private DocIdSet createDocSetOldBatch(int[] nums) throws Exception{ 
+    DocSet p4d = DocSetFactory.getP4DDocSetInstance(); 
+    p4d.addDocs(nums, 0, nums.length); 
+    return p4d; 
+  } 
+  
+  private DocIdSet createDocSetOldBatch(ArrayList<Integer> nums) throws Exception{ 
+    DocSet p4d = DocSetFactory.getP4DDocSetInstance(); 
+    int[] numsArray = new int[nums.size()];
+    int i=0;
+    for(Integer num : nums)
+    {
+      numsArray[i++] = num;
+    }
+    p4d.addDocs(numsArray, 0, numsArray.length); 
+    return p4d; 
+  } 
+  
   
   private void loadRandomDataSets(int[] data, ArrayList<OpenBitSet> obs, ArrayList<DocIdSet>docs, ArrayList<DocIdSet> docsOld, int maxDoc) throws Exception
   {
@@ -692,6 +760,37 @@ public void testAndDocIdSetWithIntArrayPForDelta() throws Exception
     }
   }
   
+//generate random numbers and insert them into docIdSets (another more efficient version is generateRandomDataNew) 
+  private void getRandomDataSetsBatch(ArrayList<OpenBitSet> obs, ArrayList<DocIdSet>docs, int maxDoc, int listNum)  throws Exception
+  { 
+    Random rand = new Random(System.currentTimeMillis()); 
+    int numdocs;
+    for(int i=0; i < listNum; ++i) 
+    { 
+      numdocs = maxDoc;
+      
+      ArrayList<Integer> nums = new ArrayList<Integer>(); 
+      HashSet<Integer> seen = new HashSet<Integer>(); 
+      for (int j = 0; j < numdocs; j++) 
+      { 
+        int nextDoc = rand.nextInt(maxDoc); 
+        if(seen.contains(nextDoc)) 
+        { 
+          while(seen.contains(nextDoc)) 
+          { 
+            nextDoc = rand.nextInt(maxDoc); 
+          } 
+        } 
+        nums.add(nextDoc); 
+        seen.add(nextDoc); 
+       } 
+       Collections.sort(nums); 
+       
+       //printList(nums, 0, nums.size()-1);
+       obs.add(createObs(nums, maxDoc)); 
+       docs.add(createDocSetBatch(nums)); 
+    }
+  }
     
     // convert an openBitSet to an array list 
     private ArrayList<Integer> bitSetToArrayList(OpenBitSet bs)

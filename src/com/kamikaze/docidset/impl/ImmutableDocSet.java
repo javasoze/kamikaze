@@ -22,7 +22,6 @@ public abstract class ImmutableDocSet extends DocSet
     
   }
 
-   
   @Override
   public int size() throws IOException
   {

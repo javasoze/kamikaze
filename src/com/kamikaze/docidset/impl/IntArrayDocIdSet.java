@@ -25,6 +25,7 @@ public class IntArrayDocIdSet extends DocSet implements Serializable {
     array = new IntArray();
   }
 
+  
   public void addDoc(int docid) {
     ++pos;
     array.add(docid);

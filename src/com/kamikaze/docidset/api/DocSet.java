@@ -17,6 +17,21 @@ public abstract class DocSet extends DocIdSet
 	 */
 	public abstract void addDoc(int docid) throws IOException;
 	
+	/**
+     * Add an array of sorted docIds to the set
+     * @param docids
+     * @param start
+     * @param len
+     */
+    public void addDocs(int[] docids, int start, int len) throws IOException
+    {
+      int i=0;
+      while(i<len)
+      {
+        addDoc(docids[i++]);
+      }
+    }
+    
 
 	/**
      * Return the set size

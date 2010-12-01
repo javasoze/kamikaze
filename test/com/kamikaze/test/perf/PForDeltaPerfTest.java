@@ -28,9 +28,7 @@ import com.kamikaze.docidset.api.DocSet;
 import com.kamikaze.docidset.api.StatefulDSIterator;
 import com.kamikaze.docidset.impl.AndDocIdSet;
 import com.kamikaze.docidset.impl.IntArrayDocIdSet; 
-import com.kamikaze.docidset.impl.OBSDocIdSet;
 import com.kamikaze.docidset.impl.P4DDocIdSet;
-import com.kamikaze.docidset.impl.PForDeltaAndDocIdSet;
 import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
 import com.kamikaze.docidset.utils.DocSetFactory;
 
@@ -54,49 +52,49 @@ public class PForDeltaPerfTest  {
     // For the second run, we use lists with 150000,375000,750000 random integers respectively
     
     // test 1
-//    int[][] inputSizeCompDecomp = {
-//      {15000,37500,75000},
-//      {150000,375000,750000}, 
-//      {1500000, 3750000, 7500000},
-//      {1500,3750,7500}};
-//    System.out.println("COMPDECOMP test ---------- ");
-//    for(int i=0; i<inputSizeCompDecomp.length; ++i)
-//    {
-//       doTests(testObj, METHODS.COMPDECOMP, inputSizeCompDecomp[i]);
-//    }
-//    System.out.println("--------- COMPDECOMP test is completed ----------------");
-//    System.out.println(" ");
+    int[][] inputSizeCompDecomp = {
+      {15000,37500,75000},
+      {150000,375000,750000}, 
+      {1500000, 3750000, 7500000},
+      {1500,3750,7500}};
+    System.out.println("COMPDECOMP test ---------- ");
+    for(int i=0; i<inputSizeCompDecomp.length; ++i)
+    {
+       doTests(testObj, METHODS.COMPDECOMP, inputSizeCompDecomp[i]);
+    }
+    System.out.println("--------- COMPDECOMP test is completed ----------------");
+    System.out.println(" ");
     
 //    // test 2
-//    int[][] inputSizeCompSerial = {
-//        {15000,37500,75000},
-//        {150000,375000,750000}, 
-//        {1500000, 3750000, 7500000},
-//        {1500,3750,7500}};
-//    System.out.println("SERIAL test ---------- ");
-//    for(int i=0; i<inputSizeCompSerial.length; ++i)
-//    {
-//       doTests(testObj, METHODS.SERIAL,inputSizeCompSerial[i]);
-//    }
-//    System.out.println("--------- SERIAL test is completed ----------------");
-//    System.out.println(" ");
-//    
+    int[][] inputSizeCompSerial = {
+        {15000,37500,75000},
+        {150000,375000,750000}, 
+        {1500000, 3750000, 7500000},
+        {1500,3750,7500}};
+    System.out.println("SERIAL test ---------- ");
+    for(int i=0; i<inputSizeCompSerial.length; ++i)
+    {
+       doTests(testObj, METHODS.SERIAL,inputSizeCompSerial[i]);
+    }
+    System.out.println("--------- SERIAL test is completed ----------------");
+    System.out.println(" ");
+    
 //    // test 3
-//    int[][] inputSizeCompAnd = {
-//        {15000,37500,75000},
-//        {150000,375000,750000}, 
-//        {1500000, 3750000, 7500000},
-//        {3750000,7500000,15000000},
-//        {15000,3750000,750000},
-//        {15000,375000,75000},
-//        {1500,375000,75000}};
-//    System.out.println("AND test ---------- ");
-//    for(int i=0; i<inputSizeCompAnd.length; ++i)
-//    {
-//       doTests(testObj, METHODS.AND, inputSizeCompAnd[i]);
-//    }
-//    System.out.println("--------- AND test is completed ----------------");
-//    System.out.println(" ");
+    int[][] inputSizeCompAnd = {
+        {15000,37500,75000},
+        {150000,375000,750000}, 
+        {1500000, 3750000, 7500000},
+        {3750000,7500000,15000000},
+        {15000,3750000,750000},
+        {15000,375000,75000},
+        {1500,375000,75000}};
+    System.out.println("AND test ---------- ");
+    for(int i=0; i<inputSizeCompAnd.length; ++i)
+    {
+       doTests(testObj, METHODS.AND, inputSizeCompAnd[i]);
+    }
+    System.out.println("--------- AND test is completed ----------------");
+    System.out.println(" ");
       
     // test 4
     int[][] inputSizeCompFind = {
@@ -116,20 +114,20 @@ public class PForDeltaPerfTest  {
     System.out.println(" ");
       
 //    // test 5
-//    int[][] inputSizeIPAND = {{15000,37500,75000},
-//        {150000,375000,750000}, 
-//        {1500000, 3750000, 7500000},
-//        {3750000,7500000,15000000},
-//        {15000,3750000,750000},
-//        {15000,375000,75000},
-//        {1500,375000,75000}};
-//    System.out.println("IPAND test ---------- ");
-//    for(int i=0; i<inputSizeIPAND.length; ++i)
-//    {
-//      doTests(testObj, METHODS.IPAND, inputSizeIPAND[i]);
-//    }
-//    System.out.println("--------- IPAND test is completed ----------------");
-//    System.out.println(" ");
+    int[][] inputSizeIPAND = {{15000,37500,75000},
+        {150000,375000,750000}, 
+        {1500000, 3750000, 7500000},
+        {3750000,7500000,15000000},
+        {15000,3750000,750000},
+        {15000,375000,75000},
+        {1500,375000,75000}};
+    System.out.println("IPAND test ---------- ");
+    for(int i=0; i<inputSizeIPAND.length; ++i)
+    {
+      doTests(testObj, METHODS.IPAND, inputSizeIPAND[i]);
+    }
+    System.out.println("--------- IPAND test is completed ----------------");
+    System.out.println(" ");
 //    
   }
 
@@ -137,7 +135,7 @@ public class PForDeltaPerfTest  {
  public static void doTests(PerfTests testObj, METHODS method, int[] numDocs) throws Exception
  {
    int batchSize = 256;
-    int tryTimes = 10;
+    int tryTimes = 2;
     testObj.reset(numDocs);
     System.out.println("tryTimes: " + tryTimes);
     for (int i = 0; i < tryTimes; i++) 
@@ -329,7 +327,8 @@ class PerfTests{
       for(int i=0; i<_listNum; ++i)
       {
         _input[i] = generateRandomDataHY(_originalInput,_maxDoc, _numDocs[i]);
-        loadRandomDataSets(_input[i], _obs, _docs, _docsOld, _numDocs[i]);
+        //loadRandomDataSets(_input[i], _obs, _docs, _docsOld, _numDocs[i]);
+        loadRandomDataSetsBatch(_input[i], _obs, _docs, _docsOld, _numDocs[i]);
         loadRandomDataSetsOldIsIntArray(_input[i], _docsIntArray);
        //printList(_input[i],0, _numDocs[i]-1);
       }     
@@ -566,8 +565,8 @@ class PerfTests{
     }
      System.out.println("-------------------completed------------------------");
   } 
-  
-// test decompression speed using nextDoc 
+
+  // test decompression speed using nextDoc 
   public void testCompSizeAndDecompSpeedOfNextDoc() throws Exception
   {     
     System.out.println("Running Comp/Decomp Test for nextDoc()...");
@@ -580,10 +579,16 @@ class PerfTests{
       
       long startOld = System.currentTimeMillis();
       docId = iterOld.nextDoc();
+      int i=0;
+      //System.out.println();
+      //System.out.print("old: { (" + docId + "," + i + ");");
       while(docId !=DocIdSetIterator.NO_MORE_DOCS)
       {      
         docId = iterOld.nextDoc();
+        i++;
+        //System.out.print("(" + docId + "," + i + "),");
       }
+      //System.out.println("}");
       long endOld = System.currentTimeMillis();
       
       System.out.println("time spent for the old version: : "+(endOld-startOld));
@@ -597,12 +602,18 @@ class PerfTests{
       DocIdSetIterator iter = pfd.iterator();
      
       long start = System.currentTimeMillis();
+      i = 0;
       docId = iter.nextDoc();
+      //System.out.println();
+      //System.out.print("new: { (" + docId + "," + i + ");");
       while(docId !=DocIdSetIterator.NO_MORE_DOCS)
       {      
         output.add(docId);
         docId = iter.nextDoc();
+        i++;
+        //System.out.print("(" + docId + "," + i + "),");
       }
+      //System.out.println("}");
       long end = System.currentTimeMillis();
       
       System.out.println("time spent for the new version: "+(end-start));
@@ -876,6 +887,19 @@ class PerfTests{
     return p4d; 
   }
   
+  
+  private DocIdSet createDocSetBatch(int[] nums) throws Exception{ 
+    DocSet p4d = DocSetFactory.getPForDeltaDocSetInstance(); 
+    p4d.addDocs(nums, 0, nums.length); 
+    return p4d; 
+  } 
+  
+  private DocIdSet createDocSetOldBatch(int[] nums) throws Exception{ 
+    DocSet p4d = DocSetFactory.getP4DDocSetInstance(); 
+    p4d.addDocs(nums, 0, nums.length); 
+    return p4d; 
+  } 
+  
   private DocIdSet createDocSetIntArray(int[] nums) throws Exception{ 
     DocSet p4d = new IntArrayDocIdSet(); 
     for(int num:nums) 
@@ -906,6 +930,14 @@ class PerfTests{
     
     docsOld.add(createDocSetOld(data));
     
+  }
+  
+  private void loadRandomDataSetsBatch(int[] data, ArrayList<OpenBitSet> obs, ArrayList<DocIdSet>docs, ArrayList<DocIdSet> docsOld, int maxDoc) throws Exception
+  {
+    obs.add(createObs(data, maxDoc)); 
+    
+    docsOld.add(createDocSetOld(data));
+    docs.add(createDocSetBatch(data)); 
   }
   
   private void loadRandomDataSetsOldIsIntArray(int[] data,  ArrayList<DocIdSet> docsIntArray) throws Exception

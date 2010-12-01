@@ -6,6 +6,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Arrays;
 
+import org.apache.log4j.Logger;
 import org.apache.lucene.search.DocIdSetIterator;
 
 import com.kamikaze.docidset.api.DocSet;
@@ -28,6 +29,8 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
 
   private static final long serialVersionUID = 1L;
  
+  private static Logger log = Logger.getLogger(PForDeltaDocIdSet.class);
+  
   private PForDeltaIntSegmentArray sequenceOfCompBlocks; // segments of compressed data (each segment contains the compressed array of say, 256 integers)
   
   public static final int DEFAULT_BATCH_SIZE = 256; // default block size
@@ -286,6 +289,73 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
   }
 
   /**
+   * Add an array of document to this set, starting from the index start and ending at the index end
+   * 
+   */
+  @Override
+  public void addDocs(int[] docids, int start, int len)
+  {
+    if(totalDocIdNum==0)
+    {
+      initSet();
+    }
+ 
+    if((len + sizeOfCurrentNoCompBlock)<=_blockSize)
+    {
+      System.arraycopy(docids, start, currentNoCompBlock, sizeOfCurrentNoCompBlock, len);
+      sizeOfCurrentNoCompBlock += len;
+    }
+    else
+    {
+      // the first block
+      int copyLen = _blockSize - sizeOfCurrentNoCompBlock;
+      System.arraycopy(docids, start, currentNoCompBlock, sizeOfCurrentNoCompBlock, copyLen);
+      sizeOfCurrentNoCompBlock = _blockSize;
+      baseListForOnlyCompBlocks.add(currentNoCompBlock[_blockSize-1]);
+      CompResult compRes = PForDeltaCompressCurrentBlock();
+      //CompResult compRes = PForDeltaCompressCurrentBlock(currentNoCompBlock, 0, _blockSize);
+      if(compRes.getCompressedBlock() == null)
+      {
+        log.error("ERROR in compressing the first block");
+      }
+      compressedBitSize += compRes.getCompressedSize();      
+      sequenceOfCompBlocks.add(compRes.getCompressedBlock());
+      
+
+      // the middle blocks
+      int leftLen = len - copyLen;
+      int newStart = start + copyLen;
+      while(leftLen > _blockSize)
+      {
+        baseListForOnlyCompBlocks.add(docids[newStart+_blockSize-1]);
+        System.arraycopy(docids, newStart, currentNoCompBlock, 0, _blockSize);
+        compRes = PForDeltaCompressCurrentBlock();
+        //compRes = PForDeltaCompressCurrentBlock(currentNoCompBlock, 0, _blockSize);
+        if(compRes.getCompressedBlock() == null)
+        {
+          log.error("ERROR in compressing middle blocks");
+        }
+        compressedBitSize += compRes.getCompressedSize();      
+        sequenceOfCompBlocks.add(compRes.getCompressedBlock());
+        
+        leftLen -= _blockSize;
+        newStart += _blockSize;
+      }
+      
+      // the last block
+      if(leftLen > 0)
+      {
+        System.arraycopy(docids, newStart, currentNoCompBlock, 0, leftLen);
+      }
+      sizeOfCurrentNoCompBlock = leftLen;
+    }
+    
+    lastAdded = docids[start+len-1];
+    totalDocIdNum += len;
+  }
+
+  
+  /**
    * Add document to this set
    * 
    */
@@ -307,7 +377,7 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
       
       if(compRes.getCompressedBlock() == null)
       {
-        System.err.println("ERROR in compressing ");
+        log.error("ERROR in compressing ");
       }
       
       compressedBitSize += compRes.getCompressedSize();      
@@ -327,7 +397,7 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
       } 
       catch (ArrayIndexOutOfBoundsException w) 
       {
-        System.err.println("Error inserting DOC:" + docId);
+        log.error("Error inserting DOC:" + docId);
       }
     } // end append to end of array    
     totalDocIdNum++;
@@ -355,6 +425,18 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
   }
    
   /**
+   *  Compress one block of integers using PForDelta
+   * 
+   */
+  private CompResult PForDeltaCompressOneBlockOpt(int[] srcData, int start, int b, boolean flag)
+  {    
+    int[] srcDataCopy = new int[_blockSize];
+    System.arraycopy(srcData, start, srcDataCopy, 0, _blockSize);
+    CompResult compRes = compBlockWithBase.compressOneBlockOpt(srcDataCopy, 0, b, _blockSize, flag);
+    return compRes;
+  }
+  
+  /**
    *  Estimated the compressed size of one block of integers using PForDelta
    * 
    */
@@ -363,6 +445,14 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
     return compBlockWithBase.estimateCompSize(srcData, b, _blockSize);
   }
   
+  /**
+   *  Estimated the compressed size of one block of integers using PForDelta
+   * 
+   */
+  private CompResult PForDeltaEstimateCompSize(int[] srcData, int start, int b)
+  {    
+    return compBlockWithBase.estimateCompSize(srcData, start, b, _blockSize);
+  }
   
   private void initSet() {
     Arrays.fill(this.currentNoCompBlock, 0);    
@@ -490,6 +580,18 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
   }
   
   /**
+   * Prefix Sum
+   * 
+   */
+  private void preProcessBlockOpt(int[] block, int start, int len)
+  {
+    for(int i=start+len-1; i>start; --i)
+    {
+      block[i] = block[i] - block[i-1] - 1; 
+    }
+  }
+  
+  /**
    * Reverse Prefix Sum
    * 
    */
@@ -524,9 +626,37 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
         optRes = curRes;
       }
     }
-    
     // return the compressed data achieved from the best b
     optRes = PForDeltaCompressOneBlock(currentNoCompBlock, currentB, optRes.getUsingFixedBitCoding());
+    return optRes;  
+  }
+    
+    /**
+     * Compress the currentNoCompblock 
+     * 
+     */
+    private CompResult PForDeltaCompressCurrentBlock(int[] block, int start, int len)
+    { 
+      // find the best b that can lead to the smallest overall compressed size
+      int currentB = POSSIBLE_B[0];   
+      int tmpB = currentB;
+      
+      preProcessBlockOpt(block, start, len);
+      CompResult optRes = PForDeltaEstimateCompSize(block, start, tmpB);
+     
+      for (int i = 1; i < POSSIBLE_B.length; ++i)
+      {
+        tmpB = POSSIBLE_B[i];
+        CompResult curRes = PForDeltaEstimateCompSize(block, start, tmpB);
+        if(curRes.getCompressedSize() < optRes.getCompressedSize())
+        {
+          currentB = tmpB;
+          optRes = curRes;
+        }
+      }
+      
+    // return the compressed data achieved from the best b
+    optRes = PForDeltaCompressOneBlockOpt(block, start, currentB, optRes.getUsingFixedBitCoding());
     return optRes;  
   }
   
