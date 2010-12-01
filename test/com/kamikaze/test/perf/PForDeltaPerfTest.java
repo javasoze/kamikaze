@@ -135,8 +135,9 @@ public class PForDeltaPerfTest  {
  public static void doTests(PerfTests testObj, METHODS method, int[] numDocs) throws Exception
  {
    int batchSize = 256;
-    int tryTimes = 2;
+    int tryTimes = 10;
     testObj.reset(numDocs);
+    boolean onlyTestBatchComp = false;
     System.out.println("tryTimes: " + tryTimes);
     for (int i = 0; i < tryTimes; i++) 
     {
@@ -144,26 +145,34 @@ public class PForDeltaPerfTest  {
       System.out.println("");
       System.out.println("Round " + i);
       System.out.println("");
-      testObj.init(batchSize);
       
-      switch(method)
+      if(!onlyTestBatchComp)
       {
-        case  IPAND: 
-          testObj.testCompareIntArrayAndPForDeltaWithBaseForAndIntersection(); 
-          break;
-        case COMPDECOMP:
-          testObj.testCompSizeAndDecompSpeedOfNextDoc();
-          break;
-        case AND:
-          testObj.testAndIntersections(); 
-          break;
-        case FIND:
-          testObj.testFind(); 
-          break;
-        case SERIAL:
-          testObj.testSerializationFileStrm(); 
-          break;
+        testObj.init(batchSize);
+        switch(method)
+        {
+          case  IPAND: 
+            testObj.testCompareIntArrayAndPForDeltaWithBaseForAndIntersection(); 
+            break;
+          case COMPDECOMP:
+            testObj.testCompSizeAndDecompSpeedOfNextDoc();
+            break;
+          case AND:
+            testObj.testAndIntersections(); 
+            break;
+          case FIND:
+            testObj.testFind(); 
+            break;
+          case SERIAL:
+            testObj.testSerializationFileStrm(); 
+            break;
+        }
       }
+      else
+      {
+        testObj.initAndTestCompTime(batchSize);
+      }
+      
       
      //testObj.testSerializationByteStrmOld();
      // testObj.testSerializationByteStrmNew();
@@ -180,6 +189,17 @@ public class PForDeltaPerfTest  {
     }    //for
     
     System.out.println(" ");
+    
+    if(onlyTestBatchComp)
+    {
+      for(int i=0; i<testObj._listNum; ++i)
+      { 
+        System.out.println("final statistics for ONLY batch comp time test: ---------- ");
+        System.out.println("Input size: " + testObj._numDocs[i] + " random numbers out of " + testObj._maxDoc +  " numbers; ");
+        System.out.println(", avg no batch comp time: " + (double)testObj._oldTime[i]/(double)(tryTimes-1) + ",  avg batch comp time: " + (double)testObj._newTime[i]/(double)(tryTimes-1));
+      }
+      return;
+    }
     
     for(int i=0; i<testObj._listNum; ++i)
     { 
@@ -294,7 +314,7 @@ class PerfTests{
      _listNum = numDocs.length;
      System.arraycopy(numDocs,0,_numDocs,0, _listNum);
    }
-
+   
    public void init(int batchSize) throws Exception
    {
      _batchSize = batchSize;
@@ -328,7 +348,7 @@ class PerfTests{
       {
         _input[i] = generateRandomDataHY(_originalInput,_maxDoc, _numDocs[i]);
         //loadRandomDataSets(_input[i], _obs, _docs, _docsOld, _numDocs[i]);
-        loadRandomDataSetsBatch(_input[i], _obs, _docs, _docsOld, _numDocs[i]);
+        loadRandomDataSets(_input[i], _obs, _docs, _docsOld, _numDocs[i]);
         loadRandomDataSetsOldIsIntArray(_input[i], _docsIntArray);
        //printList(_input[i],0, _numDocs[i]-1);
       }     
@@ -349,6 +369,46 @@ class PerfTests{
      }
      
      //printList(_expectedIntersectionResult,0,_expectedIntersectionResult.size()-1);
+   }
+
+   public void initAndTestCompTime(int batchSize) throws Exception
+   {
+     _batchSize = batchSize;
+
+      _obs = new ArrayList<OpenBitSet>(); 
+      _docs = new ArrayList<DocIdSet>(); 
+      _docsOld = new ArrayList<DocIdSet>(); 
+      _docsIntArray = new ArrayList<DocIdSet>();
+      _expectedIntersectionResult = new ArrayList<Integer>();
+      
+      _originalInput = new int[_maxDoc];
+      for(int i =0; i<_maxDoc; ++i)
+      {
+        _originalInput[i] = i;
+      }
+      
+      for(int i=0; i<_listNum; ++i)
+      {
+        _input[i] = generateRandomDataHY(_originalInput,_maxDoc, _numDocs[i]);
+        
+        long start = System.currentTimeMillis();
+        DocSet p4d = DocSetFactory.getPForDeltaDocSetInstance(); 
+        for(int in:_input[i]) 
+        {         
+          p4d.addDoc(in);
+        }
+        long end = System.currentTimeMillis();
+        _oldTime[i] += (end - start);
+        
+        long startBatch = System.currentTimeMillis();
+        DocSet p4dBatch = DocSetFactory.getPForDeltaDocSetInstance(); 
+        p4dBatch.addDocs(_input[i], 0, _input[i].length); 
+        long endBatch = System.currentTimeMillis();
+        _newTime[i] += (endBatch - startBatch);
+        
+      }     
+      
+      
    }
    
    public void freeMem() throws Exception
