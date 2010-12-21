@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Ant-Version: Apache Ant 1.7.1
+Created-By: 17.1-b03-307 (Apple Inc.)
+Built-By: hyan
+Git-Version: 1d93b48fcad60e813345cd9c5d5cde51cad33e95 separate PForDel
+ ta implmentation with PForDeltaWithBase
+Built-Date: 2010-12-21 15:10:04
+

@@ -1,0 +1,204 @@
+<project xmlns:ivy="antlib:org.apache.ivy.ant" name="luceneCodec" default="dist" basedir=".">
+	<property name="src" value="src" />
+	<property name="test" value="test" />
+	<property name="lib" location="lib" />
+	<property name="lib.master" location="${lib}/master" />
+	<property name="lib.test" location="${lib}/test" />
+	<property name="build" value="build" />
+	<property name="dist" value="dist" />
+	<property name="doc" value="doc" />
+	<property name="build.test" value="build-test" />
+	<property name="project.name" value="luceneCodec" />
+	<property name="ivy.install.version" value="2.0.0-beta1"/>
+	<property name="ivy.jar.dir" value="${basedir}/ivy"/>
+	<property name="ivy.jar.file" value="${ivy.jar.dir}/ivy.jar"/>
+        <property name="compile.optimize" value="true" />
+	<property name="test.report.dir" location="${dist}/junit-reports" />
+        <property name="test.html.dir" location="${test.report.dir}/html" />
+
+	<target name="download-ivy" unless="skip.download">
+  	  <mkdir dir="${ivy.jar.dir}"/>
+          <echo message="installing ivy..."/>
+          <get src="http://repo1.maven.org/maven2/org/apache/ivy/ivy/${ivy.install.version}/ivy-${ivy.install.version}.jar" dest="${ivy.jar.file}" usetimestamp="true"/>
+        </target>
+
+        <target name="install-ivy" depends="download-ivy" description="--> install ivy">
+          <path id="ivy.lib.path">
+            <fileset dir="${ivy.jar.dir}" includes="*.jar"/>
+          </path>
+          <taskdef resource="org/apache/ivy/ant/antlib.xml" uri="antlib:org.apache.ivy.ant" classpathref="ivy.lib.path"/>
+        </target>
+        	
+	<path id="compile.class.path">
+          <fileset dir="${lib.master}">
+	    <include name="*.jar" />
+	  </fileset>
+	</path>
+
+	<path id="java.class.path">
+	  <dirset dir="${build}">
+	    <include name="**" />
+	  </dirset>
+	  <fileset dir="${lib.test}">
+	    <include name="*.jar" />
+  	  </fileset>
+	</path>
+
+	<path id="test.class.path">
+	  <dirset dir="${build.test}">
+	    <include name="**" />
+	  </dirset>
+	</path>
+
+        <path id="server.compile.class.path">
+          <fileset dir="${lib}/master">
+            <include name="*.jar" />
+          </fileset>
+          <fileset dir="${lib}/test">
+            <include name="*.jar" />
+          </fileset>
+          <fileset dir="${dist}">
+            <include name="*.jar" />
+          </fileset>
+        </path>
+
+
+	<target name="clean">
+          <delete dir="${build}" />
+          <delete dir="${dist}" />
+          <delete dir="${build.test}"/>
+	</target>
+
+	<target name="resolve" description="--> retrieve dependencies with ivy" depends="install-ivy">
+	    <ivy:retrieve pattern="${ivy.lib.dir}/[conf]/[artifact].[ext]" />
+	</target>
+	    	
+	<target name="init" depends="resolve">
+	  <mkdir dir="${build}" />
+	  <mkdir dir="${dist}" />
+	  <mkdir dir="${build.test}" />
+	</target>
+
+	<target name="compile" depends="init">
+	  <javac destdir="${build}" optimize="${compile.optimize}">
+	    <src path="${src}" />
+	    <classpath refid="compile.class.path" />
+	  </javac>
+	</target>
+
+	<target name="compile-test" depends="compile">
+	  <javac destdir="${build.test}">
+            <classpath refid="compile.class.path" />
+	    <classpath refid="java.class.path" />
+	    <src path="${test}" />
+	  </javac>
+	</target>
+
+  <target name="gitversion" description="--> create git version information">
+     <exec executable="git" outputproperty="gitversion">
+        <arg value="log" />
+        <arg value="-1" />
+        <arg value="--pretty=oneline" />
+     </exec>
+  </target>
+
+  <target name="dist" depends="compile,gitversion" description="--> build .jar into dist">
+     <tstamp>
+       <format property="TODAY" pattern="yyyy-MM-dd HH:mm:ss" />
+     </tstamp>
+     <manifest file="MANIFEST.MF">
+         <attribute name="Built-By" value="${user.name}" />
+         <attribute name="Git-Version" value="${gitversion}" />
+         <attribute name="Built-Date" value="${TODAY}" />
+     </manifest>
+     <jar destfile="${dist}/${project.name}-${version}.jar" manifest="MANIFEST.MF" basedir="${build}" />
+  </target>
+
+
+  <target name="test-build" depends="dist">
+     <javac destdir="${build.test}">
+        <src path="${test}"/>
+        <classpath refid="server.compile.class.path"/>
+     </javac>  
+     <jar destfile="${dist}/${project.name}-${version}-test.jar"  basedir="${build.test}" />
+  </target>
+
+
+  <target name="test" description="Runs JUnit Tests -- use -Dtests.to.run=testA,testB,... to run tests selectively" depends="test-build">
+    <echo>=== Running JUnit Tests ===</echo>
+    <mkdir dir="${test.report.dir}" />
+    <mkdir dir="${test.html.dir}" />
+    <junit printsummary="yes" showoutput="yes">
+        <sysproperty key="log.home" value="${logs}" />
+        <sysproperty key="conf.dir" value="${conf.dir}" />
+        <sysproperty key="log4j.configuration" value="${log4j.configuration}" />
+        <sysproperty key="tests.to.run" value="${tests.to.run}" />
+        <jvmarg value="-server" />
+        <jvmarg value="-Xms256m" />
+        <jvmarg value="-Xmx2g" />
+        <classpath refid="compile.class.path" />
+        <classpath refid="java.class.path" />
+        <classpath refid="test.class.path" />
+        <formatter type="xml"/>
+        <batchtest fork="yes" todir="${test.report.dir}">
+        <fileset dir="${test}">
+          <include name="**/TestLuceneCodecSuite.java" />
+        </fileset>
+        </batchtest>
+    </junit>
+    <junitreport todir="${test.html.dir}">
+      <fileset dir="${test.report.dir}">
+        <include name="TEST-*.xml" />
+      </fileset>
+      <report todir="${test.html.dir}" format="frames" />
+    </junitreport>
+ </target>
+
+   <target name="runtest" description="Runs the test you specify on the command 
+    line with -Dtests.to.run=" depends="test-build">
+    <mkdir dir="${test.report.dir}" />
+    <mkdir dir="${test.html.dir}" />
+
+    <junit printsummary="yes" showoutput="yes">
+        <sysproperty key="log.home" value="${logs}" />
+        <sysproperty key="conf.dir" value="${conf.dir}" />
+        <sysproperty key="log4j.configuration" value="${log4j.configuration}" />
+        <sysproperty key="testClass" value="${testClass}" />
+        <sysproperty key="testMethod" value="${testMethod}" />
+        <jvmarg value="-server" />
+        <jvmarg value="-Xms256m" />
+        <jvmarg value="-Xmx2g" />
+        <classpath refid="compile.class.path" />
+        <classpath refid="java.class.path" />
+        <classpath refid="test.class.path" />
+        <formatter type="xml"/>
+        <batchtest fork="yes" todir="${test.report.dir}">
+        <fileset dir="${test}">
+          <include name="**/${testClass}.java" />
+        </fileset>
+        </batchtest>
+    </junit>
+    <junitreport todir="${test.html.dir}">
+      <fileset dir="${test.report.dir}">
+        <include name="TEST-*.xml" />
+      </fileset>
+      <report todir="${test.html.dir}" format="frames" />
+    </junitreport>
+ </target>
+
+  <target name="javadoc" depends="init">
+    <javadoc packagenames="com.kamikaze.luceneCodec*" sourcepath="src" defaultexcludes="yes" destdir="${doc}" author="true" version="true" use="true" windowtitle="Kamikaze-LuceneCodec">
+	<classpath refid="compile.class.path" />
+	<classpath refid="java.class.path" />
+	<doctitle>
+	  <![CDATA[<h1>Kamikaze</h1>]]>
+        </doctitle>
+	<tag name="todo" scope="all" description="To do:" />
+	<group title="Group 1 Packages" packages="com.dummy.test.a*" />
+	<group title="Group 2 Packages" packages="com.dummy.test.b*:com.dummy.test.c*" />
+        <link offline="true" href="http://java.sun.com/j2se/1.5.0/docs/api/" packagelistLoc="C:\tmp" />
+	<link href="http://developer.java.sun.com/developer/products/xml/docs/api/" />
+   </javadoc>
+ </target>
+
+</project>

@@ -1,0 +1,75 @@
+package com.kamikaze.luceneCodec.test;
+
+
+import java.io.File;
+
+import junit.framework.TestCase;
+
+import org.apache.lucene.index.codecs.sep.IntIndexInput;
+import org.apache.lucene.index.codecs.sep.IntIndexOutput;
+import org.apache.lucene.index.codecs.sep.IntStreamFactory;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.store.RAMDirectory;
+import org.junit.After;
+import org.junit.Before;
+
+import com.kamikaze.lucencecodec.PForDeltaFixedIntBlockCodec;
+
+public class TestLucenePForDeltaCodec extends TestCase{
+
+	public void testPForDeltaSimpleIntBlocks() throws Exception {
+	    Directory dir = new RAMDirectory();
+		//Directory dir = getCodecTestDir();
+	    int blockSize = 128;
+	    IntStreamFactory f = new PForDeltaFixedIntBlockCodec(blockSize).getIntFactory();
+	    int testDataSize = 212402;
+	    int[] testData = new int[testDataSize];
+	    for(int i=0; i<testDataSize; ++i)
+	    {
+	      testData[i] = i*10 + i;
+	    }
+	    
+	    IntIndexOutput out = f.createOutput(dir, "test");
+	    for(int i=0;i<testDataSize;i++) {
+	      out.write(testData[i]);
+	    }
+	    out.close();
+
+	    System.out.println("start to read");
+	    IntIndexInput in = f.openInput(dir, "test");
+	    IntIndexInput.Reader r = in.reader();
+
+	    for(int i=0;i<testDataSize;i++) {
+	      int next = r.next();
+	      assertEquals(testData[i], next);
+	    }
+	    in.close();
+	    
+	    dir.close();
+	  }
+	
+	private static Directory getCodecTestDir()
+	  {
+	    File codecFile = new File(System.getProperty("codec.dir"));
+	    System.out.println("codec test dir: " + codecFile.getAbsolutePath());
+	    Directory codecDir = null;
+	    try{
+	      codecDir =  FSDirectory.open(codecFile);
+	    }
+	    catch(Exception e)
+	    {
+	    	e.printStackTrace();
+	    }
+	    return codecDir;
+	  }
+	
+	@Before
+	public void setUp() throws Exception {
+	}
+
+	@After
+	public void tearDown() throws Exception {
+	}
+
+}

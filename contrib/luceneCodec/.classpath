@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="test"/>
+	<classpathentry kind="lib" path=".metadata/.plugins/com.google.appengine.eclipse.core/appengine-sdk-proxy.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="/Users/hyan/workspace/kamikaze/contrib/luceneCodec/lib/master/kamikaze-3.0.3.jar"/>
+	<classpathentry kind="lib" path="/Users/hyan/workspace/kamikaze/contrib/luceneCodec/lib/master/lucene-core-4.0-SNAPSHOT.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

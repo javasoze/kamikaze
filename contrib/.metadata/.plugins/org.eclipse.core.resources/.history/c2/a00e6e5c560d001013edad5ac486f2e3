@@ -1,0 +1,5 @@
+package com.kamikaze.lucenecodec;
+
+public class FixedIntBlockIndexOutputWithGetElementNum {
+
+}

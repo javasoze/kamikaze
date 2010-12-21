@@ -1,0 +1,9 @@
+package com.kamikaze.luceneCodec.test;
+
+import org.junit.runner.RunWith;
+
+@RunWith(Suite.class)
+@SuiteClasses( { TestCodec.class})
+public class TestLuceneCodecSuite {
+
+}

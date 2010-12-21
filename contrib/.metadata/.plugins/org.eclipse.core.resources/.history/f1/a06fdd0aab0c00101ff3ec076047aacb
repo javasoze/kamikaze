@@ -1,0 +1,5 @@
+package com.kamikaze.lucenceCodec.test;
+
+public class TestPForDeltaFixedIntBlockCodec {
+
+}
