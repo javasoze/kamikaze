@@ -9,27 +9,15 @@ public class CompResult {
 
   private int _compressedSize; // the size in bits of the compressed block
   private int[] _compressedBlock = null;  // the compressed block
-  private boolean _usingFixedBitCoding = false; // indicating if we use fixed bits to encode expPos (positions of exceptions)
   public CompResult() {
     _compressedSize = 0;
     _compressedBlock = null;
-    _usingFixedBitCoding = false;
   }
   
   public CompResult(int compSize, int[] compBlock)
   {
     _compressedSize = compSize;
     _compressedBlock = compBlock;
-  }
-  
-  public void setUsingFixedBitCoding(boolean usingFixedBitCoding)
-  {
-    _usingFixedBitCoding = usingFixedBitCoding;
-  }
-  
-  public boolean getUsingFixedBitCoding()
-  {
-    return _usingFixedBitCoding ;
   }
   
   public void setCompressedSize(int compressedSize)

@@ -28,6 +28,8 @@ public class TestDocSetFactory {
     int sparseThresholdCount = 500000;
     
     DocIdSet set = DocSetFactory.getDocSetInstance(min, max, count, FOCUS.PERFORMANCE);
+    System.out.println("set.getClass().getName():" + set.getClass().getName());
+    
     assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.IntArrayDocIdSet");
     set = DocSetFactory.getDocSetInstance(min, max, count, FOCUS.SPACE);
     //assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.P4DDocIdSet");

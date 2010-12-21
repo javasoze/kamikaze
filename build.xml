@@ -193,6 +193,38 @@
     </junitreport>
  </target>
 
+   <target name="runtest" description="Runs the test you specify on the command 
+    line with -Dtests.to.run=" depends="test-build">
+    <mkdir dir="${test.report.dir}" />
+    <mkdir dir="${test.html.dir}" />
+
+    <junit printsummary="yes" showoutput="yes">
+        <sysproperty key="log.home" value="${logs}" />
+        <sysproperty key="conf.dir" value="${conf.dir}" />
+        <sysproperty key="log4j.configuration" value="${log4j.configuration}" />
+        <sysproperty key="testClass" value="${testClass}" />
+        <sysproperty key="testMethod" value="${testMethod}" />
+        <jvmarg value="-server" />
+        <jvmarg value="-Xms256m" />
+        <jvmarg value="-Xmx2g" />
+        <classpath refid="compile.class.path" />
+        <classpath refid="java.class.path" />
+        <classpath refid="test.class.path" />
+        <formatter type="xml"/>
+        <batchtest fork="yes" todir="${test.report.dir}">
+        <fileset dir="${test}">
+          <include name="**/${testClass}.java" />
+        </fileset>
+        </batchtest>
+    </junit>
+    <junitreport todir="${test.html.dir}">
+      <fileset dir="${test.report.dir}">
+        <include name="TEST-*.xml" />
+      </fileset>
+      <report todir="${test.html.dir}" format="frames" />
+    </junitreport>
+ </target>
+
   <target name="javadoc" depends="init">
     <javadoc packagenames="com.kamikaze.*" sourcepath="src" defaultexcludes="yes" destdir="${doc}" author="true" version="true" use="true" windowtitle="Kamikaze">
 	<classpath refid="compile.class.path" />

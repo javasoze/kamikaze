@@ -17,12 +17,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
-import junit.framework.TestCase;
-
 import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.util.OpenBitSet;
-import org.junit.Test;
 
 import com.kamikaze.docidset.api.DocSet;
 import com.kamikaze.docidset.api.StatefulDSIterator;
@@ -662,15 +659,15 @@ class PerfTests{
       DocIdSetIterator iter = pfd.iterator();
      
       long start = System.currentTimeMillis();
-      i = 0;
+      //i = 0;
       docId = iter.nextDoc();
       //System.out.println();
       //System.out.print("new: { (" + docId + "," + i + ");");
       while(docId !=DocIdSetIterator.NO_MORE_DOCS)
       {      
-        output.add(docId);
+        //output.add(docId);
         docId = iter.nextDoc();
-        i++;
+        //i++;
         //System.out.print("(" + docId + "," + i + "),");
       }
       //System.out.println("}");
@@ -680,11 +677,11 @@ class PerfTests{
       System.out.println("compressed size for the new version: " + pfd.getCompressedBitSize()/8 + " bytes");
       _newCompByteSize[testNo] += pfd.getCompressedBitSize()/8;
       _newTime[testNo] += (end-start);
-      if(!compareTwoLists(_input[testNo], _numDocs[testNo], output))
-      {
-        System.out.println("wrong output");
-        return;
-      }
+//      if(!compareTwoLists(_input[testNo], _numDocs[testNo], output))
+//      {
+//        System.out.println("wrong output");
+//        return;
+//      }
       
       pfdOld = null;
       pfd = null;

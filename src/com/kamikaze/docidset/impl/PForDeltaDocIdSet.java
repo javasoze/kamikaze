@@ -375,7 +375,7 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
       // compress currentNoCompBlock[] (excluding the input docId), return the compressed block with its compressed bitSize
       CompResult compRes = PForDeltaCompressCurrentBlock();
       
-      if(compRes.getCompressedBlock() == null)
+      if(compRes == null)
       {
         log.error("ERROR in compressing ");
       }
@@ -418,40 +418,19 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
    *  Compress one block of integers using PForDelta
    * 
    */
-  private CompResult PForDeltaCompressOneBlock(int[] srcData, int b, boolean flag)
+  private CompResult PForDeltaCompressOneBlock(int[] srcData, int b)
   {    
-    CompResult compRes = compBlockWithBase.compressOneBlock(srcData, b, _blockSize, flag);
+    CompResult compRes = compBlockWithBase.compressOneBlock(srcData, b, _blockSize);
     return compRes;
   }
    
   /**
-   *  Compress one block of integers using PForDelta
-   * 
-   */
-  private CompResult PForDeltaCompressOneBlockOpt(int[] srcData, int start, int b, boolean flag)
-  {    
-    int[] srcDataCopy = new int[_blockSize];
-    System.arraycopy(srcData, start, srcDataCopy, 0, _blockSize);
-    CompResult compRes = compBlockWithBase.compressOneBlockOpt(srcDataCopy, 0, b, _blockSize, flag);
-    return compRes;
-  }
-  
-  /**
    *  Estimated the compressed size of one block of integers using PForDelta
    * 
    */
-  private CompResult PForDeltaEstimateCompSize(int[] srcData, int b)
+  private int PForDeltaEstimateCompSize(int[] srcData, int b)
   {    
     return compBlockWithBase.estimateCompSize(srcData, b, _blockSize);
-  }
-  
-  /**
-   *  Estimated the compressed size of one block of integers using PForDelta
-   * 
-   */
-  private CompResult PForDeltaEstimateCompSize(int[] srcData, int start, int b)
-  {    
-    return compBlockWithBase.estimateCompSize(srcData, start, b, _blockSize);
   }
   
   private void initSet() {
@@ -614,51 +593,23 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
     int tmpB = currentB;
     
     preProcessBlock(currentNoCompBlock, sizeOfCurrentNoCompBlock);
-    CompResult optRes = PForDeltaEstimateCompSize(currentNoCompBlock, tmpB);
+    int optSize = PForDeltaEstimateCompSize(currentNoCompBlock, tmpB);
    
     for (int i = 1; i < POSSIBLE_B.length; ++i)
     {
       tmpB = POSSIBLE_B[i];
-      CompResult curRes = PForDeltaEstimateCompSize(currentNoCompBlock, tmpB);
-      if(curRes.getCompressedSize() < optRes.getCompressedSize())
+      int curSize = PForDeltaEstimateCompSize(currentNoCompBlock, tmpB);
+      if(curSize < optSize)
       {
         currentB = tmpB;
-        optRes = curRes;
+        optSize = curSize;
       }
     }
     // return the compressed data achieved from the best b
-    optRes = PForDeltaCompressOneBlock(currentNoCompBlock, currentB, optRes.getUsingFixedBitCoding());
-    return optRes;  
+    CompResult finalRes = PForDeltaCompressOneBlock(currentNoCompBlock, currentB);
+    return finalRes;  
   }
     
-    /**
-     * Compress the currentNoCompblock 
-     * 
-     */
-    private CompResult PForDeltaCompressCurrentBlock(int[] block, int start, int len)
-    { 
-      // find the best b that can lead to the smallest overall compressed size
-      int currentB = POSSIBLE_B[0];   
-      int tmpB = currentB;
-      
-      preProcessBlockOpt(block, start, len);
-      CompResult optRes = PForDeltaEstimateCompSize(block, start, tmpB);
-     
-      for (int i = 1; i < POSSIBLE_B.length; ++i)
-      {
-        tmpB = POSSIBLE_B[i];
-        CompResult curRes = PForDeltaEstimateCompSize(block, start, tmpB);
-        if(curRes.getCompressedSize() < optRes.getCompressedSize())
-        {
-          currentB = tmpB;
-          optRes = curRes;
-        }
-      }
-      
-    // return the compressed data achieved from the best b
-    optRes = PForDeltaCompressOneBlockOpt(block, start, currentB, optRes.getUsingFixedBitCoding());
-    return optRes;  
-  }
   
   private void printBlock(int[] block, int size)
   {
