@@ -16,6 +16,8 @@
 	<property name="test.report.dir" location="${dist}/junit-reports" />
         <property name="test.html.dir" location="${test.report.dir}/html" />
 
+        <property file="${basedir}/version.properties" />
+
 	<target name="download-ivy" unless="skip.download">
   	  <mkdir dir="${ivy.jar.dir}"/>
           <echo message="installing ivy..."/>
