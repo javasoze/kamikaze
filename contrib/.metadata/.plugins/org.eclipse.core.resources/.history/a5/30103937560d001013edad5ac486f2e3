@@ -1,5 +1,0 @@
-package com.kamikaze.lucenecodec;
-
-public class PForDeltaFixedIntBlockCodec {
-
-}

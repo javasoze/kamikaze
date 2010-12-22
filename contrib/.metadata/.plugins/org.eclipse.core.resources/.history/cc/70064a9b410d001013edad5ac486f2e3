@@ -1,7 +1,0 @@
-package com.kamikaze.luceneCodec.test;
-
-import junit.framework.TestCase;
-
-public class luceneCodecTestCase extends TestCase {
-
-}
