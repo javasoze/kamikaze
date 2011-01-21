@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.DocIdSetIterator;
 
@@ -16,9 +15,6 @@ import com.kamikaze.docidset.api.StatefulDSIterator;
 
 public class AndDocIdSet extends ImmutableDocSet implements Serializable {
   private static final long serialVersionUID = 1L;
-
-  private static Logger log = Logger.getLogger(AndDocIdSet.class);
-
   private ArrayList<Integer> _interSectionResult = new ArrayList<Integer>();
   
   public class DescDocIdSetComparator implements Comparator<StatefulDSIterator>,

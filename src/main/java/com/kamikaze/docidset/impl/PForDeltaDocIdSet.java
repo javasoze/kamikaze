@@ -6,15 +6,14 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Arrays;
 
-import org.apache.log4j.Logger;
 import org.apache.lucene.search.DocIdSetIterator;
 
 import com.kamikaze.docidset.api.DocSet;
 import com.kamikaze.docidset.api.StatefulDSIterator;
 import com.kamikaze.docidset.compression.PForDeltaWithBase;
+import com.kamikaze.docidset.utils.CompResult;
 import com.kamikaze.docidset.utils.IntArray;
 import com.kamikaze.docidset.utils.PForDeltaIntSegmentArray;
-import com.kamikaze.docidset.utils.CompResult;
 
 /**
  * This class implements the DocId set which is built on top of the optimized PForDelta algorithm (PForDeltaWithBase)
@@ -28,8 +27,6 @@ import com.kamikaze.docidset.utils.CompResult;
 public class PForDeltaDocIdSet extends DocSet implements Serializable {
 
   private static final long serialVersionUID = 1L;
- 
-  private static Logger log = Logger.getLogger(PForDeltaDocIdSet.class);
   
   private PForDeltaIntSegmentArray sequenceOfCompBlocks; // segments of compressed data (each segment contains the compressed array of say, 256 integers)
   
@@ -293,7 +290,7 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
    * 
    */
   @Override
-  public void addDocs(int[] docids, int start, int len)
+  public void addDocs(int[] docids, int start, int len) throws IOException
   {
     if(totalDocIdNum==0)
     {
@@ -316,7 +313,7 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
       //CompResult compRes = PForDeltaCompressCurrentBlock(currentNoCompBlock, 0, _blockSize);
       if(compRes.getCompressedBlock() == null)
       {
-        log.error("ERROR in compressing the first block");
+        throw new IOException("ERROR in compressing the first block");
       }
       compressedBitSize += compRes.getCompressedSize();      
       sequenceOfCompBlocks.add(compRes.getCompressedBlock());
@@ -333,7 +330,7 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
         //compRes = PForDeltaCompressCurrentBlock(currentNoCompBlock, 0, _blockSize);
         if(compRes.getCompressedBlock() == null)
         {
-          log.error("ERROR in compressing middle blocks");
+          throw new IOException("ERROR in compressing middle blocks");
         }
         compressedBitSize += compRes.getCompressedSize();      
         sequenceOfCompBlocks.add(compRes.getCompressedBlock());
@@ -359,7 +356,7 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
    * Add document to this set
    * 
    */
-  public void addDoc(int docId)
+  public void addDoc(int docId) throws IOException
   {
     if(totalDocIdNum==0)
     {
@@ -377,7 +374,7 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
       
       if(compRes == null)
       {
-        log.error("ERROR in compressing ");
+        throw new IOException("ERROR in compressing ");
       }
       
       compressedBitSize += compRes.getCompressedSize();      
@@ -397,7 +394,7 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
       } 
       catch (ArrayIndexOutOfBoundsException w) 
       {
-        log.error("Error inserting DOC:" + docId);
+        throw new IOException("Error inserting DOC:" + docId);
       }
     } // end append to end of array    
     totalDocIdNum++;

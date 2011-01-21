@@ -4,7 +4,7 @@
   <groupId>com.snaproject.kamikaze</groupId>
   <artifactId>kamikaze</artifactId>
   <packaging>jar</packaging>
-  <version>2.0.0-SNAPSHOT</version>
+  <version>3.0.1-SNAPSHOT</version>
   <name>kamikaze</name>
   <description>information retrieval utility package for enhancing Lucene</description>
   <url>http://maven.apache.org</url>
@@ -23,7 +23,7 @@
   <developers></developers>
 
   <!-- Set the compiler to java6 -->
-  <!--
+  
   <build>
     <plugins>
         <plugin>
@@ -35,9 +35,23 @@
                 <target>1.6</target>
             </configuration>
         </plugin>
+        <plugin>
+		    <groupId>org.apache.maven.plugins</groupId>
+		    <artifactId>maven-surefire-plugin</artifactId>
+		    <version>2.5</version>
+		    <configuration>
+		       <argLine>
+		         -Xms256m -Xmx2g
+		       </argLine>
+		       <excludes>
+		         <exclude>com/kamikaze/test/perf/*.java</exclude>
+		         <exclude>**/*$*</exclude>
+		       </excludes>
+		    </configuration>
+		</plugin>
     </plugins>
   </build>
--->
+
   <!-- Add findbugs to reporting -->
   <!--
   <reporting>
@@ -60,11 +74,13 @@
  </distributionManagement>
 
   <dependencies>
+  <!-- 
     <dependency>
        <groupId>log4j</groupId>
        <artifactId>log4j</artifactId>
        <version>1.2.15</version>
     </dependency>
+     -->
     <dependency>
       <groupId>fastutil</groupId>
       <artifactId>fastutil</artifactId>
@@ -75,6 +91,13 @@
       <artifactId>lucene-core</artifactId>
       <version>2.9.1</version>
     </dependency>
+    <dependency>
+	  <groupId>junit</groupId>
+	  <artifactId>junit</artifactId>
+	  <version>4.5</version>
+	  <scope>test</scope>
+    </dependency>
+	
   </dependencies>
 
 </project>
