@@ -33,8 +33,16 @@
             <configuration>
                 <source>1.6</source>
                 <target>1.6</target>
+                <encoding>UTF-8</encoding>
             </configuration>
         </plugin>
+        <plugin>
+			<artifactId>maven-resources-plugin</artifactId>
+			<version>2.2</version>
+			<configuration>
+				<encoding>UTF-8</encoding>
+			</configuration>
+		</plugin>
         <plugin>
 		    <groupId>org.apache.maven.plugins</groupId>
 		    <artifactId>maven-surefire-plugin</artifactId>

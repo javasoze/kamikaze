@@ -36,7 +36,7 @@ public class TestDocSetSerialization {
 
   private static int batch = 128;
 
-  private static String serial = "SerialDocSet";
+  private static String serial = "src/test/test-data/SerialDocSet";
 
   public TestDocSetSerialization() {
 
