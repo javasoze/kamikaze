@@ -5,7 +5,6 @@ import java.io.Serializable;
 import java.util.Comparator;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.DocIdSetIterator;
 
@@ -15,7 +14,6 @@ public class OrDocIdSet extends ImmutableDocSet implements Serializable {
 
   private static final int INVALID = -1;
 
-  private static Logger log = Logger.getLogger(OrDocIdSet.class);
 
   public class AescDocIdSetComparator implements Comparator<DocIdSetIterator>,
       Serializable {

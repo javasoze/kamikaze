@@ -1,0 +1,39 @@
+Other tests to run:
+
+<target name="perfTest" depends="compile-test">
+      <java classname="com.kamikaze.test.perf.PForDeltaPerfTest" fork="true">
+        <classpath refid="compile.class.path" />
+        <classpath refid="java.class.path" />
+        <classpath refid="test.class.path" />
+        <jvmarg value="-d64" />
+        <jvmarg value="-server" />
+        <jvmarg value="-Xms2G" />
+        <jvmarg value="-Xmx4G" />
+     </java>
+   </target>
+
+   <target name="cloudTest" depends="compile-test">
+      <java classname="com.kamikaze.test.perf.PForDeltaTestCloudData" fork="true">
+        <classpath refid="compile.class.path" />
+        <classpath refid="java.class.path" />
+        <classpath refid="test.class.path" />
+        <jvmarg value="-d64" />
+        <jvmarg value="-server" />
+        <jvmarg value="-Xms2G" />
+        <jvmarg value="-Xmx4G" />
+     </java>
+   </target>
+
+
+   <target name="sizeTest" depends="compile-test">
+     <java classname="com.kamikaze.docidset.utils.PForDeltaEstimateSizeOfMultiChoices" fork="true">
+       <classpath refid="compile.class.path" />
+       <classpath refid="java.class.path" />
+       <classpath refid="test.class.path" />
+       <jvmarg value="-d64" />
+       <jvmarg value="-server" />
+       <jvmarg value="-Xms2G" />
+       <jvmarg value="-Xmx4G" />
+    </java>
+  </target>
+
