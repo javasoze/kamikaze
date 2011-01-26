@@ -1,10 +1,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>6</version>
+  </parent>
   <groupId>com.snaproject.kamikaze</groupId>
   <artifactId>kamikaze</artifactId>
   <packaging>jar</packaging>
-  <version>3.0.1-SNAPSHOT</version>
+  <version>3.0.3-SNAPSHOT</version>
   <name>kamikaze</name>
   <description>information retrieval utility package for enhancing Lucene</description>
   <url>http://maven.apache.org</url>
@@ -16,11 +21,17 @@
 	</license>
   </licenses>
   <scm>
-	<connection>scm:git://github.com/javasoze/kamikaze.git</connection>
-	<developerConnection>scm:git@github.com:javasoze/kamikaze.git</developerConnection>
-	<url>http://github.com/javasoze/kamikaze</url>
+	<connection>scm:git:git@github.com:javasoze/kamikaze.git</connection>
+	<developerConnection>scm:git:git@github.com:javasoze/kamikaze.git</developerConnection>
+	<url>git@github.com:javasoze/kamikaze.git</url>
   </scm>
-  <developers></developers>
+  <developers>
+  	<developer>
+	  <id>javasoze</id>
+	  <name>John Wang</name>
+	  <email>john.wang@gmail.com</email>
+	 </developer>
+  </developers>
 
   <!-- Set the compiler to java6 -->
   
