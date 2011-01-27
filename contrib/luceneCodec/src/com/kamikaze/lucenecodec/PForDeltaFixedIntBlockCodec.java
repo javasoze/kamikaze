@@ -57,34 +57,23 @@ public class PForDeltaFixedIntBlockCodec extends Codec {
    * @return the compressed size in the number of integers of the compressed data
    * @throws Exception
    */
-    private int encodeOneBlockWithPForDelta(final int[] block, int elementNum) throws Exception
-    {
-      if(block == null || block.length == 0)
-      {
-        throw new Exception("input block is empty");
-      }
-      
-      int[] compressedBlock = PForDelta.compressOneBlockOpt(block, elementNum);
-      if(compressedBlock == null) 
-      {
-        throw new Exception("compressed buffer is null");
-      }
-      System.arraycopy(compressedBlock, 0, block, 0, compressedBlock.length);
-      return compressedBlock.length;
-    }
+  private int[] encodeOneBlockWithPForDelta(final int[] block, int elementNum) 
+  {
+    int[] compressedBlock = PForDelta.compressOneBlockOpt(block, elementNum);
+    return compressedBlock;
+  }
     
     /**
      * Decode a block of compressed data (using PForDelta) into a block of elementNum uncompressed integers
      * @param block the input block to be decompressed
      * @param elementNum the number of elements in the block to be compressed 
      */
-    private void decodeOneBlockWithPForDelta(final int[] block, int elementNum)
+    private int[] decodeOneBlockWithPForDelta(final int[] block, int elementNum)
     {
       int[] decompressedBlock = new int[elementNum];
       PForDelta.decompressOneBlock(decompressedBlock, block, elementNum);
-      System.arraycopy(decompressedBlock, 0, block, 0, decompressedBlock.length);
+      return decompressedBlock;
     }
-    
     
     public IntStreamFactory getIntFactory() {
       return new PForDeltaIntFactory();
@@ -103,23 +92,21 @@ public class PForDeltaFixedIntBlockCodec extends Codec {
               public void readBlock() throws IOException {
                 if(buffer != null)
                 {
+                  int[] compBuffer = null;
                   // retrieve the compressed size in ints
                   final int compressedSizeInInt = in.readInt();
                   // read the compressed data (compressedSizeInInt ints)
                   for(int i=0;i<compressedSizeInInt;i++) {
-                    buffer[i] = in.readInt();
+                    compBuffer[i] = in.readInt();
                   }
-                  // decompress the block
-                  if(buffer.length > compressedSizeInInt)
+                  try
                   {
-                    try
-                    {
-                      decodeOneBlockWithPForDelta(buffer, blockSize);
-                    }
-                    catch(Exception e)
-                    {
-                      e.printStackTrace();
-                    }
+                    int[] decompBuffer = decodeOneBlockWithPForDelta(buffer, blockSize);
+                    System.arraycopy(decompBuffer, 0, buffer, 0, decompBuffer.length);
+                  }
+                  catch(Exception e)
+                  {
+                    e.printStackTrace();
                   }
                 }
               }
@@ -137,24 +124,24 @@ public class PForDeltaFixedIntBlockCodec extends Codec {
             {
               // retrieve the number of actual elements in the block
               int numberOfElements = getElementNum();
+              int[] compBuffer = null;
               // pad 0s after the actual elements
               if(numberOfElements < blockSize)
               {
                 Arrays.fill(buffer, numberOfElements, blockSize, 0);
               }
-              int compressedSizeInInts = 0; 
               // compress the data
               try{
-                compressedSizeInInts = encodeOneBlockWithPForDelta(buffer, blockSize);
+                compBuffer = encodeOneBlockWithPForDelta(buffer, blockSize);
               }
               catch(Exception e)
               {
                 e.printStackTrace();
               }
               // write out the compressed size in ints 
-              out.writeInt(compressedSizeInInts);
+              out.writeInt(compBuffer.length);
               // write out the compressed data
-              for(int i=0;i<compressedSizeInInts;i++) {
+              for(int i=0;i<compBuffer.length;i++) {
                 out.writeInt(buffer[i]);
               }
             }

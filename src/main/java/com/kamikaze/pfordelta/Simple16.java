@@ -14,9 +14,11 @@ public class Simple16{
   
   private static final int S16_NUMSIZE = 16;
   private static final int S16_BITSSIZE = 28;
-  // the possible number of bits used to represent one integer 
+  
+  //the possible number of compressed numbers hold in a single 32-bit integer
   private static final int[] S16_NUM = {28, 21, 21, 21, 14, 9, 8, 7, 6, 6, 5, 5, 4, 3, 2, 1};
-  // the corresponding number of elements for each value of the number of bits
+  
+  //the possible number of bits used to compress one number 
   private static final int[][] S16_BITS = { {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
       {2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0},
       {1,1,1,1,1,1,1,2,2,2,2,2,2,2,1,1,1,1,1,1,1,0,0,0,0,0,0,0},
@@ -105,3 +107,4 @@ public class Simple16{
      return val & (0xffffffff >>> (32 - bits));
    }
   }
+

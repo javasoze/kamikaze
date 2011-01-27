@@ -9,6 +9,7 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 import org.junit.After;
 import org.junit.Before;
+import java.util.Random;
 
 import com.kamikaze.lucenecodec.PForDeltaFixedIntBlockCodec;
 
@@ -19,11 +20,12 @@ public class TestLucenePForDeltaCodec extends TestCase{
       Directory dir = new RAMDirectory();
       int blockSize = 128;
       IntStreamFactory f = new PForDeltaFixedIntBlockCodec(blockSize).getIntFactory();
-      int testDataSize = 212402;
+      int testDataSize = 80024;
       int[] testData = new int[testDataSize];
+      Random random = new Random(0);
       for(int i=0; i<testDataSize; ++i)
       {
-        testData[i] = i*10 + i;
+        testData[i] = random.nextInt() & Integer.MAX_VALUE;
       }
       
       IntIndexOutput out = f.createOutput(dir, "test");

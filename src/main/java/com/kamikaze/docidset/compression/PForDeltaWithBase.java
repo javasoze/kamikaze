@@ -65,13 +65,12 @@ public class PForDeltaWithBase implements PForDeltaCompressedSortedIntegerSegmen
   /**
    * Decompress a compressed block into an integer array
    * 
-   * @param outDecompBlock the decompressed output block
    * @param compBlock the compressed input block
    * @param blockSize the block size which is 256 by default 
-   * @return the processed data size (the number of bits in the compressed form)
+   * @return the decompressed output block 
    */  
-  public int decompressOneBlock(int[] outDecompBlock, int[] compBlock, int blockSize)
+  public int decompressOneBlock(int[] decompBlock, int[] compBlock, int blockSize)
   {
-    return PForDelta.decompressOneBlock(outDecompBlock, compBlock, blockSize);
+    return PForDelta.decompressOneBlock(decompBlock, compBlock, blockSize);
   }
 }
