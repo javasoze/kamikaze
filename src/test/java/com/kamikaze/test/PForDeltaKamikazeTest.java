@@ -28,7 +28,7 @@ import com.kamikaze.docidset.impl.IntArrayDocIdSet;
 import com.kamikaze.docidset.impl.OrDocIdSet;
 import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
 import com.kamikaze.docidset.utils.DocSetFactory;
-
+import com.kamikaze.pfordelta.PForDelta;
 
 public class PForDeltaKamikazeTest extends TestCase 
 { 
@@ -36,7 +36,7 @@ public class PForDeltaKamikazeTest extends TestCase
   private static String serial = "PForDeltaSerial";
   private static String serial2 = "PForDeltaSerial2";
   
- 
+
   @Test
   public void testAddDocNextDoc() throws Exception
   {     
@@ -108,6 +108,37 @@ public class PForDeltaKamikazeTest extends TestCase
     System.out.println("-------------------completed------------------------");
   } 
   
+  @Test
+  public void testVeryBigNumbers() throws Exception
+  {     
+    // test the accuracy of compressing/decompressing a sequence of big numbers 
+    System.out.println("Running test case: testVeryBigNumbers ");
+    Random random = new Random(0); 
+    int inputSize = 80024;
+    int[] input = new int[inputSize];
+    for(int i=0; i<inputSize; ++i)
+    {
+      input[i] = random.nextInt() & Integer.MAX_VALUE;
+    }
+
+    int blockSize = input.length;
+    int[] middleOutput = null;
+    try{
+      middleOutput = new int[blockSize];
+      middleOutput = PForDelta.compressOneBlockOpt(input, blockSize);
+
+      int[] output = new int[blockSize];
+      PForDelta.decompressOneBlock(output, middleOutput, blockSize);
+      //printList(input, 0, blockSize-1);
+      //printList(output, 0, blockSize-1);
+      assertEquals(true, compareTwoArrays(input, output));
+      System.out.println("-------------------completed------------------------");
+    }
+    catch(Exception e)
+    {
+      e.printStackTrace();
+    }
+  } 
   
   @Test
   public void _testFind() throws Exception
@@ -888,25 +919,30 @@ public void testAndDocIdSetWithIntArrayPForDelta() throws Exception
     }
         
     // compare two arrays, print out the difference        
-    private void compareTwoArrays(int[] input,  int[] output)
+    private boolean compareTwoArrays(int[] input,  int[] output)
     {
       //System.out.println("inputSize:" + input.length + "outputSize:" + output.length);
       int i=0;
+      boolean ret = true;
       for(i=0; i<input.length && i<output.length; ++i)
       {
         if(input[i] != output[i])
         {
           System.out.println("in[" + i + "]" + input[i] + " != out[" + i + "]" + output[i]);
+          ret = false;
         }
       }
       if(i<input.length)
       {
         printList(output, i, output.length);
+        ret = false;
       }
       if(i<output.length)
       {
         printList(input, i, input.length);
+        ret = false;
       } 
+      return ret;
     }
     
   // generate numDocs numbers out of maxDoc numbers

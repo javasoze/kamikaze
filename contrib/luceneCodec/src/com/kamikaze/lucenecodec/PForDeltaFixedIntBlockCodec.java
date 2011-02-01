@@ -1,7 +1,24 @@
 package com.kamikaze.lucenecodec;
 
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Set;
 
 import org.apache.lucene.index.SegmentInfo;
@@ -10,25 +27,20 @@ import org.apache.lucene.index.SegmentReadState;
 import org.apache.lucene.index.codecs.Codec;
 import org.apache.lucene.index.codecs.FieldsConsumer;
 import org.apache.lucene.index.codecs.FieldsProducer;
-import org.apache.lucene.index.codecs.sep.IntStreamFactory;
-import org.apache.lucene.index.codecs.sep.IntIndexInput;
-import org.apache.lucene.index.codecs.sep.IntIndexOutput;
 import org.apache.lucene.index.codecs.sep.SepPostingsReaderImpl;
 import org.apache.lucene.index.codecs.sep.SepPostingsWriterImpl;
-import org.apache.lucene.index.codecs.intblock.FixedIntBlockIndexInput;
 import org.apache.lucene.index.codecs.FixedGapTermsIndexReader;
 import org.apache.lucene.index.codecs.FixedGapTermsIndexWriter;
 import org.apache.lucene.index.codecs.PostingsWriterBase;
 import org.apache.lucene.index.codecs.PostingsReaderBase;
-import org.apache.lucene.index.codecs.PrefixCodedTermsReader;
-import org.apache.lucene.index.codecs.PrefixCodedTermsWriter;
+import org.apache.lucene.index.codecs.BlockTermsReader;
+import org.apache.lucene.index.codecs.BlockTermsWriter;
 import org.apache.lucene.index.codecs.TermsIndexReaderBase;
 import org.apache.lucene.index.codecs.TermsIndexWriterBase;
 import org.apache.lucene.index.codecs.standard.StandardCodec;
 import org.apache.lucene.store.*;
 import org.apache.lucene.util.BytesRef;
 
-import com.kamikaze.pfordelta.PForDelta;
 
 
 /**
@@ -42,7 +54,7 @@ public class PForDeltaFixedIntBlockCodec extends Codec {
 
   public PForDeltaFixedIntBlockCodec(int blockSize) {
     this.blockSize = blockSize;
-    name = "PForDeltaFixedIntBlock";
+    name = "NewPForDelta";
   }
 
   @Override
@@ -50,122 +62,10 @@ public class PForDeltaFixedIntBlockCodec extends Codec {
     return name + "(blockSize=" + blockSize + ")";
   }
 
-  /**
-   * Encode a block of integers using PForDelta and 
-   * @param block the input block to be compressed
-   * @param elementNum the number of elements in the block to be compressed 
-   * @return the compressed size in the number of integers of the compressed data
-   * @throws Exception
-   */
-    private int encodeOneBlockWithPForDelta(final int[] block, int elementNum) throws Exception
-    {
-      if(block == null || block.length == 0)
-      {
-        throw new Exception("input block is empty");
-      }
-      
-      int[] compressedBlock = PForDelta.compressOneBlockOpt(block, elementNum);
-      if(compressedBlock == null) 
-      {
-        throw new Exception("compressed buffer is null");
-      }
-      System.arraycopy(compressedBlock, 0, block, 0, compressedBlock.length);
-      return compressedBlock.length;
-    }
-    
-    /**
-     * Decode a block of compressed data (using PForDelta) into a block of elementNum uncompressed integers
-     * @param block the input block to be decompressed
-     * @param elementNum the number of elements in the block to be compressed 
-     */
-    private void decodeOneBlockWithPForDelta(final int[] block, int elementNum)
-    {
-      int[] decompressedBlock = new int[elementNum];
-      PForDelta.decompressOneBlock(decompressedBlock, block, elementNum);
-      System.arraycopy(decompressedBlock, 0, block, 0, decompressedBlock.length);
-    }
-    
-    
-    public IntStreamFactory getIntFactory() {
-      return new PForDeltaIntFactory();
-    }
-
-    private class PForDeltaIntFactory extends IntStreamFactory {
-
-      @Override
-      public IntIndexInput openInput(Directory dir, String fileName, int readBufferSize) throws IOException {
-        return new FixedIntBlockIndexInput(dir.openInput(fileName, readBufferSize)) {
-
-          @Override
-          protected BlockReader getBlockReader(final IndexInput in, final int[] buffer) throws IOException {
-            return new BlockReader() {
-              public void seek(long pos) {}
-              public void readBlock() throws IOException {
-                if(buffer != null)
-                {
-                  // retrieve the compressed size in ints
-                  final int compressedSizeInInt = in.readInt();
-                  // read the compressed data (compressedSizeInInt ints)
-                  for(int i=0;i<compressedSizeInInt;i++) {
-                    buffer[i] = in.readInt();
-                  }
-                  // decompress the block
-                  if(buffer.length > compressedSizeInInt)
-                  {
-                    try
-                    {
-                      decodeOneBlockWithPForDelta(buffer, blockSize);
-                    }
-                    catch(Exception e)
-                    {
-                      e.printStackTrace();
-                    }
-                  }
-                }
-              }
-            };
-          }
-        };
-      }
-
-      @Override
-      public IntIndexOutput createOutput(Directory dir, String fileName) throws IOException {
-        return new FixedIntBlockIndexOutputWithGetElementNum(dir.createOutput(fileName), blockSize) {
-          @Override
-          protected void flushBlock() throws IOException {
-            if(buffer != null && buffer.length>0)
-            {
-              // retrieve the number of actual elements in the block
-              int numberOfElements = getElementNum();
-              // pad 0s after the actual elements
-              if(numberOfElements < blockSize)
-              {
-                Arrays.fill(buffer, numberOfElements, blockSize, 0);
-              }
-              int compressedSizeInInts = 0; 
-              // compress the data
-              try{
-                compressedSizeInInts = encodeOneBlockWithPForDelta(buffer, blockSize);
-              }
-              catch(Exception e)
-              {
-                e.printStackTrace();
-              }
-              // write out the compressed size in ints 
-              out.writeInt(compressedSizeInInts);
-              // write out the compressed data
-              for(int i=0;i<compressedSizeInInts;i++) {
-                out.writeInt(buffer[i]);
-              }
-            }
-          }
-        };
-      }
-    }
 
   @Override
   public FieldsConsumer fieldsConsumer(SegmentWriteState state) throws IOException {
-    PostingsWriterBase postingsWriter = new SepPostingsWriterImpl(state, new PForDeltaIntFactory());
+    PostingsWriterBase postingsWriter = new SepPostingsWriterImpl(state, new PForDeltaFixedIntBlockFactory(blockSize));
 
     boolean success = false;
     TermsIndexWriterBase indexWriter;
@@ -180,7 +80,7 @@ public class PForDeltaFixedIntBlockCodec extends Codec {
 
     success = false;
     try {
-      FieldsConsumer ret = new PrefixCodedTermsWriter(indexWriter, state, postingsWriter, BytesRef.getUTF8SortedAsUnicodeComparator());
+      FieldsConsumer ret = new BlockTermsWriter(indexWriter, state, postingsWriter, BytesRef.getUTF8SortedAsUnicodeComparator());
       success = true;
       return ret;
     } finally {
@@ -199,7 +99,7 @@ public class PForDeltaFixedIntBlockCodec extends Codec {
     PostingsReaderBase postingsReader = new SepPostingsReaderImpl(state.dir,
                                                                       state.segmentInfo,
                                                                       state.readBufferSize,
-                                                                      new PForDeltaIntFactory(), state.codecId);
+                                                                      new PForDeltaFixedIntBlockFactory(blockSize), state.codecId);
 
     TermsIndexReaderBase indexReader;
     boolean success = false;
@@ -218,7 +118,7 @@ public class PForDeltaFixedIntBlockCodec extends Codec {
 
     success = false;
     try {
-      FieldsProducer ret = new PrefixCodedTermsReader(indexReader,
+      FieldsProducer ret = new BlockTermsReader(indexReader,
                                                        state.dir,
                                                        state.fieldInfos,
                                                        state.segmentInfo.name,
@@ -243,16 +143,15 @@ public class PForDeltaFixedIntBlockCodec extends Codec {
   @Override
   public void files(Directory dir, SegmentInfo segmentInfo, String codecId, Set<String> files) {
     SepPostingsReaderImpl.files(segmentInfo, codecId, files);
-    PrefixCodedTermsReader.files(dir, segmentInfo, codecId, files);
+    BlockTermsReader.files(dir, segmentInfo, codecId, files);
     FixedGapTermsIndexReader.files(dir, segmentInfo, codecId, files);
   }
 
   @Override
   public void getExtensions(Set<String> extensions) {
     SepPostingsWriterImpl.getExtensions(extensions);
-    PrefixCodedTermsReader.getExtensions(extensions);
+    BlockTermsReader.getExtensions(extensions);
     FixedGapTermsIndexReader.getIndexExtensions(extensions);
   }
 }
-
 

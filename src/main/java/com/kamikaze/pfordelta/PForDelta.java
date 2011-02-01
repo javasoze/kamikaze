@@ -1,5 +1,6 @@
 package com.kamikaze.pfordelta;
 
+
 import java.util.Arrays;
 import com.kamikaze.docidset.compression.PForDeltaUnpack;
 
@@ -17,12 +18,21 @@ import com.kamikaze.docidset.compression.PForDeltaUnpack;
  *  
  *  As a part of the PForDelta implementation, Simple16 is used to compress exceptions. The original Simple16 algorithm can also be found in the above literatures.
  * 
+ * This implementation overcomes the problem that Simple16 cannot deal with >2^28 numbers.
+ * 
+ * Author: hao yan hyan2008@gmail.com
  */
 
 public class PForDelta{
   
+  // NOTE: we expect the blockSize is always < (1<<(31-POSSIBLE_B_BITS)). For example, in the current default settings,
+  //  the blockSize < (1<<(31-5)), that is, < 2^27
+  
   //All possible values of b in the PForDelta algorithm
   private static final int[] POSSIBLE_B = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,16,20,28}; 
+  
+  // POSSIBLE_B.length < (1<<POSSIBLE_B_BITS)
+  private static final int POSSIBLE_B_BITS = 5; 
   // Max number of bits to store an uncompressed value
   private static final int MAX_BITS = 32;
   // Header records the value of b and the number of exceptions in the block
@@ -47,22 +57,33 @@ public class PForDelta{
   public static int[] compressOneBlockOpt(final int[] inBlock, int blockSize)
   { 
     // find the best b that can lead to the smallest overall compressed size
+    
     int currentB = POSSIBLE_B[0];   
+    int[] outBlock = null;
     int tmpB = currentB;
-    int optSize = estimateCompressedSize(inBlock, tmpB, blockSize);
-    for (int i = 1; i < POSSIBLE_B.length; ++i)
+    boolean hasBigNum = checkBigNumbers(inBlock, POSSIBLE_B[POSSIBLE_B.length-1], blockSize);
+    if(hasBigNum)
     {
-      tmpB = POSSIBLE_B[i];
-      int curSize = estimateCompressedSize(inBlock, tmpB, blockSize);
-      if(curSize < optSize)
+      currentB = 4;
+      System.out.println("has big num and the currentB is: " + currentB);
+    }
+    else
+    {
+      int optSize = estimateCompressedSize(inBlock, tmpB, blockSize);
+      for (int i = 1; i < POSSIBLE_B.length; ++i)
       {
-        currentB = tmpB;
-        optSize = curSize;
+        tmpB = POSSIBLE_B[i];
+        int curSize = estimateCompressedSize(inBlock, tmpB, blockSize);
+        if(curSize < optSize)
+        {
+          currentB = tmpB;
+          optSize = curSize;
+        }
       }
     }
     
     // compress the block using the above best b 
-    int[] outBlock = compressOneBlock(inBlock, currentB, blockSize);
+    outBlock = compressOneBlock(inBlock, currentB, blockSize);
 
     return outBlock;  
   }
@@ -78,14 +99,9 @@ public class PForDelta{
   {
     int[] expPos = new int[blockSize];
     int[] expHighBits = new int[blockSize];
-    if(inBlock == null)
-    {
-      System.out.println("error: compBlock is null");
-      return -1;
-    }
 
-    int expNum = inBlock[0] & 0x3ff; 
-    int bits = (inBlock[0]>>>10) & (0x1f);    
+    int expNum = inBlock[0] & MASK[31-POSSIBLE_B_BITS]; 
+    int bits = (inBlock[0]>>>(31-POSSIBLE_B_BITS)) & (0x1f);    
 
     // decompress the b-bit slots
     int offset = HEADER_SIZE;
@@ -145,6 +161,22 @@ public class PForDelta{
   }
   
   /**
+   * Check if the block contains big numbers that is greater than ((1<< bits)-1)
+   * @param inputBlock the block to be compressed
+   * @param bits the numbers of bits to decide whether a number is a big number
+   * @param blockSize the block size
+   * @return true if there is any big numbers in the block
+   * @throws IllegalArgumentException
+   */
+  public static boolean checkBigNumbers(int[] inputBlock, int bits, int blockSize) throws IllegalArgumentException {
+    int maxNoExp = (1<<bits)-1;
+    for (int i = 0; i<blockSize; ++i)
+    {      
+      if (inputBlock[i] > maxNoExp) return true; 
+    }    
+    return false;
+  }
+  /**
    * The core implementation of compressing a block with blockSize integers using PForDelta with the given parameter b 
    * @param inputBlock the block to be compressed
    * @param bits the the value of the parameter b
@@ -167,10 +199,6 @@ public class PForDelta{
     // compress the b-bit slots
     for (int i = 0; i<blockSize; ++i)
     {
-      if(inputBlock[i] < 0)
-      {
-        System.out.println("haha<0: [" + i +"]" + inputBlock[i]);
-      }
       if (inputBlock[i] < expUpperBound) 
       {
         writeBits(tmpCompressedBlock, inputBlock[i], outputOffset, bits);
@@ -182,14 +210,14 @@ public class PForDelta{
         // write the position of exception
         expPos[expNum] = i; 
         // write the higher 32-bits bits of the exception
-        expHighBits[expNum] = (inputBlock[i] >>> bits) & MASK[32-bits];  
+        expHighBits[expNum] = (inputBlock[i] >>> bits) & MASK[32-bits];
         expNum++;
       }
       outputOffset += bits;
     }    
 
     // the first int in the compressed block stores the value of b and the number of exceptions
-    tmpCompressedBlock[0] = ((bits & MASK[10]) << 10) | (expNum & 0x3ff);
+    tmpCompressedBlock[0] = ((bits & MASK[POSSIBLE_B_BITS]) << (31-POSSIBLE_B_BITS)) | (expNum & MASK[31-POSSIBLE_B_BITS]);
 
     // compress exceptions
     if(expNum>0)
@@ -231,23 +259,6 @@ public class PForDelta{
     return compressedBitSize;    
   } 
   
-  /**
-   * Decompress the b-bit slots using hardcoded unpack methods
-   * 
-   * @param decompressedSlots the decompressed output 
-   * @param compBlock the compressed input block
-   * @param blockSize the block size which is 256 by default 
-   * @param bits the value of b
-   * @return the processed data size (the number of bits in the compressed form)
-   */ 
-  private int decompressBBitSlotsWithHardCodes(int[] decompressedSlots, int[] compBlock, int blockSize, int bits)
-  {
-    int compressedBitSize = 0;
-    PForDeltaUnpack.unpack(decompressedSlots, compBlock, bits);
-    compressedBitSize = bits * blockSize;
-    
-    return compressedBitSize;    
-  } 
 
   /**
    * Compress a block of blockSize integers using Simple16 algorithm 
@@ -264,10 +275,6 @@ public class PForDelta{
     for(numLeft=blockSize; numLeft>0; numLeft -= num)
     {
       num = Simple16.s16Compress(outCompBlock, outOffset, inBlock, inOffset, numLeft, blockSize, oriBlockSize, oriInputBlock);
-      if(num<0)
-      {
-        System.out.println("oops: s16 get -1 ");
-      }
       outOffset++;
       inOffset += num;
     }
@@ -319,6 +326,24 @@ public class PForDelta{
   }
 
   /**
+   * Decompress the b-bit slots using hardcoded unpack methods
+   * 
+   * @param decompressedSlots the decompressed output 
+   * @param compBlock the compressed input block
+   * @param blockSize the block size which is 256 by default 
+   * @param bits the value of b
+   * @return the processed data size (the number of bits in the compressed form)
+   */ 
+  private int decompressBBitSlotsWithHardCodes(int[] decompressedSlots, int[] compBlock, int blockSize, int bits)
+  {
+    int compressedBitSize = 0;
+    PForDeltaUnpack128.unpack(decompressedSlots, compBlock, bits);
+    compressedBitSize = bits * blockSize;
+    
+    return compressedBitSize;    
+  } 
+  
+  /**
    * Read a certain number of bits of an integer into an integer array starting from the given start offset
    * 
    * @param in the input array 
@@ -338,5 +363,4 @@ public class PForDelta{
   }
 
 }
-
 

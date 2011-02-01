@@ -6,7 +6,17 @@ import java.io.PrintWriter;
 
 public class GenerateUnpackClass {
   
-  
+  public static void main(String[] args)
+  {
+    try
+    {
+      generatePForDeltaUnpackClass(128, "/Users/hyan/workspace/UnpackTmp.txt");
+    }
+    catch(Exception e)
+    {
+      e.printStackTrace();
+    }
+  }
   /*example usage 
   public void writeUnpackFile() throws IOException
   {
@@ -24,7 +34,7 @@ public class GenerateUnpackClass {
     pw.println("public class PForDeltaUnpack{");
     pw.println(" ");
     generatePForDeltaFunctionSelectionFile(pw);
-    int HEADER_BITS = 32 * 2; // two int header
+    int HEADER_BITS = 32 ; // two int header
     for(int i=0; i<POSSIBLE_B.length; ++i)
     {
       pw.println(" ");
@@ -32,13 +42,12 @@ public class GenerateUnpackClass {
       generatePForDeltaUnpackFileEach32(pw, HEADER_BITS, blockSize, POSSIBLE_B[i]);
     }
     
-    
     pw.println("}");
     pw.close();
    
   }
   
-  private static int[] POSSIBLE_B = {1,2,3,4,5,6,7,8,9,10,11,12,13,16,20};
+  private static int[] POSSIBLE_B =  {0, 1,2,3,4,5,6,7,8,9,10,11,12,13,16,20,28}; 
   
   private static final int[] MASK = {0x00000000,
     0x00000001, 0x00000003, 0x00000007, 0x0000000f, 0x0000001f, 0x0000003f,
@@ -52,6 +61,8 @@ public class GenerateUnpackClass {
   {
     pw.println("  static private void unpack" + bits + "(int[] out, int[] in)");
     pw.println("  {");
+    if(bits>0)
+    {
     pw.println("  int i, w;");
     int index,skip;
     pw.println("  for(i=0, w=" + (inOffset>>>5) + "; i<" + (n/32) + "; ++i, w+=" + bits + "){");
@@ -74,6 +85,7 @@ public class GenerateUnpackClass {
        
       }
       pw.println("  }");
+    }
     pw.println("  }");
   }
 
@@ -82,21 +94,24 @@ public class GenerateUnpackClass {
     pw.println("  static private void unpack" + bits + "(int[] out, int[] in)");
     pw.println("  {");
     
-    for(int i=0; i<n; ++i, inOffset+=bits)
+    if(bits>0)
     {
-      //out[outStart+i] = readBits(in, inStart+i*bits, bits);
-      
-      final int index = inOffset >>> 5;
-      final int skip = inOffset & 0x1f;
-      if(skip == 0)
-        pw.println("    out[" + i + "] = ((in[" + (index) + "]) & " + MASK[bits] + ");");
-      else
-        pw.println("    out[" + i + "] = ((in[" + (index) + "] >>> " + (skip) + ") & " + MASK[bits] + ");");
-      
-      if (32 - skip < bits) {      
-        pw.println("    out[" + i + "] |= ((in[" + (index+1) + "] << " + (32-skip) + ") & " + MASK[bits] + ");");
-      }   
-    }  
+      for(int i=0; i<n; ++i, inOffset+=bits)
+      {
+        //out[outStart+i] = readBits(in, inStart+i*bits, bits);
+
+        final int index = inOffset >>> 5;
+        final int skip = inOffset & 0x1f;
+        if(skip == 0)
+          pw.println("    out[" + i + "] = ((in[" + (index) + "]) & " + MASK[bits] + ");");
+        else
+          pw.println("    out[" + i + "] = ((in[" + (index) + "] >>> " + (skip) + ") & " + MASK[bits] + ");");
+
+        if (32 - skip < bits) {      
+          pw.println("    out[" + i + "] |= ((in[" + (index+1) + "] << " + (32-skip) + ") & " + MASK[bits] + ");");
+        }   
+      }
+    }
     pw.println("  }");
   }
   
