@@ -111,7 +111,7 @@ public class PForDeltaKamikazeTest extends TestCase
   @Test
   public void testVeryBigNumbers() throws Exception
   {     
-    // test the accuracy of compressing/decompressing big numbers 
+    // test the accuracy of compressing/decompressing a sequence of big numbers 
     System.out.println("Running test case: testVeryBigNumbers ");
     Random random = new Random(0); 
     int inputSize = 80024;

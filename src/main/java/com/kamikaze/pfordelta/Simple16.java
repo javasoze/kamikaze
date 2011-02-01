@@ -8,6 +8,9 @@ package com.kamikaze.pfordelta;
  * 
  * 2. http://www2009.org/proceedings/pdf/p401.pdf
  * 
+ * The maximum possible integer value Simple16 can encode is < 2^28 (this is dertermined by the Simple16 algorithm itself).
+ * Therefore, in order to use Simple16, the application must write their own code to encode numbers in the range of [2^28, 2^32).
+ * A simple way is just write those numbers as 32-bit integers (that is, no compression for very big numbers).
  */
 
 public class Simple16{

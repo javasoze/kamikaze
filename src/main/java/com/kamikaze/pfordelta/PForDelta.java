@@ -18,6 +18,9 @@ import com.kamikaze.docidset.compression.PForDeltaUnpack;
  *  
  *  As a part of the PForDelta implementation, Simple16 is used to compress exceptions. The original Simple16 algorithm can also be found in the above literatures.
  * 
+ * This implementation overcomes the problem that Simple16 cannot deal with >2^28 numbers.
+ * 
+ * Author: hao yan hyan2008@gmail.com
  */
 
 public class PForDelta{
@@ -334,7 +337,7 @@ public class PForDelta{
   private int decompressBBitSlotsWithHardCodes(int[] decompressedSlots, int[] compBlock, int blockSize, int bits)
   {
     int compressedBitSize = 0;
-    PForDeltaUnpack.unpack(decompressedSlots, compBlock, bits);
+    PForDeltaUnpack128.unpack(decompressedSlots, compBlock, bits);
     compressedBitSize = bits * blockSize;
     
     return compressedBitSize;    
