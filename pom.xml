@@ -9,7 +9,7 @@
   <groupId>com.sna-projects</groupId>
   <artifactId>kamikaze</artifactId>
   <packaging>jar</packaging>
-  <version>3.0.3</version>
+  <version>3.0.3-SNAPSHOT</version>
   <name>kamikaze</name>
   <description>information retrival utility package for enhancing Lucene</description>
   <url>http://sna-projects.com/kamikaze</url>
