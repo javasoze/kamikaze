@@ -6,13 +6,13 @@
     <artifactId>oss-parent</artifactId>
     <version>6</version>
   </parent>
-  <groupId>com.sna-projects.kamikaze</groupId>
+  <groupId>com.sna-projects</groupId>
   <artifactId>kamikaze</artifactId>
   <packaging>jar</packaging>
-  <version>3.0.3</version>
+  <version>3.0.3-SNAPSHOT</version>
   <name>kamikaze</name>
   <description>information retrival utility package for enhancing Lucene</description>
-  <url>http://maven.apache.org</url>
+  <url>http://sna-projects.com/kamikaze</url>
 
   <licenses>
     <license>
@@ -70,6 +70,30 @@
           </excludes>
         </configuration>
       </plugin>
+	  <plugin>
+	     <groupId>org.apache.maven.plugins</groupId>
+	     <artifactId>maven-source-plugin</artifactId>
+	     <executions>
+	                    <execution>
+	                        <id>attach-sources</id>
+	                        <goals>
+	                            <goal>jar</goal>
+	                        </goals>
+	                    </execution>
+	                </executions>
+	            </plugin>
+	            <plugin>
+	                <groupId>org.apache.maven.plugins</groupId>
+	                <artifactId>maven-javadoc-plugin</artifactId>
+	                <executions>
+	                    <execution>
+	                        <id>attach-javadocs</id>
+	                        <goals>
+	                            <goal>jar</goal>
+	                        </goals>
+	                    </execution>
+	                </executions>
+	            </plugin>
     </plugins>
   </build>
 
