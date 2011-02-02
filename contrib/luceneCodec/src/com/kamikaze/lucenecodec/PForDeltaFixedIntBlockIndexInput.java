@@ -50,11 +50,26 @@ public class PForDeltaFixedIntBlockIndexInput extends FixedIntBlockIndexInput {
 
         //  read the compressed data
         final int compressedSizeInInt = input.readInt();
-        int[] compBuffer = new int[compressedSizeInInt];
-        for(int i=0;i<compressedSizeInInt;i++) {
-            compBuffer[i] = input.readInt();
-        }
+        
+        // two ways to read the data
+        // first way
+//        int[] compBuffer = new int[compressedSizeInInt];
+//        for(int i=0;i<compressedSizeInInt;i++) {
+//            compBuffer[i] = input.readInt();
+//        }
 
+        // second way
+        byte[] byteBuffer = new byte[compressedSizeInInt*4];
+        input.readBytes(byteBuffer, 0, compressedSizeInInt*4);
+        // convert the byte array into int array
+        int[] compBuffer = new int[compressedSizeInInt];
+        int i,j;
+        for(i=0,j=0; j<compressedSizeInInt; j++)
+        {
+            compBuffer[j] = ((byteBuffer[i++] & 0xff)<<24) | ((byteBuffer[i++] & 0xff)<<16)
+            | ((byteBuffer[i++] & 0xff)<<8) | (byteBuffer[i++] & 0xff);
+        }
+        
         // decompress
         decompressor.decompressOneBlock(decompBuffer, compBuffer);
         compBuffer = null;

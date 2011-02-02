@@ -49,7 +49,7 @@ public class Simple16{
    * @param n the number of elements to be compressed
    * @return the number of compressed integers
    */ 
-  public static final int s16Compress(int[] out, int outOffset, int[] in, int inOffset, int n, int blockSize, int oriBlockSize, int[] oriInputBlock)
+  public static final int s16Compress(int[] out, int outOffset, int[] in, int inOffset, int n, int blockSize)
   {
     int numIdx, j, num, bits;
     for (numIdx = 0; numIdx < S16_NUMSIZE; numIdx++) 

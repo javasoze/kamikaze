@@ -141,7 +141,7 @@ public class PForDeltaKamikazeTest extends TestCase
   } 
   
   @Test
-  public void _testFind() throws Exception
+  public void testFind() throws Exception
   {     
       // test the accuracy of PForDeltaDocIdSet.find()
       System.out.println("Running test case: PForDeltaDocIdSet.find() ...");
@@ -174,7 +174,7 @@ public class PForDeltaKamikazeTest extends TestCase
   
   
 @Test
-public void _testPartialEmptyAnd() throws IOException 
+public void testPartialEmptyAnd() throws IOException 
 { 
     // test the accuracy of PForDeltaOrDocIdSet
     try 
@@ -233,7 +233,7 @@ public void _testPartialEmptyAnd() throws IOException
  
 
 @Test
-public void _testAndIntersections() throws Exception
+public void testAndIntersections() throws Exception
 { 
      System.out.println("Running test case: intersections, PForDeltaAndDocIdSet.nextDoc() ...");
   
@@ -295,7 +295,7 @@ public void _testAndIntersections() throws Exception
 
 
 @Test
-public void _testPForDeltaDocSetSerialization() throws Exception{
+public void testPForDeltaDocSetSerialization() throws Exception{
    //test the accuracy of the serializaton and deserialization of PForDeltaDocIdSet objects by verifying if the deserialized object's nextDoc() results match the original object's nextDoc() results
   
   System.out.println("");
@@ -412,7 +412,7 @@ public void _testPForDeltaDocSetSerialization() throws Exception{
   
 
 @Test
-public void _testPForDeltaDocSetSerializationAndFind() throws Exception{
+public void testPForDeltaDocSetSerializationAndFind() throws Exception{
 //test the accuracy of the serialization and deserialization of PForDeltaDocIdSet objects by using two data sets (one is the subset of the other) and verifying the
 //deserialized super set can always find() the deserialized subset's elements
   System.out.println("");

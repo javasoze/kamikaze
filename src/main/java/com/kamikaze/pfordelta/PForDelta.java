@@ -26,7 +26,7 @@ import com.kamikaze.docidset.compression.PForDeltaUnpack;
 public class PForDelta{
   
   // NOTE: we expect the blockSize is always < (1<<(31-POSSIBLE_B_BITS)). For example, in the current default settings,
-  //  the blockSize < (1<<(31-5)), that is, < 2^27
+  //  the blockSize < (1<<(31-5)), that is, < 2^27,  the commonly used block size is 128 or 256. 
   
   //All possible values of b in the PForDelta algorithm
   private static final int[] POSSIBLE_B = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,16,20,28}; 
@@ -56,11 +56,11 @@ public class PForDelta{
    */
   public static int[] compressOneBlockOpt(final int[] inBlock, int blockSize)
   { 
-    // find the best b that can lead to the smallest overall compressed size
-    
+    // find the best b that may lead to the smallest overall compressed size
     int currentB = POSSIBLE_B[0];   
     int[] outBlock = null;
     int tmpB = currentB;
+    // deal with the large exception cases
     boolean hasBigNum = checkBigNumbers(inBlock, POSSIBLE_B[POSSIBLE_B.length-1], blockSize);
     if(hasBigNum)
     {
@@ -222,9 +222,9 @@ public class PForDelta{
     // compress exceptions
     if(expNum>0)
     {
-      int compressedBitSize = compressBlockByS16(tmpCompressedBlock, outputOffset, expPos, expNum, blockSize, inputBlock);
+      int compressedBitSize = compressBlockByS16(tmpCompressedBlock, outputOffset, expPos, expNum);
       outputOffset += compressedBitSize;
-      compressedBitSize = compressBlockByS16(tmpCompressedBlock, outputOffset, expHighBits, expNum, blockSize, inputBlock);
+      compressedBitSize = compressBlockByS16(tmpCompressedBlock, outputOffset, expHighBits, expNum);
       outputOffset += compressedBitSize;
     }
 
@@ -268,13 +268,13 @@ public class PForDelta{
    * @param blockSize the block size
    * @return the compressed size in bits
    */
-  private static int compressBlockByS16(int[] outCompBlock, int outStartOffsetInBits, int[] inBlock, int blockSize, int oriBlockSize, int[] oriInputBlock)
+  private static int compressBlockByS16(int[] outCompBlock, int outStartOffsetInBits, int[] inBlock, int blockSize)
   {
     int outOffset  = (outStartOffsetInBits+31)>>>5; 
     int num, inOffset=0, numLeft;
     for(numLeft=blockSize; numLeft>0; numLeft -= num)
     {
-      num = Simple16.s16Compress(outCompBlock, outOffset, inBlock, inOffset, numLeft, blockSize, oriBlockSize, oriInputBlock);
+      num = Simple16.s16Compress(outCompBlock, outOffset, inBlock, inOffset, numLeft, blockSize);
       outOffset++;
       inOffset += num;
     }

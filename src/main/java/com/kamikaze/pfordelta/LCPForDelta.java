@@ -45,7 +45,7 @@ import java.util.Arrays;
 public class LCPForDelta{
       
       // NOTE: we expect the blockSize is always < (1<<(31-POSSIBLE_B_BITS)). For example, in the current default settings,
-      //  the blockSize < (1<<(31-5)), that is, < 2^27
+      //  the blockSize < (1<<(31-5)), that is, < 2^27, the commonly used block size is 128 or 256. 
       
       //All possible values of b in the PForDelta algorithm
       private static final int[] POSSIBLE_B = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,16,20,28}; 
@@ -160,9 +160,9 @@ public class LCPForDelta{
             // compress exceptions
             if(expNum>0)
             {
-              int compressedBitSize = compressBlockByS16(tmpCompBuffer, outputOffset, expPosBuffer, expNum, blockSize, inputBlock);
+              int compressedBitSize = compressBlockByS16(tmpCompBuffer, outputOffset, expPosBuffer, expNum);
               outputOffset += compressedBitSize;
-              compressedBitSize = compressBlockByS16(tmpCompBuffer, outputOffset, expHighBitsBuffer, expNum, blockSize, inputBlock);
+              compressedBitSize = compressBlockByS16(tmpCompBuffer, outputOffset, expHighBitsBuffer, expNum);
               outputOffset += compressedBitSize;
             }
 
@@ -287,23 +287,6 @@ public class LCPForDelta{
         return compressedBitSize;    
       } 
       
-      /**
-       * Decompress the b-bit slots using hardcoded unpack methods
-       * 
-       * @param decompressedSlots the decompressed output 
-       * @param compBlock the compressed input block
-       * @param blockSize the block size which is 256 by default 
-       * @param bits the value of b
-       * @return the processed data size (the number of bits in the compressed form)
-       */ 
-      private int decompressBBitSlotsWithHardCodes(int[] decompressedSlots, int[] compBlock, int blockSize, int bits)
-      {
-        int compressedBitSize = 0;
-        PForDeltaUnpack128.unpack(decompressedSlots, compBlock, bits);
-        compressedBitSize = bits * blockSize;
-        
-        return compressedBitSize;    
-      } 
       
 
       /**
@@ -314,13 +297,13 @@ public class LCPForDelta{
        * @param blockSize the block size
        * @return the compressed size in bits
        */
-      private int compressBlockByS16(int[] outCompBlock, int outStartOffsetInBits, int[] inBlock, int blockSize, int oriBlockSize, int[] oriInputBlock)
+      private int compressBlockByS16(int[] outCompBlock, int outStartOffsetInBits, int[] inBlock, int blockSize)
       {
         int outOffset  = (outStartOffsetInBits+31)>>>5; 
         int num, inOffset=0, numLeft;
         for(numLeft=blockSize; numLeft>0; numLeft -= num)
         {
-          num = Simple16.s16Compress(outCompBlock, outOffset, inBlock, inOffset, numLeft, blockSize, oriBlockSize, oriInputBlock);
+          num = Simple16.s16Compress(outCompBlock, outOffset, inBlock, inOffset, numLeft, blockSize);
           outOffset++;
           inOffset += num;
         }

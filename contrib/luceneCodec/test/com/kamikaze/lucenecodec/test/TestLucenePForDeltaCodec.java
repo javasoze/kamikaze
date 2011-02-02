@@ -19,7 +19,7 @@ import com.kamikaze.lucenecodec.PForDeltaFixedIntBlockFactory;
 public class TestLucenePForDeltaCodec extends TestCase{
 
   public void testPForDeltaSimpleIntBlocks() throws Exception {
-    System.out.println("running test case : PForDeltaFixedIntBlockCodec");
+      System.out.println("running test case : testPForDeltaSimpleIntBlocks for PForDeltaFixedIntBlockCodec");
       Directory dir = new RAMDirectory();
       int blockSize = 128;
       IntStreamFactory f = new PForDeltaFixedIntBlockFactory(blockSize);
@@ -37,7 +37,6 @@ public class TestLucenePForDeltaCodec extends TestCase{
       }
       out.close();
 
-      System.out.println("start to read");
       IntIndexInput in = f.openInput(dir, "test");
       BulkPostingsEnum.BlockReader r = in.reader();
       final int[] buffer = r.getBuffer();
@@ -60,6 +59,7 @@ public class TestLucenePForDeltaCodec extends TestCase{
     }
   
   public void testPForDeltaEmptySimpleIntBlocks() throws Exception {
+      System.out.println("running test case : testPForDeltaEmptySimpleIntBlocks for PForDeltaFixedIntBlockCodec");
       Directory dir = new RAMDirectory();
       int blockSize = 128;
       IntStreamFactory f = new PForDeltaFixedIntBlockFactory(blockSize);
