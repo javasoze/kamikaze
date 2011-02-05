@@ -6,7 +6,7 @@
     <artifactId>oss-parent</artifactId>
     <version>6</version>
   </parent>
-  <groupId>com.sna-projects</groupId>
+  <groupId>com.sna-projects.kamikaze</groupId>
   <artifactId>kamikaze</artifactId>
   <packaging>jar</packaging>
   <version>3.0.3-SNAPSHOT</version>
