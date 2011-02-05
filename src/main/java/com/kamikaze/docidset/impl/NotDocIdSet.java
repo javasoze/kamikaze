@@ -16,7 +16,6 @@ public class NotDocIdSet extends ImmutableDocSet implements Serializable {
   private int max = -1;
 
   public NotDocIdSet(DocIdSet docSet, int maxVal) {
-    System.out.println("yanhao: hahaha in notdocidset");
     innerSet = docSet;
     max = maxVal;
   }
@@ -27,7 +26,6 @@ public class NotDocIdSet extends ImmutableDocSet implements Serializable {
     private int innerDocid = -1;
 
     NotDocIdSetIterator() throws IOException{
-      System.out.println("yanhao: hahaha in notdocidsetiterator");
       initialize();
     }
 
