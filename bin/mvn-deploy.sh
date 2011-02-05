@@ -1,1 +1,1 @@
-mvn deploy:deploy-file -Durl=https://oss.sonatype.org/content/repositories/snapshots -DrepositoryId=sonatype-nexus-snapshots -Dfile=target/kamikaze-3.0.3.jar -DpomFile=pom.xml
+mvn deploy:deploy-file -Durl=https://oss.sonatype.org/content/repositories/snapshots -DrepositoryId=sonatype-nexus-snapshots -Dfile=target/kamikaze-3.0.3-SNAPSHOT.jar -DpomFile=pom.xml
