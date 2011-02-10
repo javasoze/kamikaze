@@ -116,21 +116,47 @@
     </dependency>
   </dependencies>
 
-
-<distributionManagement>
-   <snapshotRepository>
-    <id>ossKamikaze</id>
-    <name>SNA snapshot repo</name>
-    <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-  </snapshotRepository>
-  
-<!--
-  <repository>
-    <id>nexusKamikazeRelease</id>
-    <name>Nexus staging Repo</name>
-    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
-  </repository>
--->
- </distributionManagement>
+    <distributionManagement>
+        <repository>
+            <id>sonatype-nexus-staging</id>
+            <name>sonatype nexus staging repository</name>
+            <url>http://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+        </repository>
+        <snapshotRepository>
+            <id>sonatype-nexus-snapshots</id>
+            <name>sonatype nexus snapshots repository</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+ 
+	<profiles>
+	    <profile>
+	        <id>release-sign-artifacts</id>
+	        <activation>
+	            <property>
+	                <name>performRelease</name>
+	                <value>true</value>
+	            </property>
+	        </activation>
+	        <build>
+	            <plugins>
+	                <plugin>
+	                    <groupId>org.apache.maven.plugins</groupId>
+	                    <artifactId>maven-gpg-plugin</artifactId>
+	                    <version>1.1</version>
+	                    <executions>
+	                        <execution>
+	                            <id>sign-artifacts</id>
+	                            <phase>verify</phase>
+	                            <goals>
+	                                <goal>sign</goal>
+	                            </goals>
+	                        </execution>
+	                    </executions>
+	                </plugin>
+	            </plugins>
+	        </build>
+	    </profile>
+	</profiles> 
 
 </project>
