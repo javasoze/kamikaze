@@ -14,7 +14,7 @@ import com.kamikaze.docidset.utils.IntArray;
  * 
  * 
  * @author abhasin
- * 
+ * @deprecated Please use PForDeltaAndDocIdSet
  */
 public class P4DDocIdSet extends AbstractDocSet implements Serializable {
  
@@ -32,7 +32,9 @@ public class P4DDocIdSet extends AbstractDocSet implements Serializable {
   private IntArray baseList = null;
 
   
-  
+  /**
+   * @deprecated Please use PForDeltaAndDocIdSet
+   */
   public P4DDocIdSet() {
   
     baseList = new IntArray();
@@ -40,6 +42,9 @@ public class P4DDocIdSet extends AbstractDocSet implements Serializable {
     
   }
   
+  /**
+   * @deprecated Please use PForDeltaAndDocIdSet
+   */
   public P4DDocIdSet(int batchSize) {
     this();
     this.BATCH_SIZE = batchSize;
