@@ -1,6 +1,5 @@
 package com.kamikaze.lucenecodec;
 
-
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -20,26 +19,44 @@ package com.kamikaze.lucenecodec;
 
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.IndexInput;
+import org.apache.lucene.util.pfor2.LCPForDelta;
 import org.apache.lucene.index.codecs.intblock.FixedIntBlockIndexInput;
-import com.kamikaze.pfordelta.LCPForDelta;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 
-public class PForDeltaFixedIntBlockIndexInput extends FixedIntBlockIndexInput {
+public class PForDeltaFixedIntBlockWithIntBufferIndexInput extends FixedIntBlockIndexInput {
 
-  public PForDeltaFixedIntBlockIndexInput(Directory dir, String fileName, int readBufferSize) throws IOException {
+  public PForDeltaFixedIntBlockWithIntBufferIndexInput(Directory dir, String fileName, int readBufferSize) throws IOException {
     super(dir.openInput(fileName, readBufferSize));
+    
   }
 
   private static class BlockReader implements FixedIntBlockIndexInput.BlockReader {
     private final LCPForDelta decompressor;
     private final IndexInput input;
-    private final int[] decompBuffer;
+    private final int[] decompBlock;
+    
+    private  final ByteBuffer byteCompBuffer;
+    private  final IntBuffer intCompBuffer;
+    private  final byte[] byteCompBlock;
+    private  final int[] expPosIntBlock;
+    private  final int[] expHighBitIntBlock;
+    
+    private static final int MAX_BLOCK_SIZE = 128;
     
     public BlockReader(IndexInput in, int[] buffer) {
       decompressor = new LCPForDelta();
       input = in;
-      decompBuffer = buffer;
+      decompBlock = buffer;
+      
+      byteCompBuffer = ByteBuffer.allocate(MAX_BLOCK_SIZE*4*4);
+      byteCompBlock = byteCompBuffer.array();
+      intCompBuffer = byteCompBuffer.asIntBuffer();
+      
+      expPosIntBlock = new int[MAX_BLOCK_SIZE];
+      expHighBitIntBlock = new int[MAX_BLOCK_SIZE];
     }
 
     public void seek(long pos) throws IOException {
@@ -51,28 +68,16 @@ public class PForDeltaFixedIntBlockIndexInput extends FixedIntBlockIndexInput {
         //  read the compressed data
         final int compressedSizeInInt = input.readInt();
         
-        // two ways to read the data
-        // first way
-//        int[] compBuffer = new int[compressedSizeInInt];
-//        for(int i=0;i<compressedSizeInInt;i++) {
-//            compBuffer[i] = input.readInt();
-//        }
-
-        // second way
-        byte[] byteBuffer = new byte[compressedSizeInInt*4];
-        input.readBytes(byteBuffer, 0, compressedSizeInInt*4);
-        // convert the byte array into int array
-        int[] compBuffer = new int[compressedSizeInInt];
-        int i,j;
-        for(i=0,j=0; j<compressedSizeInInt; j++)
-        {
-            compBuffer[j] = ((byteBuffer[i++] & 0xff)<<24) | ((byteBuffer[i++] & 0xff)<<16)
-            | ((byteBuffer[i++] & 0xff)<<8) | (byteBuffer[i++] & 0xff);
-        }
+        int blockSize = 128;
+        input.readBytes(byteCompBlock, 0, compressedSizeInInt*4);
+        intCompBuffer.rewind();
         
-        // decompress
-        decompressor.decompressOneBlock(decompBuffer, compBuffer);
-        compBuffer = null;
+        decompressor.decompressOneBlockWithSizeWithIntBuffer(decompBlock, intCompBuffer, blockSize, expPosIntBlock, expHighBitIntBlock, compressedSizeInInt);
+    }
+
+    public void skipBlock() throws IOException {
+      int numInts = input.readInt(); // nocommit: should PFOR use vint header?
+      input.seek(input.getFilePointer() + numInts*4); // seek past block
     }
   }
 

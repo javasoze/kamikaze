@@ -114,29 +114,35 @@ public class PForDeltaKamikazeTest extends TestCase
     // test the accuracy of compressing/decompressing a sequence of big numbers 
     System.out.println("Running test case: testVeryBigNumbers ");
     Random random = new Random(0); 
-    int inputSize = 80024;
-    int[] input = new int[inputSize];
-    for(int i=0; i<inputSize; ++i)
+    int blockNum = 800;
+    int blockSize = 128;
+    int[][] input = new int[blockNum][];
+    
+    for(int i=0; i<blockNum; i++)
     {
-      input[i] = random.nextInt() & Integer.MAX_VALUE;
-    }
+      for(int j=0; j<blockSize; j++)
+      {
+        input[i][j] = random.nextInt() & Integer.MAX_VALUE;
+      }
 
-    int blockSize = input.length;
-    int[] middleOutput = null;
-    try{
-      middleOutput = new int[blockSize];
-      middleOutput = PForDelta.compressOneBlockOpt(input, blockSize);
-
-      int[] output = new int[blockSize];
-      PForDelta.decompressOneBlock(output, middleOutput, blockSize);
-      //printList(input, 0, blockSize-1);
-      //printList(output, 0, blockSize-1);
-      assertEquals(true, compareTwoArrays(input, output));
-      System.out.println("-------------------completed------------------------");
-    }
-    catch(Exception e)
-    {
-      e.printStackTrace();
+      int[] middleOutput = null;
+      try{
+        //middleOutput = new int[blockSize];
+        middleOutput = PForDelta.compressOneBlockOpt(input[i], blockSize);
+        int[] output = new int[blockSize];
+        long start = System.currentTimeMillis();
+        PForDelta.decompressOneBlock(output, middleOutput, blockSize);
+        long end = System.currentTimeMillis();
+        System.out.println("time: " + (end-start));
+        //printList(input, 0, blockSize-1);
+        //printList(output, 0, blockSize-1);
+        assertEquals(true, compareTwoArrays(input[i], output));
+        System.out.println("-------------------completed------------------------");
+      }
+      catch(Exception e)
+      {
+        e.printStackTrace();
+      }
     }
   } 
   

@@ -1,6 +1,5 @@
 package com.kamikaze.lucenecodec;
 
-
 /**
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the NOTICE file distributed with
@@ -25,21 +24,21 @@ import org.apache.lucene.index.codecs.sep.IntIndexOutput;
 
 import java.io.IOException;
 
-public class PForDeltaFixedIntBlockFactory extends IntStreamFactory {
+public class PForDeltaFixedIntBlockWithIntBufferFactory extends IntStreamFactory {
   private final int blockSize;
 
   /** blockSize is only used when creating the
    *  IntIndexOutput */
-  public PForDeltaFixedIntBlockFactory(int blockSize) {
+  public PForDeltaFixedIntBlockWithIntBufferFactory(int blockSize) {
     this.blockSize = blockSize;
   }
 
   public IntIndexInput openInput(Directory dir, String fileName, int readBufferSize) throws IOException {
-    return new PForDeltaFixedIntBlockIndexInput(dir, fileName, readBufferSize);
+    return new PForDeltaFixedIntBlockWithIntBufferIndexInput(dir, fileName, readBufferSize);
   }
   
 
   public IntIndexOutput createOutput(Directory dir, String fileName) throws IOException {
-    return new PForDeltaFixedIntBlockIndexOutput(dir, fileName, blockSize);
+    return new PForDeltaFixedIntBlockWithIntBufferIndexOutput(dir, fileName, blockSize);
   }
 }

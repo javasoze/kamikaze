@@ -2,7 +2,8 @@ Manifest-Version: 1.0
 Ant-Version: Apache Ant 1.7.1
 Created-By: 17.1-b03-307 (Apple Inc.)
 Built-By: hyan
-Git-Version: 3dbe9dcf8e7a5eca8371dbca6f0d6b00ee38aca6 removed unnecc f
- iles
-Built-Date: 2010-12-21 18:09:27
+Git-Version: d990eab504e1f071fd16b4caffc9d8b2e1848e86 Added profile, w
+ hich signs artifacts during deployment. Changed ids of release and sn
+ apshot repositories.
+Built-Date: 2011-02-18 19:41:06
 

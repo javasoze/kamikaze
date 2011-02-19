@@ -1,23 +1,5 @@
 package com.kamikaze.lucenecodec;
 
-/**
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-
 import java.io.IOException;
 import java.util.Set;
 
@@ -29,8 +11,8 @@ import org.apache.lucene.index.codecs.FieldsConsumer;
 import org.apache.lucene.index.codecs.FieldsProducer;
 import org.apache.lucene.index.codecs.sep.SepPostingsReaderImpl;
 import org.apache.lucene.index.codecs.sep.SepPostingsWriterImpl;
-import org.apache.lucene.index.codecs.FixedGapTermsIndexReader;
-import org.apache.lucene.index.codecs.FixedGapTermsIndexWriter;
+import org.apache.lucene.index.codecs.VariableGapTermsIndexReader;
+import org.apache.lucene.index.codecs.VariableGapTermsIndexWriter;
 import org.apache.lucene.index.codecs.PostingsWriterBase;
 import org.apache.lucene.index.codecs.PostingsReaderBase;
 import org.apache.lucene.index.codecs.BlockTermsReader;
@@ -48,13 +30,13 @@ import org.apache.lucene.util.BytesRef;
  * used here writes each block as data encoded by PForDelta.
  */
 
-public class PForDeltaFixedIntBlockCodec extends Codec {
+public class PForDeltaFixedIntBlockWithIntBufferCodec extends Codec {
 
   private final int blockSize;
 
-  public PForDeltaFixedIntBlockCodec(int blockSize) {
+  public PForDeltaFixedIntBlockWithIntBufferCodec(int blockSize) {
     this.blockSize = blockSize;
-    name = "NewPForDelta";
+    name = "PatchedFrameOfRef4";
   }
 
   @Override
@@ -65,12 +47,12 @@ public class PForDeltaFixedIntBlockCodec extends Codec {
 
   @Override
   public FieldsConsumer fieldsConsumer(SegmentWriteState state) throws IOException {
-    PostingsWriterBase postingsWriter = new SepPostingsWriterImpl(state, new PForDeltaFixedIntBlockFactory(blockSize));
+    PostingsWriterBase postingsWriter = new SepPostingsWriterImpl(state, new PForDeltaFixedIntBlockWithIntBufferFactory(blockSize));
 
     boolean success = false;
     TermsIndexWriterBase indexWriter;
     try {
-      indexWriter = new FixedGapTermsIndexWriter(state);
+      indexWriter = new VariableGapTermsIndexWriter(state, new VariableGapTermsIndexWriter.EveryNTermSelector(state.termIndexInterval));
       success = true;
     } finally {
       if (!success) {
@@ -99,16 +81,16 @@ public class PForDeltaFixedIntBlockCodec extends Codec {
     PostingsReaderBase postingsReader = new SepPostingsReaderImpl(state.dir,
                                                                       state.segmentInfo,
                                                                       state.readBufferSize,
-                                                                      new PForDeltaFixedIntBlockFactory(blockSize), state.codecId);
+                                                                      new PForDeltaFixedIntBlockWithIntBufferFactory(blockSize), state.codecId);
 
     TermsIndexReaderBase indexReader;
     boolean success = false;
     try {
-      indexReader = new FixedGapTermsIndexReader(state.dir,
-                                                       state.fieldInfos,
-                                                       state.segmentInfo.name,
-                                                       state.termsIndexDivisor,
-                                                       BytesRef.getUTF8SortedAsUnicodeComparator(), state.codecId);
+      indexReader = new VariableGapTermsIndexReader(state.dir,
+                                                    state.fieldInfos,
+                                                    state.segmentInfo.name,
+                                                    state.termsIndexDivisor,
+                                                    state.codecId);
       success = true;
     } finally {
       if (!success) {
@@ -144,14 +126,14 @@ public class PForDeltaFixedIntBlockCodec extends Codec {
   public void files(Directory dir, SegmentInfo segmentInfo, String codecId, Set<String> files) {
     SepPostingsReaderImpl.files(segmentInfo, codecId, files);
     BlockTermsReader.files(dir, segmentInfo, codecId, files);
-    FixedGapTermsIndexReader.files(dir, segmentInfo, codecId, files);
+    VariableGapTermsIndexReader.files(dir, segmentInfo, codecId, files);
   }
 
   @Override
   public void getExtensions(Set<String> extensions) {
     SepPostingsWriterImpl.getExtensions(extensions);
     BlockTermsReader.getExtensions(extensions);
-    FixedGapTermsIndexReader.getIndexExtensions(extensions);
+    VariableGapTermsIndexReader.getIndexExtensions(extensions);
   }
 }
 

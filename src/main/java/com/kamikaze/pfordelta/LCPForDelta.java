@@ -19,6 +19,7 @@ package com.kamikaze.pfordelta;
  */
 
 import java.util.Arrays;
+import java.nio.IntBuffer;
 
 /**
  * Implementation of the optimized PForDelta algorithm for sorted integer arrays. The basic ideas are based on
@@ -45,7 +46,7 @@ import java.util.Arrays;
 public class LCPForDelta{
       
       // NOTE: we expect the blockSize is always < (1<<(31-POSSIBLE_B_BITS)). For example, in the current default settings,
-      //  the blockSize < (1<<(31-5)), that is, < 2^27, the commonly used block size is 128 or 256. 
+      //  the blockSize < (1<<(31-5)), that is, < 2^27
       
       //All possible values of b in the PForDelta algorithm
       private static final int[] POSSIBLE_B = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,16,20,28}; 
@@ -55,7 +56,7 @@ public class LCPForDelta{
       // Max number of bits to store an uncompressed value
       private static final int MAX_BITS = 32;
       // Header records the value of b and the number of exceptions in the block
-      private static final int HEADER_NUM = 2;
+      private static final int HEADER_NUM = 1;
       // Header size in bits
       private static final int HEADER_SIZE = MAX_BITS * HEADER_NUM;
 
@@ -131,8 +132,10 @@ public class LCPForDelta{
             int expNum = 0;      
             int maxCompBitSize =  HEADER_SIZE + blockSize * (MAX_BITS  + MAX_BITS + MAX_BITS) + 32;
             int[] tmpCompBuffer = new int[(maxCompBitSize>>>5)];
+            
             int[] expPosBuffer = new int[blockSize];
             int[] expHighBitsBuffer = new int[blockSize]; 
+            
             // compress the b-bit slots
             for (int i = 0; i<blockSize; ++i)
             {
@@ -154,15 +157,17 @@ public class LCPForDelta{
               outputOffset += bits;
             }    
 
-            tmpCompBuffer[0] = blockSize;
-            tmpCompBuffer[1] = ((bits & MASK[POSSIBLE_B_BITS]) << (31-POSSIBLE_B_BITS)) | (expNum & MASK[31-POSSIBLE_B_BITS]);
+            tmpCompBuffer[0] = ((bits & MASK[POSSIBLE_B_BITS]) << (31-POSSIBLE_B_BITS)) | (expNum & MASK[31-POSSIBLE_B_BITS]);
 
             // compress exceptions
             if(expNum>0)
             {
-              int compressedBitSize = compressBlockByS16(tmpCompBuffer, outputOffset, expPosBuffer, expNum);
+              int compressedBitSize;
+              
+              compressedBitSize = compressBlockByS16(tmpCompBuffer, outputOffset, expPosBuffer, expNum, blockSize, inputBlock);
               outputOffset += compressedBitSize;
-              compressedBitSize = compressBlockByS16(tmpCompBuffer, outputOffset, expHighBitsBuffer, expNum);
+              
+              compressedBitSize = compressBlockByS16(tmpCompBuffer, outputOffset, expHighBitsBuffer, expNum, blockSize, inputBlock);
               outputOffset += compressedBitSize;
             }
 
@@ -173,6 +178,59 @@ public class LCPForDelta{
             return compressedSizeInInts;
           }
 
+      public int compressOneBlockCore2(int[] inputBlock, int blockSize, int bits) throws IllegalArgumentException {
+          int outputOffset = HEADER_SIZE;
+          int expUpperBound = 1<<bits;
+          int expNum = 0;      
+          int maxCompBitSize =  HEADER_SIZE + blockSize * (MAX_BITS  + MAX_BITS + MAX_BITS) + 32;
+          int[] tmpCompBuffer = new int[(maxCompBitSize>>>5)];
+          
+          int[] expPosBuffer = new int[blockSize];
+          int[] expHighBitsBuffer = new int[blockSize]; 
+          
+          // compress the b-bit slots
+          for (int i = 0; i<blockSize; ++i)
+          {
+            int value = inputBlock[i];
+            if (value < expUpperBound) 
+            {
+              writeBits(tmpCompBuffer, value, outputOffset, bits);
+            } 
+            else // exp
+            {
+              // store the lower bits-bits of the exception
+              writeBits(tmpCompBuffer, value & MASK[bits], outputOffset, bits); 
+              // write the position of exception
+              expPosBuffer[expNum] = i; 
+              // write the higher 32-bits bits of the exception
+              expHighBitsBuffer[expNum] = (value >>> bits) & MASK[32-bits];
+              expNum++;
+            }
+            outputOffset += bits;
+          }    
+
+          tmpCompBuffer[0] = ((bits & MASK[POSSIBLE_B_BITS]) << (31-POSSIBLE_B_BITS)) | (expNum & MASK[31-POSSIBLE_B_BITS]);
+
+          // compress exceptions
+          if(expNum>0)
+          {
+            int compressedBitSize;
+            
+            int[] expBuffer = new int[expNum*2];
+            System.arraycopy(expPosBuffer,0, expBuffer,0,expNum);
+            System.arraycopy(expHighBitsBuffer,0,expBuffer,expNum,expNum);
+            
+            compressedBitSize = compressBlockByS16(tmpCompBuffer, outputOffset, expBuffer, expNum*2, blockSize, inputBlock);
+            outputOffset += compressedBitSize;
+          }
+
+          // discard the redundant parts in the tmpCompressedBlock
+          int compressedSizeInInts = (outputOffset+31)>>>5;
+
+          compBuffer = tmpCompBuffer;
+          return compressedSizeInInts;
+        }
+      
       /**
        * Decompress one block using PForDelta
        * @param decompBlock the block that was decompressed
@@ -180,11 +238,10 @@ public class LCPForDelta{
        * @param blockSize the number of elements in the decompressed block
        * 
        */
-      public void decompressOneBlock(int[] decompBlock, int[] inBlock)
+      public void decompressOneBlock(int[] decompBlock, int[] inBlock, int blockSize)
       {
-        int blockSize = inBlock[0];
-        int expNum = inBlock[1] & MASK[31-POSSIBLE_B_BITS]; 
-        int bits = (inBlock[1]>>>(31-POSSIBLE_B_BITS)) & (0x1f);    
+        int expNum = inBlock[0] & MASK[31-POSSIBLE_B_BITS]; 
+        int bits = (inBlock[0]>>>(31-POSSIBLE_B_BITS)) & (0x1f);    
 
         int[] expPosBuffer = new int[blockSize];
         int[] expHighBitsBuffer = new int[blockSize];
@@ -199,7 +256,6 @@ public class LCPForDelta{
         else
         {
           compressedBits = decompressBBitSlots(decompBlock, inBlock, blockSize, bits);
-          // hardcoding does not help with -server
           //compressedBits = decompressBBitSlotsWithHardCodes(decompBlock, inBlock, blockSize, bits);
         }
         offset += compressedBits;
@@ -220,6 +276,76 @@ public class LCPForDelta{
           }
         }
       }
+      
+      public void decompressOneBlockWithSize(int[] decompBlock, int[] inBlock, int blockSize, int[] expPosBuffer, int[] expHighBitsBuffer, int inBlockLen)
+      {
+        int expNum = inBlock[0] & MASK[31-POSSIBLE_B_BITS]; 
+        int bits = (inBlock[0]>>>(31-POSSIBLE_B_BITS)) & (0x1f);    
+
+        // decompress the b-bit slots
+        int offset = HEADER_SIZE;
+        int compressedBits = 0;
+        if(bits == 0)
+        {
+          Arrays.fill(decompBlock,0, inBlockLen, 0);
+        }
+        else
+        {
+          //compressedBits = decompressBBitSlotsWithHardCodes(decompBlock, inBlock, blockSize, bits);
+          compressedBits = decompressBBitSlots(decompBlock, inBlock, blockSize, bits);
+        }
+        offset += compressedBits;
+
+        // decompress exceptions
+        if(expNum>0)
+        {
+          compressedBits = decompressBlockByS16(expPosBuffer, inBlock, offset, expNum);
+          offset += compressedBits;
+          compressedBits = decompressBlockByS16(expHighBitsBuffer, inBlock, offset, expNum);
+          offset += compressedBits;
+
+          for (int i = 0; i < expNum; i++) 
+          { 
+            int curExpPos = expPosBuffer[i]  ;
+            int curHighBits = expHighBitsBuffer[i];
+            decompBlock[curExpPos] = (decompBlock[curExpPos] & MASK[bits]) | ((curHighBits & MASK[32-bits] ) << bits);
+          }
+        }
+      }
+      
+      public void decompressOneBlockWithSizeWithIntBuffer(final int[] decompBlock, final IntBuffer inBlock, final int blockSize, final int[] expPosBuffer, final int[] expHighBitsBuffer, final int inBlockLen)
+      {
+        final int flag = inBlock.get();
+        final int expNum = flag & MASK[31-POSSIBLE_B_BITS]; 
+        final int bits = (flag>>>(31-POSSIBLE_B_BITS)) & (0x1f); 
+        if(bits == 0)
+        {
+            Arrays.fill(decompBlock,0, inBlockLen, 0);
+        }
+        else
+        {
+          PForDeltaUnpack128WIthIntBuffer.unpack(decompBlock, inBlock, bits);
+        }
+        
+        if(expNum>0)
+        {
+            // decompress expPos
+            int num, outOffset=0, numLeft;
+            for(numLeft=expNum; numLeft>0; numLeft -= num)
+            {
+                num = Simple16WithHardCodes.s16DecompressWithIntBufferWithHardCodes(expPosBuffer, outOffset, inBlock.get(), numLeft);
+                outOffset += num;
+            }
+
+            // decompress expHighBits and decompBlock at the same time
+            for(outOffset=0, numLeft=expNum; numLeft>0; numLeft -= num)
+            {
+                num = Simple16WithHardCodes.s16DecompressWithIntBufferIntegrated2(decompBlock, outOffset, inBlock.get(), numLeft, expPosBuffer, bits);
+                outOffset += num;
+            }
+        }
+      }
+      
 
       /**
        * Estimate the compressed size in ints of a block
@@ -288,6 +414,20 @@ public class LCPForDelta{
       } 
       
       
+      public int decompressBBitSlotsWithHardCodes(final int[] outDecompSlots, final int[] inCompBlock, final int blockSize, final int bits)
+      {
+        int compressedBitSize = 0;
+        PForDeltaUnpack128.unpack(outDecompSlots, inCompBlock, bits);
+        compressedBitSize = bits * blockSize;
+        return compressedBitSize;    
+      } 
+      
+      public int decompressBBitSlotsWithHardCodesWithIntBuffer(final int[] outDecompSlots, final IntBuffer inCompBlock, final int blockSize, final int bits)
+      {
+        PForDeltaUnpack128WIthIntBuffer.unpack(outDecompSlots, inCompBlock, bits);
+        return bits * blockSize;    
+      } 
+      
 
       /**
        * Compress a block of blockSize integers using Simple16 algorithm 
@@ -297,13 +437,13 @@ public class LCPForDelta{
        * @param blockSize the block size
        * @return the compressed size in bits
        */
-      private int compressBlockByS16(int[] outCompBlock, int outStartOffsetInBits, int[] inBlock, int blockSize)
+      private int compressBlockByS16(int[] outCompBlock, int outStartOffsetInBits, int[] inBlock, int blockSize, int oriBlockSize, int[] oriInputBlock)
       {
         int outOffset  = (outStartOffsetInBits+31)>>>5; 
         int num, inOffset=0, numLeft;
         for(numLeft=blockSize; numLeft>0; numLeft -= num)
         {
-          num = Simple16.s16Compress(outCompBlock, outOffset, inBlock, inOffset, numLeft, blockSize);
+          num = Simple16WithHardCodes.s16Compress(outCompBlock, outOffset, inBlock, inOffset, numLeft, blockSize, oriBlockSize, oriInputBlock);
           outOffset++;
           inOffset += num;
         }
@@ -333,6 +473,26 @@ public class LCPForDelta{
         return compressedBitSize;    
       }
 
+      public void decompressBlockByS16WithIntBuffer(final int[] outDecompBlock, final IntBuffer inCompBlock, final int blockSize)
+      {    
+        int num, outOffset=0, numLeft;
+        for(numLeft=blockSize; numLeft>0; numLeft -= num)
+        {
+          num = Simple16WithHardCodes.s16DecompressWithIntBuffer(outDecompBlock, outOffset, inCompBlock.get(), numLeft);
+          outOffset += num;
+        }
+      }
+      
+      public void decompressBlockByS16WithIntBufferIntegrated(final int[] outDecompBlock, final IntBuffer inCompBlock, final int blockSize, int[] expPosBuffer, int oribits)
+      {    
+        int num, outOffset=0, numLeft;
+        for(numLeft=blockSize; numLeft>0; numLeft -= num)
+        {
+          num = Simple16WithHardCodes.s16DecompressWithIntBufferIntegrated(outDecompBlock, outOffset, inCompBlock.get(), numLeft, expPosBuffer, oribits);
+          outOffset += num;
+        }
+      }
+      
 
       /**
        * Write a certain number of bits of an integer into an integer array starting from the given start offset
@@ -373,5 +533,16 @@ public class LCPForDelta{
         return val & (0xffffffff >>> (32 - bits));
       }
 
+      public static final int readBitsWithBuffer(int[] in, final int inOffset, final int bits) {
+          final int index = inOffset >>> 5;
+          final int skip = inOffset & 0x1f;
+          int val = in[index] >>> skip;
+          if (32 - skip < bits) {      
+            val |= (in[index + 1] << (32 - skip));
+          }
+          return val & (0xffffffff >>> (32 - bits));
+        }
+      
     }
+
 

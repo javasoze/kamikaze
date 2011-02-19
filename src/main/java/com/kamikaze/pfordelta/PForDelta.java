@@ -113,6 +113,8 @@ public class PForDelta{
     else
     {
       compressedBits = decompressBBitSlots(outBlock, inBlock, blockSize, bits);
+      // Note that blocksize must be ==128 in order to use decompressBBitSlotsWithHardCodes
+      //compressedBits = decompressBBitSlotsWithHardCodes(outBlock, inBlock, blockSize, bits);
     }
     offset += compressedBits;
 
@@ -334,7 +336,7 @@ public class PForDelta{
    * @param bits the value of b
    * @return the processed data size (the number of bits in the compressed form)
    */ 
-  private int decompressBBitSlotsWithHardCodes(int[] decompressedSlots, int[] compBlock, int blockSize, int bits)
+  static int decompressBBitSlotsWithHardCodes(int[] decompressedSlots, int[] compBlock, int blockSize, int bits)
   {
     int compressedBitSize = 0;
     PForDeltaUnpack128.unpack(decompressedSlots, compBlock, bits);

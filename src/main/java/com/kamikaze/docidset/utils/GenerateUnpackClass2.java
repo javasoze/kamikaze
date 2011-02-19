@@ -5,13 +5,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 /**
- * Generate the hardwired unpack code to read every k bits from 128 integers .
- * This is highly optimized to speed up the decompression speed of
- * decoding b-bit slots (that is,  non-exceptions) in PForDelta algorithm
+ * This class is basically same as GenerateUnpackClass except that the input is IntBuffer instead of int[] .
  * @author hyan
  *
  */
-public class GenerateUnpackClass {
+public class GenerateUnpackClass2 {
   
   public static void main(String[] args)
   {
@@ -28,17 +26,19 @@ public class GenerateUnpackClass {
   static public void generatePForDeltaUnpackClass(String packageName, int blockSize, String filename) throws IOException
   {
     PrintWriter pw = new PrintWriter(new FileOutputStream(filename));
-    pw.println("package " +  packageName + ";");
+    pw.println("package " + packageName + ";");
     pw.println(" ");
+    pw.println("import java.nio.IntBuffer;");
     pw.println(" ");    
     
-    pw.println("public class PForDeltaUnpack128{");
+    pw.println("public class PForDeltaUnpack{");
     pw.println(" ");
     generatePForDeltaFunctionSelectionFile(pw);
     int HEADER_BITS = 32 ; // two int header
     for(int i=0; i<POSSIBLE_B.length; ++i)
     {
       pw.println(" ");
+      //generatePForDeltaUnpackFile(pw, HEADER_BITS, blockSize, POSSIBLE_B[i]);
       generatePForDeltaUnpackFileEach32(pw, HEADER_BITS, blockSize, POSSIBLE_B[i]);
     }
     
@@ -59,15 +59,14 @@ public class GenerateUnpackClass {
   
   static private void generatePForDeltaUnpackFileEach32(PrintWriter pw, int inOffset, int n, int bits)
   {
-    pw.println("  static private void unpack" + bits + "(int[] out, int[] in)");
+    pw.println("  static private void unpack" + bits + "(int[] out, IntBuffer in)");
     pw.println("  {");
     if(bits>0)
     {
-    pw.println("  int i, w;");
     pw.println("  int outOffset = " +  0 + ";");
     pw.println("  final int mask = " +  MASK[bits] + ";");
     int index,skip;
-    pw.println("  for(i=0, w=" + (inOffset>>>5) + "; i<" + (n/32) + "; ++i, w+=" + bits + "){");
+    pw.println("  for(int i=0; i<" + (n/32) + "; ++i){");
       int localInOffset = 0;
       
       int prevIndex = -1;
@@ -76,15 +75,8 @@ public class GenerateUnpackClass {
         index = localInOffset >>> 5;
         if(index != prevIndex)
         {
-          if(index == 0)
-          {
-            pw.println("    int curInputValue" + index + " = in[w];");
-          }
-          else
-          {
-            pw.println("    int curInputValue" + index + " = in[w+" + index +"];");
-          }
-          prevIndex = index;
+            pw.println("    int curInputValue" + index + " = in.get();");
+            prevIndex = index;
         }
       }
       
@@ -120,7 +112,7 @@ public class GenerateUnpackClass {
 
   static private void generatePForDeltaFunctionSelectionFile(PrintWriter pw)
   {
-     pw.println("  static public void unpack(int[] out, int[] in, int bits) {" );
+     pw.println("  static public void unpack(int[] out, InputBuffer in, int bits) {" );
      pw.println("    switch (bits) {");
      
      for(int i=0; i<POSSIBLE_B.length; i++)
@@ -132,4 +124,7 @@ public class GenerateUnpackClass {
      pw.println("    }");
      pw.println("  }");
   }
+    
+  
+  
 }

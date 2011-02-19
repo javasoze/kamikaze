@@ -1,9 +1,14 @@
 package com.kamikaze.pfordelta;
 
+import java.nio.IntBuffer;
 
-public class PForDeltaUnpack128{
+/**
+ *   PForDeltaUnpack128WIthIntBuffer is almost the same as PForDeltaUnpack128, except that it use IntBuffer as input instead of int[].
+ */
+
+public class PForDeltaUnpack128WIthIntBuffer{
  
-  static public void unpack(int[] out, int[] in, int bits) {
+  static public void unpack(int[] out, IntBuffer in, int bits) {
     switch (bits) {
       case 0:  unpack0(out, in); break;
       case 1:  unpack1(out, in); break;
@@ -26,17 +31,16 @@ public class PForDeltaUnpack128{
     }
   }
  
-  static private void unpack0(int[] out, int[] in)
+  static private void unpack0(int[] out, IntBuffer in)
   {
   }
  
-  static private void unpack1(int[] out, int[] in)
+  static private void unpack1(int[] out, IntBuffer in)
   {
-  int i, w;
   int outOffset = 0;
   final int mask = 1;
-  for(i=0, w=1; i<4; ++i, w+=1){
-    int curInputValue0 = in[w];
+  for(int i=0; i<4; ++i){
+    int curInputValue0 = in.get();
     out[0+outOffset] = curInputValue0 & mask;
     out[1+outOffset] = (curInputValue0 >>> 1) & mask;
     out[2+outOffset] = (curInputValue0 >>> 2) & mask;
@@ -73,14 +77,13 @@ public class PForDeltaUnpack128{
   }
   }
  
-  static private void unpack2(int[] out, int[] in)
+  static private void unpack2(int[] out, IntBuffer in)
   {
-  int i, w;
   int outOffset = 0;
   final int mask = 3;
-  for(i=0, w=1; i<4; ++i, w+=2){
-    int curInputValue0 = in[w];
-    int curInputValue1 = in[w+1];
+  for(int i=0; i<4; ++i){
+    int curInputValue0 = in.get();
+    int curInputValue1 = in.get();
     out[0+outOffset] = curInputValue0 & mask;
     out[1+outOffset] = (curInputValue0 >>> 2) & mask;
     out[2+outOffset] = (curInputValue0 >>> 4) & mask;
@@ -117,15 +120,14 @@ public class PForDeltaUnpack128{
   }
   }
  
-  static private void unpack3(int[] out, int[] in)
+  static private void unpack3(int[] out, IntBuffer in)
   {
-  int i, w;
   int outOffset = 0;
   final int mask = 7;
-  for(i=0, w=1; i<4; ++i, w+=3){
-    int curInputValue0 = in[w];
-    int curInputValue1 = in[w+1];
-    int curInputValue2 = in[w+2];
+  for(int i=0; i<4; ++i){
+    int curInputValue0 = in.get();
+    int curInputValue1 = in.get();
+    int curInputValue2 = in.get();
     out[0+outOffset] = curInputValue0 & mask;
     out[1+outOffset] = (curInputValue0 >>> 3) & mask;
     out[2+outOffset] = (curInputValue0 >>> 6) & mask;
@@ -162,16 +164,15 @@ public class PForDeltaUnpack128{
   }
   }
  
-  static private void unpack4(int[] out, int[] in)
+  static private void unpack4(int[] out, IntBuffer in)
   {
-  int i, w;
   int outOffset = 0;
   final int mask = 15;
-  for(i=0, w=1; i<4; ++i, w+=4){
-    int curInputValue0 = in[w];
-    int curInputValue1 = in[w+1];
-    int curInputValue2 = in[w+2];
-    int curInputValue3 = in[w+3];
+  for(int i=0; i<4; ++i){
+    int curInputValue0 = in.get();
+    int curInputValue1 = in.get();
+    int curInputValue2 = in.get();
+    int curInputValue3 = in.get();
     out[0+outOffset] = curInputValue0 & mask;
     out[1+outOffset] = (curInputValue0 >>> 4) & mask;
     out[2+outOffset] = (curInputValue0 >>> 8) & mask;
@@ -208,17 +209,16 @@ public class PForDeltaUnpack128{
   }
   }
  
-  static private void unpack5(int[] out, int[] in)
+  static private void unpack5(int[] out, IntBuffer in)
   {
-  int i, w;
   int outOffset = 0;
   final int mask = 31;
-  for(i=0, w=1; i<4; ++i, w+=5){
-    int curInputValue0 = in[w];
-    int curInputValue1 = in[w+1];
-    int curInputValue2 = in[w+2];
-    int curInputValue3 = in[w+3];
-    int curInputValue4 = in[w+4];
+  for(int i=0; i<4; ++i){
+    int curInputValue0 = in.get();
+    int curInputValue1 = in.get();
+    int curInputValue2 = in.get();
+    int curInputValue3 = in.get();
+    int curInputValue4 = in.get();
     out[0+outOffset] = curInputValue0 & mask;
     out[1+outOffset] = (curInputValue0 >>> 5) & mask;
     out[2+outOffset] = (curInputValue0 >>> 10) & mask;
@@ -255,18 +255,17 @@ public class PForDeltaUnpack128{
   }
   }
  
-  static private void unpack6(int[] out, int[] in)
+  static private void unpack6(int[] out, IntBuffer in)
   {
-  int i, w;
   int outOffset = 0;
   final int mask = 63;
-  for(i=0, w=1; i<4; ++i, w+=6){
-    int curInputValue0 = in[w];
-    int curInputValue1 = in[w+1];
-    int curInputValue2 = in[w+2];
-    int curInputValue3 = in[w+3];
-    int curInputValue4 = in[w+4];
-    int curInputValue5 = in[w+5];
+  for(int i=0; i<4; ++i){
+    int curInputValue0 = in.get();
+    int curInputValue1 = in.get();
+    int curInputValue2 = in.get();
+    int curInputValue3 = in.get();
+    int curInputValue4 = in.get();
+    int curInputValue5 = in.get();
     out[0+outOffset] = curInputValue0 & mask;
     out[1+outOffset] = (curInputValue0 >>> 6) & mask;
     out[2+outOffset] = (curInputValue0 >>> 12) & mask;
@@ -303,19 +302,18 @@ public class PForDeltaUnpack128{
   }
   }
  
-  static private void unpack7(int[] out, int[] in)
+  static private void unpack7(int[] out, IntBuffer in)
   {
-  int i, w;
   int outOffset = 0;
   final int mask = 127;
-  for(i=0, w=1; i<4; ++i, w+=7){
-    int curInputValue0 = in[w];
-    int curInputValue1 = in[w+1];
-    int curInputValue2 = in[w+2];
-    int curInputValue3 = in[w+3];
-    int curInputValue4 = in[w+4];
-    int curInputValue5 = in[w+5];
-    int curInputValue6 = in[w+6];
+  for(int i=0; i<4; ++i){
+    int curInputValue0 = in.get();
+    int curInputValue1 = in.get();
+    int curInputValue2 = in.get();
+    int curInputValue3 = in.get();
+    int curInputValue4 = in.get();
+    int curInputValue5 = in.get();
+    int curInputValue6 = in.get();
     out[0+outOffset] = curInputValue0 & mask;
     out[1+outOffset] = (curInputValue0 >>> 7) & mask;
     out[2+outOffset] = (curInputValue0 >>> 14) & mask;
@@ -352,20 +350,19 @@ public class PForDeltaUnpack128{
   }
   }
  
-  static private void unpack8(int[] out, int[] in)
+  static private void unpack8(int[] out, IntBuffer in)
   {
-  int i, w;
   int outOffset = 0;
   final int mask = 255;
-  for(i=0, w=1; i<4; ++i, w+=8){
-    int curInputValue0 = in[w];
-    int curInputValue1 = in[w+1];
-    int curInputValue2 = in[w+2];
-    int curInputValue3 = in[w+3];
-    int curInputValue4 = in[w+4];
-    int curInputValue5 = in[w+5];
-    int curInputValue6 = in[w+6];
-    int curInputValue7 = in[w+7];
+  for(int i=0; i<4; ++i){
+    int curInputValue0 = in.get();
+    int curInputValue1 = in.get();
+    int curInputValue2 = in.get();
+    int curInputValue3 = in.get();
+    int curInputValue4 = in.get();
+    int curInputValue5 = in.get();
+    int curInputValue6 = in.get();
+    int curInputValue7 = in.get();
     out[0+outOffset] = curInputValue0 & mask;
     out[1+outOffset] = (curInputValue0 >>> 8) & mask;
     out[2+outOffset] = (curInputValue0 >>> 16) & mask;
@@ -402,21 +399,20 @@ public class PForDeltaUnpack128{
   }
   }
  
-  static private void unpack9(int[] out, int[] in)
+  static private void unpack9(int[] out, IntBuffer in)
   {
-  int i, w;
   int outOffset = 0;
   final int mask = 511;
-  for(i=0, w=1; i<4; ++i, w+=9){
-    int curInputValue0 = in[w];
-    int curInputValue1 = in[w+1];
-    int curInputValue2 = in[w+2];
-    int curInputValue3 = in[w+3];
-    int curInputValue4 = in[w+4];
-    int curInputValue5 = in[w+5];
-    int curInputValue6 = in[w+6];
-    int curInputValue7 = in[w+7];
-    int curInputValue8 = in[w+8];
+  for(int i=0; i<4; ++i){
+    int curInputValue0 = in.get();
+    int curInputValue1 = in.get();
+    int curInputValue2 = in.get();
+    int curInputValue3 = in.get();
+    int curInputValue4 = in.get();
+    int curInputValue5 = in.get();
+    int curInputValue6 = in.get();
+    int curInputValue7 = in.get();
+    int curInputValue8 = in.get();
     out[0+outOffset] = curInputValue0 & mask;
     out[1+outOffset] = (curInputValue0 >>> 9) & mask;
     out[2+outOffset] = (curInputValue0 >>> 18) & mask;
@@ -453,22 +449,21 @@ public class PForDeltaUnpack128{
   }
   }
  
-  static private void unpack10(int[] out, int[] in)
+  static private void unpack10(int[] out, IntBuffer in)
   {
-  int i, w;
   int outOffset = 0;
   final int mask = 1023;
-  for(i=0, w=1; i<4; ++i, w+=10){
-    int curInputValue0 = in[w];
-    int curInputValue1 = in[w+1];
-    int curInputValue2 = in[w+2];
-    int curInputValue3 = in[w+3];
-    int curInputValue4 = in[w+4];
-    int curInputValue5 = in[w+5];
-    int curInputValue6 = in[w+6];
-    int curInputValue7 = in[w+7];
-    int curInputValue8 = in[w+8];
-    int curInputValue9 = in[w+9];
+  for(int i=0; i<4; ++i){
+    int curInputValue0 = in.get();
+    int curInputValue1 = in.get();
+    int curInputValue2 = in.get();
+    int curInputValue3 = in.get();
+    int curInputValue4 = in.get();
+    int curInputValue5 = in.get();
+    int curInputValue6 = in.get();
+    int curInputValue7 = in.get();
+    int curInputValue8 = in.get();
+    int curInputValue9 = in.get();
     out[0+outOffset] = curInputValue0 & mask;
     out[1+outOffset] = (curInputValue0 >>> 10) & mask;
     out[2+outOffset] = (curInputValue0 >>> 20) & mask;
@@ -505,23 +500,22 @@ public class PForDeltaUnpack128{
   }
   }
  
-  static private void unpack11(int[] out, int[] in)
+  static private void unpack11(int[] out, IntBuffer in)
   {
-  int i, w;
   int outOffset = 0;
   final int mask = 2047;
-  for(i=0, w=1; i<4; ++i, w+=11){
-    int curInputValue0 = in[w];
-    int curInputValue1 = in[w+1];
-    int curInputValue2 = in[w+2];
-    int curInputValue3 = in[w+3];
-    int curInputValue4 = in[w+4];
-    int curInputValue5 = in[w+5];
-    int curInputValue6 = in[w+6];
-    int curInputValue7 = in[w+7];
-    int curInputValue8 = in[w+8];
-    int curInputValue9 = in[w+9];
-    int curInputValue10 = in[w+10];
+  for(int i=0; i<4; ++i){
+    int curInputValue0 = in.get();
+    int curInputValue1 = in.get();
+    int curInputValue2 = in.get();
+    int curInputValue3 = in.get();
+    int curInputValue4 = in.get();
+    int curInputValue5 = in.get();
+    int curInputValue6 = in.get();
+    int curInputValue7 = in.get();
+    int curInputValue8 = in.get();
+    int curInputValue9 = in.get();
+    int curInputValue10 = in.get();
     out[0+outOffset] = curInputValue0 & mask;
     out[1+outOffset] = (curInputValue0 >>> 11) & mask;
     out[2+outOffset] = ((curInputValue0 >>> 22) | (curInputValue1 << 10)) & mask;
@@ -558,24 +552,23 @@ public class PForDeltaUnpack128{
   }
   }
  
-  static private void unpack12(int[] out, int[] in)
+  static private void unpack12(int[] out, IntBuffer in)
   {
-  int i, w;
   int outOffset = 0;
   final int mask = 4095;
-  for(i=0, w=1; i<4; ++i, w+=12){
-    int curInputValue0 = in[w];
-    int curInputValue1 = in[w+1];
-    int curInputValue2 = in[w+2];
-    int curInputValue3 = in[w+3];
-    int curInputValue4 = in[w+4];
-    int curInputValue5 = in[w+5];
-    int curInputValue6 = in[w+6];
-    int curInputValue7 = in[w+7];
-    int curInputValue8 = in[w+8];
-    int curInputValue9 = in[w+9];
-    int curInputValue10 = in[w+10];
-    int curInputValue11 = in[w+11];
+  for(int i=0; i<4; ++i){
+    int curInputValue0 = in.get();
+    int curInputValue1 = in.get();
+    int curInputValue2 = in.get();
+    int curInputValue3 = in.get();
+    int curInputValue4 = in.get();
+    int curInputValue5 = in.get();
+    int curInputValue6 = in.get();
+    int curInputValue7 = in.get();
+    int curInputValue8 = in.get();
+    int curInputValue9 = in.get();
+    int curInputValue10 = in.get();
+    int curInputValue11 = in.get();
     out[0+outOffset] = curInputValue0 & mask;
     out[1+outOffset] = (curInputValue0 >>> 12) & mask;
     out[2+outOffset] = ((curInputValue0 >>> 24) | (curInputValue1 << 8)) & mask;
@@ -612,25 +605,24 @@ public class PForDeltaUnpack128{
   }
   }
  
-  static private void unpack13(int[] out, int[] in)
+  static private void unpack13(int[] out, IntBuffer in)
   {
-  int i, w;
   int outOffset = 0;
   final int mask = 8191;
-  for(i=0, w=1; i<4; ++i, w+=13){
-    int curInputValue0 = in[w];
-    int curInputValue1 = in[w+1];
-    int curInputValue2 = in[w+2];
-    int curInputValue3 = in[w+3];
-    int curInputValue4 = in[w+4];
-    int curInputValue5 = in[w+5];
-    int curInputValue6 = in[w+6];
-    int curInputValue7 = in[w+7];
-    int curInputValue8 = in[w+8];
-    int curInputValue9 = in[w+9];
-    int curInputValue10 = in[w+10];
-    int curInputValue11 = in[w+11];
-    int curInputValue12 = in[w+12];
+  for(int i=0; i<4; ++i){
+    int curInputValue0 = in.get();
+    int curInputValue1 = in.get();
+    int curInputValue2 = in.get();
+    int curInputValue3 = in.get();
+    int curInputValue4 = in.get();
+    int curInputValue5 = in.get();
+    int curInputValue6 = in.get();
+    int curInputValue7 = in.get();
+    int curInputValue8 = in.get();
+    int curInputValue9 = in.get();
+    int curInputValue10 = in.get();
+    int curInputValue11 = in.get();
+    int curInputValue12 = in.get();
     out[0+outOffset] = curInputValue0 & mask;
     out[1+outOffset] = (curInputValue0 >>> 13) & mask;
     out[2+outOffset] = ((curInputValue0 >>> 26) | (curInputValue1 << 6)) & mask;
@@ -667,28 +659,27 @@ public class PForDeltaUnpack128{
   }
   }
  
-  static private void unpack16(int[] out, int[] in)
+  static private void unpack16(int[] out, IntBuffer in)
   {
-  int i, w;
   int outOffset = 0;
   final int mask = 65535;
-  for(i=0, w=1; i<4; ++i, w+=16){
-    int curInputValue0 = in[w];
-    int curInputValue1 = in[w+1];
-    int curInputValue2 = in[w+2];
-    int curInputValue3 = in[w+3];
-    int curInputValue4 = in[w+4];
-    int curInputValue5 = in[w+5];
-    int curInputValue6 = in[w+6];
-    int curInputValue7 = in[w+7];
-    int curInputValue8 = in[w+8];
-    int curInputValue9 = in[w+9];
-    int curInputValue10 = in[w+10];
-    int curInputValue11 = in[w+11];
-    int curInputValue12 = in[w+12];
-    int curInputValue13 = in[w+13];
-    int curInputValue14 = in[w+14];
-    int curInputValue15 = in[w+15];
+  for(int i=0; i<4; ++i){
+    int curInputValue0 = in.get();
+    int curInputValue1 = in.get();
+    int curInputValue2 = in.get();
+    int curInputValue3 = in.get();
+    int curInputValue4 = in.get();
+    int curInputValue5 = in.get();
+    int curInputValue6 = in.get();
+    int curInputValue7 = in.get();
+    int curInputValue8 = in.get();
+    int curInputValue9 = in.get();
+    int curInputValue10 = in.get();
+    int curInputValue11 = in.get();
+    int curInputValue12 = in.get();
+    int curInputValue13 = in.get();
+    int curInputValue14 = in.get();
+    int curInputValue15 = in.get();
     out[0+outOffset] = curInputValue0 & mask;
     out[1+outOffset] = curInputValue0 >>> 16;
     out[2+outOffset] = curInputValue1 & mask;
@@ -725,32 +716,31 @@ public class PForDeltaUnpack128{
   }
   }
  
-  static private void unpack20(int[] out, int[] in)
+  static private void unpack20(int[] out, IntBuffer in)
   {
-  int i, w;
   int outOffset = 0;
   final int mask = 1048575;
-  for(i=0, w=1; i<4; ++i, w+=20){
-    int curInputValue0 = in[w];
-    int curInputValue1 = in[w+1];
-    int curInputValue2 = in[w+2];
-    int curInputValue3 = in[w+3];
-    int curInputValue4 = in[w+4];
-    int curInputValue5 = in[w+5];
-    int curInputValue6 = in[w+6];
-    int curInputValue7 = in[w+7];
-    int curInputValue8 = in[w+8];
-    int curInputValue9 = in[w+9];
-    int curInputValue10 = in[w+10];
-    int curInputValue11 = in[w+11];
-    int curInputValue12 = in[w+12];
-    int curInputValue13 = in[w+13];
-    int curInputValue14 = in[w+14];
-    int curInputValue15 = in[w+15];
-    int curInputValue16 = in[w+16];
-    int curInputValue17 = in[w+17];
-    int curInputValue18 = in[w+18];
-    int curInputValue19 = in[w+19];
+  for(int i=0; i<4; ++i){
+    int curInputValue0 = in.get();
+    int curInputValue1 = in.get();
+    int curInputValue2 = in.get();
+    int curInputValue3 = in.get();
+    int curInputValue4 = in.get();
+    int curInputValue5 = in.get();
+    int curInputValue6 = in.get();
+    int curInputValue7 = in.get();
+    int curInputValue8 = in.get();
+    int curInputValue9 = in.get();
+    int curInputValue10 = in.get();
+    int curInputValue11 = in.get();
+    int curInputValue12 = in.get();
+    int curInputValue13 = in.get();
+    int curInputValue14 = in.get();
+    int curInputValue15 = in.get();
+    int curInputValue16 = in.get();
+    int curInputValue17 = in.get();
+    int curInputValue18 = in.get();
+    int curInputValue19 = in.get();
     out[0+outOffset] = curInputValue0 & mask;
     out[1+outOffset] = ((curInputValue0 >>> 20) | (curInputValue1 << 12)) & mask;
     out[2+outOffset] = (curInputValue1 >>> 8) & mask;
@@ -787,40 +777,39 @@ public class PForDeltaUnpack128{
   }
   }
  
-  static private void unpack28(int[] out, int[] in)
+  static private void unpack28(int[] out, IntBuffer in)
   {
-  int i, w;
   int outOffset = 0;
   final int mask = 268435455;
-  for(i=0, w=1; i<4; ++i, w+=28){
-    int curInputValue0 = in[w];
-    int curInputValue1 = in[w+1];
-    int curInputValue2 = in[w+2];
-    int curInputValue3 = in[w+3];
-    int curInputValue4 = in[w+4];
-    int curInputValue5 = in[w+5];
-    int curInputValue6 = in[w+6];
-    int curInputValue7 = in[w+7];
-    int curInputValue8 = in[w+8];
-    int curInputValue9 = in[w+9];
-    int curInputValue10 = in[w+10];
-    int curInputValue11 = in[w+11];
-    int curInputValue12 = in[w+12];
-    int curInputValue13 = in[w+13];
-    int curInputValue14 = in[w+14];
-    int curInputValue15 = in[w+15];
-    int curInputValue16 = in[w+16];
-    int curInputValue17 = in[w+17];
-    int curInputValue18 = in[w+18];
-    int curInputValue19 = in[w+19];
-    int curInputValue20 = in[w+20];
-    int curInputValue21 = in[w+21];
-    int curInputValue22 = in[w+22];
-    int curInputValue23 = in[w+23];
-    int curInputValue24 = in[w+24];
-    int curInputValue25 = in[w+25];
-    int curInputValue26 = in[w+26];
-    int curInputValue27 = in[w+27];
+  for(int i=0; i<4; ++i){
+    int curInputValue0 = in.get();
+    int curInputValue1 = in.get();
+    int curInputValue2 = in.get();
+    int curInputValue3 = in.get();
+    int curInputValue4 = in.get();
+    int curInputValue5 = in.get();
+    int curInputValue6 = in.get();
+    int curInputValue7 = in.get();
+    int curInputValue8 = in.get();
+    int curInputValue9 = in.get();
+    int curInputValue10 = in.get();
+    int curInputValue11 = in.get();
+    int curInputValue12 = in.get();
+    int curInputValue13 = in.get();
+    int curInputValue14 = in.get();
+    int curInputValue15 = in.get();
+    int curInputValue16 = in.get();
+    int curInputValue17 = in.get();
+    int curInputValue18 = in.get();
+    int curInputValue19 = in.get();
+    int curInputValue20 = in.get();
+    int curInputValue21 = in.get();
+    int curInputValue22 = in.get();
+    int curInputValue23 = in.get();
+    int curInputValue24 = in.get();
+    int curInputValue25 = in.get();
+    int curInputValue26 = in.get();
+    int curInputValue27 = in.get();
     out[0+outOffset] = curInputValue0 & mask;
     out[1+outOffset] = ((curInputValue0 >>> 28) | (curInputValue1 << 4)) & mask;
     out[2+outOffset] = ((curInputValue1 >>> 24) | (curInputValue2 << 8)) & mask;

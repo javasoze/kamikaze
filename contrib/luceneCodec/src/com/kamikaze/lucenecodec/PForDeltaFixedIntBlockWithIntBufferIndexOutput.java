@@ -20,14 +20,15 @@ package com.kamikaze.lucenecodec;
 
 import org.apache.lucene.index.codecs.intblock.FixedIntBlockIndexOutput;
 import org.apache.lucene.store.Directory;
-import com.kamikaze.pfordelta.LCPForDelta;
-
+import org.apache.lucene.util.pfor2.LCPForDelta;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 
-public class PForDeltaFixedIntBlockIndexOutput extends FixedIntBlockIndexOutput {
+public class PForDeltaFixedIntBlockWithIntBufferIndexOutput extends FixedIntBlockIndexOutput {
   private final LCPForDelta compressor;
   private final int blockSize;
-  public PForDeltaFixedIntBlockIndexOutput(Directory dir, String fileName, int blockSize) throws IOException {
+  public PForDeltaFixedIntBlockWithIntBufferIndexOutput(Directory dir, String fileName, int blockSize) throws IOException {
     super(dir.createOutput(fileName), blockSize);
     this.blockSize = blockSize;
     compressor = new LCPForDelta();
@@ -39,29 +40,15 @@ public class PForDeltaFixedIntBlockIndexOutput extends FixedIntBlockIndexOutput 
       // write out the compressed size in ints 
       out.writeInt(compressedSizeInInts);
       
-      // we can use either of the following two ways to write out the compressed data 
-      // first way
-//      int[] compBuffer = compressor.getCompBuffer(); 
-//      for(int i=0;i<compressedSizeInInts;i++) {
-//          out.writeInt(compBuffer[i]);
-//      }
+      int[] compBlock = compressor.getCompBuffer(); 
+      ByteBuffer byteCompBuffer = ByteBuffer.allocate(compressedSizeInInts*4);
+      byte[] byteCompBlock = byteCompBuffer.array();
+      IntBuffer intCompBuffer = byteCompBuffer.asIntBuffer();
+      intCompBuffer.put(compBlock, 0, compressedSizeInInts);
       
-      // second way
-      int[] compBuffer = compressor.getCompBuffer(); 
-      // convert int array to byte array     
-      byte[] byteBuffer = new byte[compressedSizeInInts*4];
-      int i, j;
-      for(i=0, j=0; j<compressedSizeInInts; i+=4, j++)
-      {
-          int val = compBuffer[j];
-          byteBuffer[i] = (byte)(val >>> 24);
-          byteBuffer[i+1] = (byte)(val >>> 16);
-          byteBuffer[i+2] = (byte)(val >>> 8);
-          byteBuffer[i+3] = (byte)(val);
-      }
-      out.writeBytes(byteBuffer, byteBuffer.length);
-      
+      out.writeBytes(byteCompBlock, byteCompBlock.length);
       compressor.setCompBuffer(null);
   }
 }
+
 
