@@ -6,10 +6,10 @@
     <artifactId>oss-parent</artifactId>
     <version>6</version>
   </parent>
-  <groupId>com.sna-projects.kamikaze</groupId>
+  <groupId>com.linkedin.kamikaze</groupId>
   <artifactId>kamikaze</artifactId>
   <packaging>jar</packaging>
-  <version>3.0.3</version>
+  <version>3.0.4-SNAPSHOT</version>
   <name>kamikaze</name>
   <description>information retrival utility package for enhancing Lucene</description>
   <url>http://sna-projects.com/kamikaze</url>
@@ -23,9 +23,9 @@
   </licenses>
 
   <scm>
-    <connection>scm:git://github.com/hyan/kamikaze.git</connection>
-    <developerConnection>scm:git@github.com:hyan/kamikaze.git</developerConnection>
-    <url>http://github.com/hyan/kamikaze</url>
+    <connection>scm:git://github.com/javasoze/kamikaze.git</connection>
+    <developerConnection>scm:git@github.com:javasoze/kamikaze.git</developerConnection>
+    <url>http://github.com/javasoze/kamikaze</url>
   </scm>
 
  <developers>
