@@ -114,12 +114,13 @@ public class PForDeltaKamikazeTest extends TestCase
     // test the accuracy of compressing/decompressing a sequence of big numbers 
     System.out.println("Running test case: testVeryBigNumbers ");
     Random random = new Random(0); 
-    int blockNum = 800;
+    int blockNum = 10;
     int blockSize = 128;
     int[][] input = new int[blockNum][];
     
     for(int i=0; i<blockNum; i++)
     {
+      input[i] = new int[blockSize];
       for(int j=0; j<blockSize; j++)
       {
         input[i][j] = random.nextInt() & Integer.MAX_VALUE;

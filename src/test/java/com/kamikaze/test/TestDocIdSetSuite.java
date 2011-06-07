@@ -7,6 +7,8 @@ import org.junit.runners.Suite.SuiteClasses;
 @RunWith(Suite.class)
 //@SuiteClasses( {PForDeltaKamikazeTest.class})
 @SuiteClasses( { PForDeltaKamikazeTest.class, PForDeltaMultiThreadedAccessTest.class, TestBooleanDocIdSet.class, TestDocSetFactory.class, TestDocSets.class, TestDocSetSerialization.class, TestKamikaze.class, TestMultiThreadedAccess.class,  TestParameterizedDocSets.class})
+//@SuiteClasses( { PForDeltaKamikazeTest.class})
+
 //@SuiteClasses( { PForDeltaMultiThreadedAccessTest.class, TestMultiThreadedAccess.class})
 public class TestDocIdSetSuite {
 }

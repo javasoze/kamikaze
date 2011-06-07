@@ -32,8 +32,8 @@ public class TestDocSetFactory {
     
     assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.IntArrayDocIdSet");
     set = DocSetFactory.getDocSetInstance(min, max, count, FOCUS.SPACE);
-    //assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.P4DDocIdSet");
-    assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.PForDeltaDocIdSet");
+    assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.P4DDocIdSet");
+    //assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.PForDeltaDocIdSet");
     set = DocSetFactory.getDocSetInstance(min, max, count, FOCUS.OPTIMAL);
     assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.IntArrayDocIdSet");
     
@@ -44,13 +44,13 @@ public class TestDocSetFactory {
     set = DocSetFactory.getDocSetInstance(min, max, count, FOCUS.OPTIMAL);
     assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.IntArrayDocIdSet");
     
-//    count *=10000;
-//    set = DocSetFactory.getDocSetInstance(min, max, count, FOCUS.OPTIMAL);
-//    assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.P4DDocIdSet");
-    
     count *=10000;
     set = DocSetFactory.getDocSetInstance(min, max, count, FOCUS.OPTIMAL);
-    assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.PForDeltaDocIdSet");
+    assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.P4DDocIdSet");
+    
+//    count *=10000;
+//    set = DocSetFactory.getDocSetInstance(min, max, count, FOCUS.OPTIMAL);
+//    assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.PForDeltaDocIdSet");
     
     max = 1000000000;
     count*=1000;
@@ -66,11 +66,11 @@ public class TestDocSetFactory {
     
     count /= 10000000;
     
-//    set = DocSetFactory.getDocSetInstance(min, max, count, FOCUS.SPACE);
-//    assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.P4DDocIdSet");
-    
     set = DocSetFactory.getDocSetInstance(min, max, count, FOCUS.SPACE);
-    assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.PForDeltaDocIdSet");
+    assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.P4DDocIdSet");
+    
+//    set = DocSetFactory.getDocSetInstance(min, max, count, FOCUS.SPACE);
+//    assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.PForDeltaDocIdSet");
     
     min = 10;
     max = 30000000;
