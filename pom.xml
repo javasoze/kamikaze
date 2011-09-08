@@ -111,7 +111,7 @@
     <dependency>
       <groupId>org.apache.lucene</groupId>
       <artifactId>lucene-core</artifactId>
-      <version>3.0.2</version>
+      <version>3.3.0</version>
     </dependency>
     <dependency>
 <groupId>junit</groupId>
@@ -123,11 +123,16 @@
 
 
 <distributionManagement>
-   <snapshotRepository>
-    <id>ossKamikaze</id>
-    <name>SNA snapshot repo</name>
-    <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-  </snapshotRepository>
+   	<repository>
+	  <id>sonatype-nexus-staging</id>
+	  <name>sonatype nexus staging repository</name>
+	   <url>http://oss.sonatype.org/service/local/staging/deploy/maven2</url>
+	</repository>
+	<snapshotRepository>
+	  <id>sonatype-nexus-snapshots</id>
+	  <name>sonatype nexus snapshots repository</name>
+	  <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+	</snapshotRepository>
   
 <!--
 <repository>
