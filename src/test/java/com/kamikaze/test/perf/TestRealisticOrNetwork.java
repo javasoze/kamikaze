@@ -13,7 +13,7 @@ import org.apache.lucene.search.DocIdSetIterator;
 import com.kamikaze.docidset.api.DocSet;
 import com.kamikaze.docidset.impl.IntArrayDocIdSet;
 import com.kamikaze.docidset.impl.OrDocIdSet;
-import com.kamikaze.docidset.impl.P4DDocIdSet;
+import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
 import com.kamikaze.docidset.utils.DocSetFactory;
 
 public class TestRealisticOrNetwork {
@@ -76,7 +76,7 @@ public class TestRealisticOrNetwork {
       case 3:
       {
         BufferedReader bfr = new BufferedReader(new FileReader(new File("/Users/abhasin/degree3s.txt")));
-        DocSet d3 = new P4DDocIdSet();
+        DocSet d3 = new PForDeltaDocIdSet();
         ArrayList<Integer> data = new ArrayList<Integer>();
         
         while(true)

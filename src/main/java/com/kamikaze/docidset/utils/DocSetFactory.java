@@ -4,7 +4,6 @@ import com.kamikaze.docidset.api.DocSet;
 import com.kamikaze.docidset.impl.AbstractDocSet;
 import com.kamikaze.docidset.impl.IntArrayDocIdSet;
 import com.kamikaze.docidset.impl.OBSDocIdSet;
-import com.kamikaze.docidset.impl.P4DDocIdSet;
 import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
 
 /** 
@@ -38,7 +37,7 @@ public class DocSetFactory
   
   public static DocSet getP4DDocSetInstance()
   {
-    return new P4DDocIdSet();
+    return new PForDeltaDocIdSet();
   }
   
   public static DocSet getPForDeltaDocSetInstance()
@@ -85,7 +84,7 @@ public class DocSetFactory
        
           else
             //return new PForDeltaDocIdSet();
-            return new P4DDocIdSet();
+            return new PForDeltaDocIdSet();
           
         // All cases in consideration  
         case OPTIMAL:
@@ -95,7 +94,7 @@ public class DocSetFactory
               return new IntArrayDocIdSet(count);
            else 
              //return new PForDeltaDocIdSet();
-             return new P4DDocIdSet();
+             return new PForDeltaDocIdSet();
           }   
           else if((((max-min)>>>LONG_SHIFT)+1)*2*INT_SIZE >  count * INT_SIZE)
             return new IntArrayDocIdSet(count);

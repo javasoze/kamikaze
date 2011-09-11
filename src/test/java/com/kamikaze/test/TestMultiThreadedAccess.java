@@ -11,7 +11,7 @@ import org.apache.lucene.search.DocIdSetIterator;
 import org.junit.Test;
 
 import com.kamikaze.docidset.api.StatefulDSIterator;
-import com.kamikaze.docidset.impl.P4DDocIdSet;
+import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
 
 
 
@@ -22,8 +22,8 @@ public class TestMultiThreadedAccess extends TestCase{
   static int _max = 300000;
   
   private static class TestThread extends Thread{
-    P4DDocIdSet p4d;
-    TestThread(P4DDocIdSet p4d){
+    PForDeltaDocIdSet p4d;
+    TestThread(PForDeltaDocIdSet p4d){
       this.p4d = p4d;
     }
     public void run()
@@ -56,7 +56,7 @@ public class TestMultiThreadedAccess extends TestCase{
     System.out.println("----------------------------");
     
     double booster  = ((_max*1.0)/(1000f*_length));
-    P4DDocIdSet set = new P4DDocIdSet();
+    PForDeltaDocIdSet set = new PForDeltaDocIdSet();
     Random random = new Random();
 
     int max = 1000;
@@ -77,7 +77,7 @@ public class TestMultiThreadedAccess extends TestCase{
     final int maxVal =  list.get(list.size()-1);
     
       //P4D
-      final P4DDocIdSet p4d = new P4DDocIdSet();
+      final PForDeltaDocIdSet p4d = new PForDeltaDocIdSet();
       int counter=0;
       
       for (Integer c : list) {

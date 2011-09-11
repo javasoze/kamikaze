@@ -27,7 +27,7 @@ import com.kamikaze.docidset.impl.AndDocIdSet;
 import com.kamikaze.docidset.impl.IntArrayDocIdSet;
 import com.kamikaze.docidset.impl.NotDocIdSet;
 import com.kamikaze.docidset.impl.OBSDocIdSet;
-import com.kamikaze.docidset.impl.P4DDocIdSet;
+import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
 
 @RunWith(Parameterized.class)
 public class TestParameterizedDocSets {
@@ -408,10 +408,10 @@ public class TestParameterizedDocSets {
   }
   
   @Test
-  public void testP4DDocIdSetIteratePerformance() {
+  public void testP4DDocIdSetIteratePerformance() throws Exception{
     double booster  = ((_max*1.0)/(1000f*_length));
     
-    P4DDocIdSet set = new P4DDocIdSet(batch);
+    PForDeltaDocIdSet set = new PForDeltaDocIdSet(batch);
     System.out.println("");
     System.out.println("Running P4DeltaDocSet Iterate Performance test");
     System.out.println("----------------------------");
@@ -462,9 +462,9 @@ public class TestParameterizedDocSets {
 
   
   @Test
-  public void testP4DDocIdSetNonBoundarySkipSanity() {
+  public void testP4DDocIdSetNonBoundarySkipSanity() throws Exception{
     double booster  = ((_max*1.0)/(1000f*_length));
-    P4DDocIdSet set = new P4DDocIdSet(batch);
+    PForDeltaDocIdSet set = new PForDeltaDocIdSet(batch);
     System.out.println("");
     System.out.println("Running P4DeltaDocSet Non-Boundary skip test");
     System.out.println("----------------------------");
@@ -537,7 +537,7 @@ public class TestParameterizedDocSets {
     int extra = 34;
     double booster  = ((_max*1.0)/(1000f*_length));
     int counter = 0;
-    P4DDocIdSet set = new P4DDocIdSet(batch);
+    PForDeltaDocIdSet set = new PForDeltaDocIdSet(batch);
     System.out.println("");
     System.out.println("Running P4DeltaDocSet Non-Boundary Compression Sanity test");
     System.out.println("----------------------------");
@@ -596,9 +596,9 @@ public class TestParameterizedDocSets {
   }
  
   @Test
-  public void testP4DDocIdSetSkipSanity() {
+  public void testP4DDocIdSetSkipSanity() throws Exception{
     double booster  = ((_max*1.0)/(1000f*_length));
-    P4DDocIdSet set = new P4DDocIdSet(batch);
+    PForDeltaDocIdSet set = new PForDeltaDocIdSet(batch);
     System.out.println("");
     System.out.println("Running P4DeltaDocSet Skip Sanity test");
     System.out.println("----------------------------");
@@ -669,7 +669,7 @@ public class TestParameterizedDocSets {
     System.out.println("----------------------------");
     
     double booster  = ((_max*1.0)/(1000f*_length));
-    P4DDocIdSet set = new P4DDocIdSet(batch);
+    PForDeltaDocIdSet set = new PForDeltaDocIdSet(batch);
     System.out.println("");
     System.out.println("Running P4DeltaDocSet Skip Sanity test");
     System.out.println("----------------------------");
@@ -697,7 +697,7 @@ public class TestParameterizedDocSets {
    
     
       //P4D
-      P4DDocIdSet p4d = new P4DDocIdSet();
+    PForDeltaDocIdSet p4d = new PForDeltaDocIdSet();
       int counter=0;
       
       for (Integer c : list) {
@@ -768,7 +768,7 @@ public class TestParameterizedDocSets {
 
     for (int j = 0; j < all; j++) {
       ArrayList<Integer> intSet = new ArrayList<Integer>();
-      P4DDocIdSet docSet = new P4DDocIdSet(batch);
+      PForDeltaDocIdSet docSet = new PForDeltaDocIdSet(batch);
       randomizer = 0;
       for (int i = 1; i < size + 1; i++) {
 
@@ -825,7 +825,7 @@ public class TestParameterizedDocSets {
     int randomizer = 0;
     int b = 0;
     ArrayList<Integer> intSet = new ArrayList<Integer>();
-    P4DDocIdSet docSet = new P4DDocIdSet(batch);
+    PForDeltaDocIdSet docSet = new PForDeltaDocIdSet(batch);
     randomizer = 0;
 
     for (int i = 1; i < length + 1; i++) {

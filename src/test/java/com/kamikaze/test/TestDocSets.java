@@ -24,7 +24,7 @@ import com.kamikaze.docidset.impl.IntArrayDocIdSet;
 import com.kamikaze.docidset.impl.NotDocIdSet;
 import com.kamikaze.docidset.impl.OBSDocIdSet;
 import com.kamikaze.docidset.impl.OrDocIdSet;
-import com.kamikaze.docidset.impl.P4DDocIdSet;
+import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
 import com.kamikaze.docidset.utils.DocSetFactory;
 import com.kamikaze.docidset.utils.DocSetFactory.FOCUS;
 
@@ -349,7 +349,7 @@ public class TestDocSets {
     }
     _testWideDocSkips("Testing skips on IntArrayDocIdSet", pset6);
     
-    P4DDocIdSet pset7 = new P4DDocIdSet();
+    PForDeltaDocIdSet pset7 = new PForDeltaDocIdSet();
     orit = orSet.iterator();
     while((docid = orit.nextDoc())!=DocIdSetIterator.NO_MORE_DOCS)
     {
@@ -443,9 +443,9 @@ public class TestDocSets {
         2978, 2981, 2984, 2994, 2997 };
     int set3[] = { 2994, 2997 };
 
-    P4DDocIdSet pset1 = new P4DDocIdSet(batch);
+    PForDeltaDocIdSet pset1 = new PForDeltaDocIdSet(batch);
     OpenBitSet pset2 = new OpenBitSet();
-    P4DDocIdSet pset3 = new P4DDocIdSet(batch);
+    PForDeltaDocIdSet pset3 = new PForDeltaDocIdSet(batch);
 
     for (int i = 0; i < set1.length; i++) {
       pset1.addDoc(set1[i]);
@@ -569,7 +569,7 @@ public class TestDocSets {
     for (int i = 0; i < set3.length; i++)
       ps3.set(set3[i]);
 
-    P4DDocIdSet ps4 = new P4DDocIdSet(128);
+    PForDeltaDocIdSet ps4 = new PForDeltaDocIdSet(128);
 
     // Build open bit set
     for (int i = 0; i < set4.length; i++)
@@ -581,7 +581,7 @@ public class TestDocSets {
     for (int i = 0; i < set5.length; i++)
       ps5.set(set5[i]);
 
-    P4DDocIdSet ps6 = new P4DDocIdSet(128);
+    PForDeltaDocIdSet ps6 = new PForDeltaDocIdSet(128);
     ps6.addDoc(2000);
 
     ArrayList<DocIdSet> sets = new ArrayList<DocIdSet>();
@@ -1300,14 +1300,14 @@ public class TestDocSets {
 //  }
 
   @Test 
-  public void testFindOnP4D()
+  public void testFindOnP4D() throws Exception
   {
     System.out.println("");
     System.out.println("Running testFindOnP4D...");
     System.out.println("----------------------------");
 
     
-    P4DDocIdSet docSet3 = new P4DDocIdSet();
+    PForDeltaDocIdSet docSet3 = new PForDeltaDocIdSet();
     ArrayList<Integer> list = new ArrayList<Integer>();
     for(int i=0;i<20000;i+=5)
     {
@@ -1323,7 +1323,7 @@ public class TestDocSets {
     }
     
     list.clear();
-    docSet3 = new P4DDocIdSet();
+    docSet3 = new PForDeltaDocIdSet();
     for(int i=0;i<20000;i+=6)
     {
       list.add(i);
@@ -1338,7 +1338,7 @@ public class TestDocSets {
     
     list.clear();
     
-    docSet3 = new P4DDocIdSet();
+    docSet3 = new PForDeltaDocIdSet();
     assertFalse(docSet3.find(34));
     for(int i=1;i<257;i++)
     {
@@ -1361,7 +1361,7 @@ public class TestDocSets {
     
  list.clear();
     
-    docSet3 = new P4DDocIdSet();
+    docSet3 = new PForDeltaDocIdSet();
     assertFalse(docSet3.find(34));
     for(int i=1;i<33;i++)
     {
@@ -1554,7 +1554,7 @@ public class TestDocSets {
     for (int i = 0; i < set8.length; i++)
       ps8.set(set8[i]);
 
-    P4DDocIdSet ps9 = new P4DDocIdSet(128);
+    PForDeltaDocIdSet ps9 = new PForDeltaDocIdSet(128);
     for (int i = 0; i < set9.length; i++)
       ps9.addDoc(set9[i]);
 
@@ -1621,7 +1621,7 @@ public class TestDocSets {
     {
       try
       {
-        P4DDocIdSet set = new P4DDocIdSet(batch);
+        PForDeltaDocIdSet set = new PForDeltaDocIdSet(batch);
         long time = System.nanoTime();
         
         int counter=0;

@@ -30,7 +30,7 @@ import com.kamikaze.docidset.impl.IntArrayDocIdSet;
 import com.kamikaze.docidset.impl.NotDocIdSet;
 import com.kamikaze.docidset.impl.OBSDocIdSet;
 import com.kamikaze.docidset.impl.OrDocIdSet;
-import com.kamikaze.docidset.impl.P4DDocIdSet;
+import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
 
 public class TestDocSetSerialization {
 
@@ -115,9 +115,9 @@ public class TestDocSetSerialization {
         2978, 2981, 2984, 2994, 2997 };
     int set3[] = { 2994, 2997 };
 
-    P4DDocIdSet pset1 = new P4DDocIdSet(batch);
+    PForDeltaDocIdSet pset1 = new PForDeltaDocIdSet(batch);
     DocSet pset2 = new OBSDocIdSet(3000);
-    P4DDocIdSet pset3 = new P4DDocIdSet(batch);
+    PForDeltaDocIdSet pset3 = new PForDeltaDocIdSet(batch);
 
     for (int i = 0; i < set1.length; i++) {
       pset1.addDoc(set1[i]);
@@ -425,7 +425,7 @@ public class TestDocSetSerialization {
     int max = 5400;
 
     ArrayList<Integer> intSet = new ArrayList<Integer>();
-    P4DDocIdSet docSet = new P4DDocIdSet(batch);
+    PForDeltaDocIdSet docSet = new PForDeltaDocIdSet(batch);
     randomizer = 0;
 
     for (int i = 1; i < 1000 + 1; i++) {
@@ -553,7 +553,7 @@ public class TestDocSetSerialization {
         821, 822, 823, 824, 825, 826, 827, 828, 829, 830, 831, 832, 833, 834,
         835, 836, 837, 838, 839, 840, 841, 842, 843, 844, 845, 846, 847, 848,
         849, 850, 851, 852, 853, 854, 855, 856, 857, 858 };
-    P4DDocIdSet docSet = new P4DDocIdSet(batch);
+    PForDeltaDocIdSet docSet = new PForDeltaDocIdSet(batch);
 
     for (int i = 0; i < result.length; i++) {
       docSet.addDoc(result[i]);

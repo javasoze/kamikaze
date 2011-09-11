@@ -18,7 +18,7 @@ import com.kamikaze.docidset.impl.IntArrayDocIdSet;
 import com.kamikaze.docidset.impl.NotDocIdSet;
 import com.kamikaze.docidset.impl.OBSDocIdSet;
 import com.kamikaze.docidset.impl.OrDocIdSet;
-import com.kamikaze.docidset.impl.P4DDocIdSet;
+import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
 
 public class TestDocSets {
 
@@ -307,9 +307,9 @@ public class TestDocSets {
 
   }*/
 
-  private static void testP4DDocIdSetNonBoundaryCompressionSanity(int batch,
+  private static void testPForDeltaDocIdSetNonBoundaryCompressionSanity(int batch,
       int length, int extra) throws IOException {
-    P4DDocIdSet set = new P4DDocIdSet(batch);
+    PForDeltaDocIdSet set = new PForDeltaDocIdSet(batch);
     System.out
         .println("Running P4DeltaDocSet Non-Boundary Compression Sanity test");
     System.out.println("----------------------------");
@@ -360,9 +360,9 @@ public class TestDocSets {
     System.out.println("Verified..");
   }
 
-  private static void testP4DDocIdSetNonBoundarySkipSanity(int batch,
+  private static void testPForDeltaDocIdSetNonBoundarySkipSanity(int batch,
       int length, int extra) throws IOException {
-    P4DDocIdSet set = new P4DDocIdSet(batch);
+    PForDeltaDocIdSet set = new PForDeltaDocIdSet(batch);
     System.out.println("Running P4DeltaDocSet Non-Boundary skip test");
     System.out.println("----------------------------");
     Random random = new Random();
@@ -423,9 +423,9 @@ public class TestDocSets {
 
   }
 
-  private static void testP4DDocIdSetIteratePerf(int batch, int length)
+  private static void testPForDeltaDocIdSetIteratePerf(int batch, int length)
       throws IOException {
-    P4DDocIdSet set = new P4DDocIdSet(batch);
+    PForDeltaDocIdSet set = new PForDeltaDocIdSet(batch);
     System.out.println("Running P4DeltaDocSet Iteration Performance test");
     System.out.println("----------------------------");
     Random random = new Random();
@@ -469,9 +469,9 @@ public class TestDocSets {
 
   }
 
-  private static void testP4DDocIdSetSkipPerf(int batch, int length)
+  private static void testPForDeltaDocIdSetSkipPerf(int batch, int length)
       throws IOException {
-    P4DDocIdSet set = new P4DDocIdSet(batch);
+    PForDeltaDocIdSet set = new PForDeltaDocIdSet(batch);
     System.out.println("Running P4DeltaDocSet Skip Perf test");
     System.out.println("----------------------------");
     Random random = new Random();
@@ -521,8 +521,8 @@ public class TestDocSets {
 
   }
 
-  private static void testP4DDocIdSet(int batch, int length) throws IOException {
-    P4DDocIdSet set = new P4DDocIdSet(batch);
+  private static void testPForDeltaDocIdSet(int batch, int length) throws IOException {
+    PForDeltaDocIdSet set = new PForDeltaDocIdSet(batch);
     System.out.println("Running P4DeltaDocSet test");
     System.out.println("----------------------------");
     Random random = new Random();
@@ -610,9 +610,9 @@ public class TestDocSets {
 
   }
 
-  private static void testP4DDocIdSetSkipSanity(int batch, int length)
+  private static void testPForDeltaDocIdSetSkipSanity(int batch, int length)
       throws IOException {
-    P4DDocIdSet set = new P4DDocIdSet(batch);
+    PForDeltaDocIdSet set = new PForDeltaDocIdSet(batch);
     System.out.println("Running P4DeltaDocSet Skip Sanity test");
     System.out.println("----------------------------");
     Random random = new Random();
@@ -670,9 +670,9 @@ public class TestDocSets {
 
   }
 
-  private static void testP4DDocIdSetCompressionSanity(int batch, int length)
+  private static void testPForDeltaDocIdSetCompressionSanity(int batch, int length)
       throws IOException {
-    P4DDocIdSet set = new P4DDocIdSet(batch);
+    PForDeltaDocIdSet set = new PForDeltaDocIdSet(batch);
     System.out.println("Running P4DeltaDocSet Compression Sanity test");
     System.out.println("----------------------------");
     Random random = new Random();
@@ -737,7 +737,7 @@ public class TestDocSets {
 
     for (int j = 0; j < all; j++) {
       ArrayList<Integer> intSet = new ArrayList<Integer>();
-      P4DDocIdSet docSet = new P4DDocIdSet(batch);
+      PForDeltaDocIdSet docSet = new PForDeltaDocIdSet(batch);
       randomizer = 0;
       for (int i = 1; i < length + 1; i++) {
 
@@ -801,7 +801,7 @@ public class TestDocSets {
 
     for (int j = 0; j < all; j++) {
       ArrayList<Integer> intSet = new ArrayList<Integer>();
-      P4DDocIdSet docSet = new P4DDocIdSet(batch);
+      PForDeltaDocIdSet docSet = new PForDeltaDocIdSet(batch);
       randomizer = 0;
       for (int i = 1; i < length + 1; i++) {
 
@@ -842,7 +842,7 @@ public class TestDocSets {
 
     for (int j = 0; j < all; j++) {
       ArrayList<Integer> intSet = new ArrayList<Integer>();
-      P4DDocIdSet docSet = new P4DDocIdSet(batch);
+      PForDeltaDocIdSet docSet = new PForDeltaDocIdSet(batch);
       randomizer = 0;
       for (int i = 1; i < length + 1; i++) {
 
@@ -897,7 +897,7 @@ public class TestDocSets {
     int randomizer = 0;
 
     ArrayList<Integer> intSet = new ArrayList<Integer>();
-    P4DDocIdSet docSet = new P4DDocIdSet(batch);
+    PForDeltaDocIdSet docSet = new PForDeltaDocIdSet(batch);
     randomizer = 0;
     for (int i = 1; i < length + 1; i++) {
 
@@ -953,7 +953,7 @@ public class TestDocSets {
     int randomizer = 0;
 
     ArrayList<Integer> intSet = new ArrayList<Integer>();
-    P4DDocIdSet docSet = new P4DDocIdSet(batch);
+    PForDeltaDocIdSet docSet = new PForDeltaDocIdSet(batch);
     randomizer = 0;
     for (int i = 1; i < length + 1; i++) {
 
@@ -1053,9 +1053,9 @@ public class TestDocSets {
         2978, 2981, 2984, 2994, 2997 };
     int set3[] = { 2994, 2997 };
 
-    P4DDocIdSet pset1 = new P4DDocIdSet(batch);
+    PForDeltaDocIdSet pset1 = new PForDeltaDocIdSet(batch);
     MyOpenBitSet pset2 = new MyOpenBitSet();
-    P4DDocIdSet pset3 = new P4DDocIdSet(batch);
+    PForDeltaDocIdSet pset3 = new PForDeltaDocIdSet(batch);
 
     for (int i = 0; i < set1.length; i++) {
       pset1.addDoc(set1[i]);
@@ -1098,7 +1098,7 @@ public class TestDocSets {
 
     for (int j = 0; j < all; j++) {
       ArrayList<Integer> intSet = new ArrayList<Integer>();
-      P4DDocIdSet docSet = new P4DDocIdSet(batch);
+      PForDeltaDocIdSet docSet = new PForDeltaDocIdSet(batch);
       randomizer = 0;
       for (int i = 1; i < length + 1; i++) {
 
@@ -1247,9 +1247,9 @@ public class TestDocSets {
     // set2 = new int[]{0,1,3,5,7,10};
     // set3 = new int[]{0,1,2,4,5,10};
 
-    P4DDocIdSet pset1 = new P4DDocIdSet(128);
-    P4DDocIdSet pset2 = new P4DDocIdSet(128);
-    P4DDocIdSet pset3 = new P4DDocIdSet(128);
+    PForDeltaDocIdSet pset1 = new PForDeltaDocIdSet(128);
+    PForDeltaDocIdSet pset2 = new PForDeltaDocIdSet(128);
+    PForDeltaDocIdSet pset3 = new PForDeltaDocIdSet(128);
 
     for (int i = 0; i < set1.length; i++) {
       pset1.addDoc(set1[i]);
@@ -1338,9 +1338,9 @@ public class TestDocSets {
         2978, 2981, 2984, 2994, 2997 };
     int set3[] = { 2994, 2997 };
 
-    P4DDocIdSet pset1 = new P4DDocIdSet(batch);
+    PForDeltaDocIdSet pset1 = new PForDeltaDocIdSet(batch);
     MyOpenBitSet pset2 = new MyOpenBitSet();
-    P4DDocIdSet pset3 = new P4DDocIdSet(batch);
+    PForDeltaDocIdSet pset3 = new PForDeltaDocIdSet(batch);
 
     for (int i = 0; i < set1.length; i++) {
       pset1.addDoc(set1[i]);
@@ -1487,7 +1487,7 @@ public class TestDocSets {
     for (int i = 0; i < set3.length; i++)
       ps3.set(set3[i]);
 
-    P4DDocIdSet ps4 = new P4DDocIdSet(128);
+    PForDeltaDocIdSet ps4 = new PForDeltaDocIdSet(128);
 
     // Build open bit set
     for (int i = 0; i < set4.length; i++)
@@ -1499,7 +1499,7 @@ public class TestDocSets {
     for (int i = 0; i < set5.length; i++)
       ps5.set(set5[i]);
 
-    P4DDocIdSet ps6 = new P4DDocIdSet(128);
+    PForDeltaDocIdSet ps6 = new PForDeltaDocIdSet(128);
     ps6.addDoc(2000);
 
     ArrayList<DocIdSet> sets = new ArrayList<DocIdSet>();
@@ -1955,7 +1955,7 @@ public class TestDocSets {
     for (int i = 0; i < set8.length; i++)
       ps8.set(set8[i]);
 
-    P4DDocIdSet ps9 = new P4DDocIdSet(128);
+    PForDeltaDocIdSet ps9 = new PForDeltaDocIdSet(128);
     for (int i = 0; i < set9.length; i++)
       ps9.addDoc(set9[i]);
 
@@ -2086,7 +2086,7 @@ public class TestDocSets {
   public static DocIdSet optimizeRepresentation(int[] network,
                                           int offset,
                                           int size,
-                                          boolean includeSource)
+                                          boolean includeSource) throws Exception
 
   {
 
@@ -2110,7 +2110,7 @@ public class TestDocSets {
     // Between Half Mil and switch ratio.
     else
     {
-      P4DDocIdSet compSet = new P4DDocIdSet(size);
+      PForDeltaDocIdSet compSet = new PForDeltaDocIdSet(size);
       for(int i=0;i<size;i++)
         compSet.addDoc(network[offset+i]);
       result = compSet;
@@ -2218,16 +2218,16 @@ public class TestDocSets {
 
     for (int i = 0; i < 50; i++) {
       
-      testP4DDocIdSetIteratePerf(128,10000);
+      testPForDeltaDocIdSetIteratePerf(128,10000);
       
       //testOBSDocIdSet(128, 50, 12000000);
       //testSpellCheckerUsageSet(100000, 14000000);
       /*
-       * testP4DDocIdSetIteratePerf(128,50); testP4DDocIdSetSkipPerf(128,50);
-       * testP4DDocIdSetCompressionSanity(128,5);
-       * testP4DDocIdSetNonBoundaryCompressionSanity(128, 5, 50);
-       * testP4DDocIdSetSkipSanity(128, 5);
-       * testP4DDocIdSetNonBoundarySkipSanity(128, 1, 32);
+       * testPForDeltaDocIdSetIteratePerf(128,50); testPForDeltaDocIdSetSkipPerf(128,50);
+       * testPForDeltaDocIdSetCompressionSanity(128,5);
+       * testPForDeltaDocIdSetNonBoundaryCompressionSanity(128, 5, 50);
+       * testPForDeltaDocIdSetSkipSanity(128, 5);
+       * testPForDeltaDocIdSetNonBoundarySkipSanity(128, 1, 32);
        * 
        * testIntArrayDocIdSetIterateSanity(20000);
        * testIntArrayDocIdSetSkipSanity(200);

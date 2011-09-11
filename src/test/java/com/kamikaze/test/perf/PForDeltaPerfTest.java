@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
@@ -25,8 +24,7 @@ import org.junit.Test;
 import com.kamikaze.docidset.api.DocSet;
 import com.kamikaze.docidset.api.StatefulDSIterator;
 import com.kamikaze.docidset.impl.AndDocIdSet;
-import com.kamikaze.docidset.impl.IntArrayDocIdSet; 
-import com.kamikaze.docidset.impl.P4DDocIdSet;
+import com.kamikaze.docidset.impl.IntArrayDocIdSet;
 import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
 import com.kamikaze.docidset.utils.DocSetFactory;
 
@@ -539,10 +537,10 @@ class PerfTests{
     for(int testNo=0; testNo<1; ++testNo)
     {
        // test the old version
-       P4DDocIdSet[] pfdOld = new P4DDocIdSet[_listNum];
+      PForDeltaDocIdSet[] pfdOld = new PForDeltaDocIdSet[_listNum];
        for(i=0; i<_listNum; i++)
        {
-         pfdOld[i] = (P4DDocIdSet)_docsOld.get(i);
+         pfdOld[i] = (PForDeltaDocIdSet)_docsOld.get(i);
        }
        
        ArrayList<Integer> intersectionResultOld = new ArrayList<Integer>();
@@ -632,7 +630,7 @@ class PerfTests{
     int docId;
     for(int testNo=0; testNo<_listNum; ++testNo)
     {
-      P4DDocIdSet pfdOld = (P4DDocIdSet)_docsOld.get(testNo);
+      PForDeltaDocIdSet pfdOld = (PForDeltaDocIdSet)_docsOld.get(testNo);
       DocIdSetIterator iterOld = pfdOld.iterator();
       
       long startOld = System.currentTimeMillis();
@@ -706,7 +704,7 @@ class PerfTests{
      
      // serialize the object into a file 
      File fOld = new File("serialOld");
-     P4DDocIdSet pfdOld = (P4DDocIdSet)_docsOld.get(testNo);
+     PForDeltaDocIdSet pfdOld = (PForDeltaDocIdSet)_docsOld.get(testNo);
      ObjectOutputStream oosOld = new ObjectOutputStream(new FileOutputStream(fOld));
      oosOld.writeObject(pfdOld);
      oosOld.flush();
@@ -716,7 +714,7 @@ class PerfTests{
      _oldSerializationByteSize[testNo] += fOld.length();
      // deserialize it to pfdOld_DE
      ObjectInputStream oisOld = new ObjectInputStream(new BufferedInputStream(new FileInputStream(fOld)));
-     P4DDocIdSet pfdOld_DE  = (P4DDocIdSet)oisOld.readObject();
+     PForDeltaDocIdSet pfdOld_DE  = (PForDeltaDocIdSet)oisOld.readObject();
      oisOld.close();
    
      // check if the deserialized object == the original object
@@ -866,7 +864,7 @@ class PerfTests{
    for(int testNo=0; testNo<_listNum; ++testNo)
    {
      System.out.println("round " + testNo + " started");
-   P4DDocIdSet pfdOld = (P4DDocIdSet)_docsOld.get(testNo);
+     PForDeltaDocIdSet pfdOld = (PForDeltaDocIdSet)_docsOld.get(testNo);
   ByteArrayOutputStream bufOld = new ByteArrayOutputStream(_numDocs[0]*4*2);
   
    ObjectOutputStream oosOld = new ObjectOutputStream(bufOld);
@@ -879,7 +877,7 @@ class PerfTests{
    
    ObjectInputStream oisOld = new ObjectInputStream(new ByteArrayInputStream(bufOld.toByteArray()));
    start = System.currentTimeMillis();
-   P4DDocIdSet pfdOld_DE  = (P4DDocIdSet)oisOld.readObject();
+   PForDeltaDocIdSet pfdOld_DE  = (PForDeltaDocIdSet)oisOld.readObject();
    end = System.currentTimeMillis();
    oisOld.close();
    System.out.println("deserialization time for OLD: " + (end-start) + "ms");
@@ -914,7 +912,7 @@ class PerfTests{
    System.out.println("----------------------------");
    
    double booster  = ((_max*1.0)/(1000f*_length));
-   P4DDocIdSet set = new P4DDocIdSet();
+   PForDeltaDocIdSet set = new PForDeltaDocIdSet();
    Random random = new Random();
 
    int max = 1000;
@@ -935,7 +933,7 @@ class PerfTests{
   
    
      //P4D
-     final P4DDocIdSet p4d = new P4DDocIdSet();
+     final PForDeltaDocIdSet p4d = new PForDeltaDocIdSet();
      int counter=0;
      
      for (Integer c : list) {
