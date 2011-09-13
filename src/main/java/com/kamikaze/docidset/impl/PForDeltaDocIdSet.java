@@ -14,6 +14,7 @@ import com.kamikaze.docidset.compression.PForDeltaWithBase;
 import com.kamikaze.docidset.utils.CompResult;
 import com.kamikaze.docidset.utils.IntArray;
 import com.kamikaze.docidset.utils.PForDeltaIntSegmentArray;
+import com.kamikaze.pfordelta.PForDelta;
 
 /**
  * This class implements the DocId set which is built on top of the optimized PForDelta algorithm (PForDeltaWithBase)
@@ -415,9 +416,9 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
    *  Compress one block of integers using PForDelta
    * 
    */
-  private CompResult PForDeltaCompressOneBlock(int[] srcData, int b)
+  private CompResult PForDeltaCompressOneBlock(int[] srcData)
   {    
-    CompResult compRes = compBlockWithBase.compressOneBlock(srcData, b, _blockSize);
+    CompResult compRes = compBlockWithBase.compressOneBlock(srcData, _blockSize);
     return compRes;
   }
    
@@ -590,20 +591,9 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
     int tmpB = currentB;
     
     preProcessBlock(currentNoCompBlock, sizeOfCurrentNoCompBlock);
-    int optSize = PForDeltaEstimateCompSize(currentNoCompBlock, tmpB);
-   
-    for (int i = 1; i < POSSIBLE_B.length; ++i)
-    {
-      tmpB = POSSIBLE_B[i];
-      int curSize = PForDeltaEstimateCompSize(currentNoCompBlock, tmpB);
-      if(curSize < optSize)
-      {
-        currentB = tmpB;
-        optSize = curSize;
-      }
-    }
+    
     // return the compressed data achieved from the best b
-    CompResult finalRes = PForDeltaCompressOneBlock(currentNoCompBlock, currentB);
+    CompResult finalRes = PForDeltaCompressOneBlock(currentNoCompBlock);
     return finalRes;  
   }
     

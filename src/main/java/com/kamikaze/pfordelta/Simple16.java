@@ -51,7 +51,8 @@ public class Simple16{
    */ 
   public static final int s16Compress(int[] out, int outOffset, int[] in, int inOffset, int n, int blockSize)
   {
-    int numIdx, j, num, bits;
+    int numIdx=0, j=0, num=0, bits=0;
+    try{
     for (numIdx = 0; numIdx < S16_NUMSIZE; numIdx++) 
     { 
       out[outOffset] = numIdx<<S16_BITSSIZE;
@@ -69,6 +70,11 @@ public class Simple16{
         return num;
       } 
     } 
+    }catch(Exception e)
+    {
+      System.out.println("s16Compress: " + "numIdx:" + numIdx + ",j:" + j + ",num:" + num + ",bits: " + bits);
+      e.printStackTrace();
+    }
 
     return -1;
   }

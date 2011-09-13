@@ -11,25 +11,6 @@ import org.junit.Test;
 import com.kamikaze.docidset.api.StatefulDSIterator;
 import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
 
-//public class PForDeltaMultiThreadedAccessTest {
-//  public static void main(String[] args)
-//  {
-//    PForDeltaMultiThreadedAccessTest1 t1= new PForDeltaMultiThreadedAccessTest1();
-//    try{
-//    t1.testSkipPerformance();
-//    t1.testMultiThreadedFind();
-//    }
-//    catch(IOException eio)
-//    {
-//      eio.printStackTrace();
-//    }
-//    catch(InterruptedException ei)
-//    {
-//      ei.printStackTrace(); 
-//    }
-//  }
-//}
-
 // testing multiple threads: all threads share the same PForDeltaDocId set, and each thread has its own iterator iterating on it (only read operations). 
   public class PForDeltaMultiThreadedAccessTest {
   int _length = 10;

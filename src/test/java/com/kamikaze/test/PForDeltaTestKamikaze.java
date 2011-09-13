@@ -1,5 +1,6 @@
 package com.kamikaze.test;
 
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,11 +16,11 @@ import org.apache.lucene.util.OpenBitSet;
 import com.kamikaze.docidset.api.DocSet;
 import com.kamikaze.docidset.impl.AndDocIdSet;
 import com.kamikaze.docidset.impl.OrDocIdSet;
-import com.kamikaze.docidset.impl.P4DDocIdSet;
+import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
 import com.kamikaze.docidset.utils.DocSetFactory;
 
 
-public class TestKamikaze extends TestCase 
+public class PForDeltaTestKamikaze extends TestCase 
 { 
 
       public void testMultipleIntersections() throws Exception
@@ -108,7 +109,7 @@ public class TestKamikaze extends TestCase
               seen.add(nextDoc); 
           } 
           Collections.sort(nums); 
-          DocSet docs = new P4DDocIdSet(); 
+          DocSet docs = new PForDeltaDocIdSet(); 
           boolean saw403 = false;
           for (Integer integer : nums) 
           { 
@@ -126,8 +127,8 @@ public class TestKamikaze extends TestCase
                 System.out.println("Running Partial Empty And    Test case...");
                 System.out.println("-------------------------------------------");
                 
-                      DocSet ds1 = new P4DDocIdSet(); 
-                      DocSet ds2 = new P4DDocIdSet(); 
+                      DocSet ds1 = new PForDeltaDocIdSet(); 
+                      DocSet ds2 = new PForDeltaDocIdSet(); 
                       ds2.addDoc(42); 
                       ds2.addDoc(43); 
                       ds2.addDoc(44); 
@@ -136,8 +137,8 @@ ArrayList<DocIdSet>();
                       docs.add(ds1); 
                       docs.add(ds2); 
                       OrDocIdSet orlist1 = new OrDocIdSet(docs); 
-                      DocSet ds3 = new P4DDocIdSet(); 
-                      DocSet ds4 = new P4DDocIdSet(); 
+                      DocSet ds3 = new PForDeltaDocIdSet(); 
+                      DocSet ds4 = new PForDeltaDocIdSet(); 
                       ds4.addDoc(42); 
                       ds4.addDoc(43); 
                       ds4.addDoc(44); 

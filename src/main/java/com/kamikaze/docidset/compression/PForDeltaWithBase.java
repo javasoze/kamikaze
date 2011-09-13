@@ -42,20 +42,20 @@ public class PForDeltaWithBase implements PForDeltaCompressedSortedIntegerSegmen
 
   @Override
   public CompResult compressOneBlock(int[] inputBlock, int bits, int blockSize, boolean flag) throws IllegalArgumentException {
-    return compressOneBlock(inputBlock, bits, blockSize);
+    return compressOneBlock(inputBlock, blockSize);
   }
   
   /**
    * Compress an integer array
    * 
    * @param inputBlock the integer input array
-   * @param bits the value of b in the PForDelta algorithm
    * @param blockSize the block size which is 256 by default
    * @return CompResult which contains the compressed size in number of bits and the reference to the compressed data
    * @throws IllegalArgumentException
    */
-  public CompResult compressOneBlock(int[] inputBlock, int bits, int blockSize) throws IllegalArgumentException {
-    int[] compBlock = PForDelta.compressOneBlock(inputBlock, bits, blockSize);
+  public CompResult compressOneBlock(int[] inputBlock, int blockSize) throws IllegalArgumentException {
+    
+    int[] compBlock = PForDelta.compressOneBlockOpt(inputBlock, blockSize);
     CompResult res = new CompResult();
     res.setCompressedSize(compBlock.length<<5);
     res.setCompressedBlock(compBlock);
