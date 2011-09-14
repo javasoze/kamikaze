@@ -16,9 +16,9 @@ import com.kamikaze.docidset.impl.IntArrayDocIdSet;
 import com.kamikaze.docidset.impl.NotDocIdSet;
 import com.kamikaze.docidset.impl.OrDocIdSet;
 
-public class TestBooleanDocIdSet  extends TestCase  {
+public class PForDeltaTestBooleanDocIdSet  extends TestCase  {
   @Test  
-  public void _testOrDocIdSet() throws Exception
+  public void testOrDocIdSet() throws Exception
   {
     System.out.println("Running testOrDocIdSet() Test case...");
     DocIdSet[] DocList;
@@ -68,7 +68,7 @@ public class TestBooleanDocIdSet  extends TestCase  {
   }
   
   @Test
-  public void _testAndDocIdSet() throws Exception
+  public void testAndDocIdSet() throws Exception
   {
     System.out.println("Running testOrDocIdSet() Test case...");
     DocIdSet[] DocList;

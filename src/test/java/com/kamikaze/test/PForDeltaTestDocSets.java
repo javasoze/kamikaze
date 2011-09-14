@@ -24,16 +24,18 @@ import com.kamikaze.docidset.impl.IntArrayDocIdSet;
 import com.kamikaze.docidset.impl.NotDocIdSet;
 import com.kamikaze.docidset.impl.OBSDocIdSet;
 import com.kamikaze.docidset.impl.OrDocIdSet;
-import com.kamikaze.docidset.impl.P4DDocIdSet;
+import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
+import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
+import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
 import com.kamikaze.docidset.utils.DocSetFactory;
 import com.kamikaze.docidset.utils.DocSetFactory.FOCUS;
 
-public class TestDocSets {
+public class PForDeltaTestDocSets {
 
   private static final FOCUS SPACE = null;
   private static int batch = 128;
 
-  public TestDocSets() {
+  public PForDeltaTestDocSets() {
 
   }
   
@@ -349,13 +351,13 @@ public class TestDocSets {
     }
     _testWideDocSkips("Testing skips on IntArrayDocIdSet", pset6);
     
-    P4DDocIdSet pset7 = new P4DDocIdSet();
+    PForDeltaDocIdSet pset7 = new PForDeltaDocIdSet();
     orit = orSet.iterator();
     while((docid = orit.nextDoc())!=DocIdSetIterator.NO_MORE_DOCS)
     {
       pset7.addDoc(docid);
     }
-    _testWideDocSkips("Testing skips on P4DDocIdSet", pset7);
+    _testWideDocSkips("Testing skips on PForDeltaDocIdSet", pset7);
     
     OBSDocIdSet pset8 = new OBSDocIdSet(2000);
     orit = orSet.iterator();
@@ -443,9 +445,9 @@ public class TestDocSets {
         2978, 2981, 2984, 2994, 2997 };
     int set3[] = { 2994, 2997 };
 
-    P4DDocIdSet pset1 = new P4DDocIdSet(batch);
+    PForDeltaDocIdSet pset1 = new PForDeltaDocIdSet(batch);
     OpenBitSet pset2 = new OpenBitSet();
-    P4DDocIdSet pset3 = new P4DDocIdSet(batch);
+    PForDeltaDocIdSet pset3 = new PForDeltaDocIdSet(batch);
 
     for (int i = 0; i < set1.length; i++) {
       pset1.addDoc(set1[i]);
@@ -501,14 +503,29 @@ public class TestDocSets {
 
   
   
-  
+  private int[]  convertSetToUniqueSet(int[] input)
+  {
+    Set<Integer> uniqueSet = new TreeSet<Integer>();
+    for(int i=0; i<input.length; i++)
+    {
+      uniqueSet.add(input[i]);
+    }
+    Iterator<Integer> iter = uniqueSet.iterator();
+    int[] output = new int[uniqueSet.size()];
+    int k=0;
+    while(iter.hasNext())
+    {
+      output[k++] = iter.next();
+    }
+    return output;
+  }
   
   @Test
   public void testCombinationSanity()throws Exception {
 
     System.out.println("");
     int[] set1 = { 4, 19, 21, 35, 36, 43, 43, 73, 85, 104, 105, 106, 112, 118,
-        119, 138, 141, 145, 146, 146, 196, 200, 202, 217, 219, 220, 221, 239,
+        119, 138, 141, 145, 146, 147, 196, 200, 202, 217, 219, 220, 221, 239,
         242, 243, 261, 276, 280, 281, 295, 297, 306, 309, 319, 324, 359, 375,
         376, 387, 398, 401, 406, 438, 442, 450, 450, 462, 469, 475, 495, 499,
         505, 505, 513, 513, 526, 529, 569, 584, 589, 590, 609, 614, 633, 635,
@@ -551,6 +568,12 @@ public class TestDocSets {
     int[] set5 = { 4, 1999 };
     int[] set6 = { 2000 };
 
+    set1 = convertSetToUniqueSet(set1);
+    set2 = convertSetToUniqueSet(set2);
+    set3 = convertSetToUniqueSet(set3);
+    set4 = convertSetToUniqueSet(set4);
+    
+    
     OpenBitSet ps1 = new OpenBitSet();
 
     // Build open bit set
@@ -569,7 +592,7 @@ public class TestDocSets {
     for (int i = 0; i < set3.length; i++)
       ps3.set(set3[i]);
 
-    P4DDocIdSet ps4 = new P4DDocIdSet(128);
+    PForDeltaDocIdSet ps4 = new PForDeltaDocIdSet(128);
 
     // Build open bit set
     for (int i = 0; i < set4.length; i++)
@@ -581,7 +604,7 @@ public class TestDocSets {
     for (int i = 0; i < set5.length; i++)
       ps5.set(set5[i]);
 
-    P4DDocIdSet ps6 = new P4DDocIdSet(128);
+    PForDeltaDocIdSet ps6 = new PForDeltaDocIdSet(128);
     ps6.addDoc(2000);
 
     ArrayList<DocIdSet> sets = new ArrayList<DocIdSet>();
@@ -1242,7 +1265,7 @@ public class TestDocSets {
         }
         System.out.println("Time for OpenBitSet construction:"+(System.nanoTime()-time)+" ns");
         time =  System.nanoTime();
-        P4DDocIdSet docSet3 = new P4DDocIdSet();
+        PForDeltaDocIdSet docSet3 = new PForDeltaDocIdSet();
         for(int i=0;i<20000000;i++)
         {
           docSet3.addDoc(i+test);
@@ -1284,7 +1307,7 @@ public class TestDocSets {
 //        System.out.println("Time for"+(20000/5)+ " OBSDocSet Find:"+(System.nanoTime()-time)+" ns");
 //       
 //        time =  System.nanoTime();
-//        P4DDocIdSet docSet3 = new P4DDocIdSet();
+//        PForDeltaDocIdSet docSet3 = new PForDeltaDocIdSet();
 //        for(int i=0;i<20000;i++)
 //        {
 //          docSet3.addDoc(i+5);
@@ -1300,14 +1323,14 @@ public class TestDocSets {
 //  }
 
   @Test 
-  public void testFindOnP4D()
+  public void testFindOnP4D() throws IOException
   {
     System.out.println("");
     System.out.println("Running testFindOnP4D...");
     System.out.println("----------------------------");
 
     
-    P4DDocIdSet docSet3 = new P4DDocIdSet();
+    PForDeltaDocIdSet docSet3 = new PForDeltaDocIdSet();
     ArrayList<Integer> list = new ArrayList<Integer>();
     for(int i=0;i<20000;i+=5)
     {
@@ -1323,7 +1346,7 @@ public class TestDocSets {
     }
     
     list.clear();
-    docSet3 = new P4DDocIdSet();
+    docSet3 = new PForDeltaDocIdSet();
     for(int i=0;i<20000;i+=6)
     {
       list.add(i);
@@ -1338,7 +1361,7 @@ public class TestDocSets {
     
     list.clear();
     
-    docSet3 = new P4DDocIdSet();
+    docSet3 = new PForDeltaDocIdSet();
     assertFalse(docSet3.find(34));
     for(int i=1;i<257;i++)
     {
@@ -1361,7 +1384,7 @@ public class TestDocSets {
     
  list.clear();
     
-    docSet3 = new P4DDocIdSet();
+    docSet3 = new PForDeltaDocIdSet();
     assertFalse(docSet3.find(34));
     for(int i=1;i<33;i++)
     {
@@ -1554,7 +1577,7 @@ public class TestDocSets {
     for (int i = 0; i < set8.length; i++)
       ps8.set(set8[i]);
 
-    P4DDocIdSet ps9 = new P4DDocIdSet(128);
+    PForDeltaDocIdSet ps9 = new PForDeltaDocIdSet(128);
     for (int i = 0; i < set9.length; i++)
       ps9.addDoc(set9[i]);
 
@@ -1607,36 +1630,36 @@ public class TestDocSets {
 
   }
 
+
   @Test
   public void testP4DDocIdSetNoExceptionCompressionRatio()
   {
     boolean failed = false;
     System.out.println("");
-    System.out.println("Running P4DeltaDocSet No Exception Compression Ratio test");
+    System.out.println("Running PForDeltaDocSet No Exception Compression Ratio test");
     System.out.println("----------------------------");
 
     final int max = 10000;
-
+    int c=0; 
+    int counter =0;
     for(int j = 0; j < 31; j++)
     {
       try
       {
-        P4DDocIdSet set = new P4DDocIdSet(batch);
+        PForDeltaDocIdSet set = new PForDeltaDocIdSet(batch);
         long time = System.nanoTime();
         
-        int counter=0;
-        for(int c = 0; c >= 0 && counter < max; c += (1 << j))
+        for(c = 0; c >= 0 && counter < max; c += (1 << j))
         {
           set.addDoc(c);
           counter++;
         }
         set.optimize();
         //System.out.println("Time to construct:"+(System.nanoTime() - time)+" ns");
-        System.out.println("Delta:" + (1 << j) + " numOfItems:" + counter + " Blob Size:"+set.totalBlobSize());
       }
       catch(Exception ex)
       {
-        System.out.println("Delta:" + (1 << j) + " Failed");
+        System.out.println("c: " + c + ", counter: " + counter +  "Delta:" + (1 << j) + " Failed");
         failed = true;
       }
     }

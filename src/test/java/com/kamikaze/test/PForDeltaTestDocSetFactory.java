@@ -7,13 +7,13 @@ import org.junit.Test;
 
 import com.kamikaze.docidset.utils.DocSetFactory;
 import com.kamikaze.docidset.utils.DocSetFactory.FOCUS;
-public class TestDocSetFactory {
+public class PForDeltaTestDocSetFactory {
 
   private static int batch = 128;
 
   private static String serial = "SerialDocSet";
 
-  public TestDocSetFactory() {
+  public PForDeltaTestDocSetFactory() {
 
   }
 
@@ -32,7 +32,7 @@ public class TestDocSetFactory {
     
     assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.IntArrayDocIdSet");
     set = DocSetFactory.getDocSetInstance(min, max, count, FOCUS.SPACE);
-    assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.P4DDocIdSet");
+    assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.PForDeltaDocIdSet");
     //assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.PForDeltaDocIdSet");
     set = DocSetFactory.getDocSetInstance(min, max, count, FOCUS.OPTIMAL);
     assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.IntArrayDocIdSet");
@@ -46,7 +46,7 @@ public class TestDocSetFactory {
     
     count *=10000;
     set = DocSetFactory.getDocSetInstance(min, max, count, FOCUS.OPTIMAL);
-    assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.P4DDocIdSet");
+    assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.PForDeltaDocIdSet");
     
 //    count *=10000;
 //    set = DocSetFactory.getDocSetInstance(min, max, count, FOCUS.OPTIMAL);
@@ -67,7 +67,7 @@ public class TestDocSetFactory {
     count /= 10000000;
     
     set = DocSetFactory.getDocSetInstance(min, max, count, FOCUS.SPACE);
-    assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.P4DDocIdSet");
+    assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.PForDeltaDocIdSet");
     
 //    set = DocSetFactory.getDocSetInstance(min, max, count, FOCUS.SPACE);
 //    assertEquals(set.getClass().getName(), "com.kamikaze.docidset.impl.PForDeltaDocIdSet");

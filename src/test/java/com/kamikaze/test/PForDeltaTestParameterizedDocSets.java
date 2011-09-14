@@ -8,10 +8,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 import java.util.TreeSet;
 
 import org.apache.lucene.search.DocIdSet;
@@ -28,9 +30,11 @@ import com.kamikaze.docidset.impl.IntArrayDocIdSet;
 import com.kamikaze.docidset.impl.NotDocIdSet;
 import com.kamikaze.docidset.impl.OBSDocIdSet;
 import com.kamikaze.docidset.impl.P4DDocIdSet;
+import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
+import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
 
 @RunWith(Parameterized.class)
-public class TestParameterizedDocSets {
+public class PForDeltaTestParameterizedDocSets {
 
   private static final int batch = 256;
 
@@ -40,7 +44,7 @@ public class TestParameterizedDocSets {
 
   private int _max = -1;
 
-  public TestParameterizedDocSets(int length, int max) {
+  public PForDeltaTestParameterizedDocSets(int length, int max) {
     super();
     
     
@@ -59,7 +63,6 @@ public class TestParameterizedDocSets {
     });
   }
 
-  
   
   
   @Test
@@ -103,13 +106,19 @@ public class TestParameterizedDocSets {
 
       for (int k = 0; k < batch; k++) {
         list1.add(list.get(k));
-        set.addDoc(list.get(k));
+        
       }
 
       // System.out.println("At :" + i +" "+(randomizer-1000) +" " +
       // randomizer);
     }
   
+    Iterator<Integer> iter = list1.iterator();
+    while(iter.hasNext())
+    {
+      set.addDoc(iter.next());
+    }
+    
     totalCompressionTime = System.nanoTime() - now;
     // System.out.println("Total compression time :"+totalCompressionTime+":
     // for"+((double)batch*length)/1000000+" M numbers");
@@ -127,10 +136,8 @@ public class TestParameterizedDocSets {
 
     totalDecompressionTime = System.nanoTime() - now;
 
-  
-
   }
- 
+  
   @Test
   public void testOBSDocIdSetSkipSanity() {
     double booster  = ((_max*1.0)/(1000f*_length));
@@ -265,7 +272,6 @@ public class TestParameterizedDocSets {
 
   }
   
- 
   @Test
   public void testIntArrayDocIdSetSkipSanity() {
    
@@ -408,12 +414,12 @@ public class TestParameterizedDocSets {
   }
   
   @Test
-  public void testP4DDocIdSetIteratePerformance() {
+  public void testPForDeltaDocIdSetIteratePerformance() throws IOException {
     double booster  = ((_max*1.0)/(1000f*_length));
     
-    P4DDocIdSet set = new P4DDocIdSet(batch);
+    PForDeltaDocIdSet set = new PForDeltaDocIdSet(batch);
     System.out.println("");
-    System.out.println("Running P4DeltaDocSet Iterate Performance test");
+    System.out.println("Running PForDeltaDocIdSet Iterate Performance test");
     System.out.println("----------------------------");
     Random random = new Random();
     // Minimum 5 bits
@@ -422,18 +428,26 @@ public class TestParameterizedDocSets {
     double totalDecompressionTime = 0;
     List<Integer> list = new LinkedList<Integer>();
     LinkedList<Integer> list2 = new LinkedList<Integer>();
+    Set<Integer> uniqueSet = new TreeSet<Integer>();
     int val = 0 ;
     for (int i = 1; i < _length + 1; i++) {
 
       int bVal[] = new int[33];
       for (int k = 0; k < batch; k++) {
         val = randomizer + (int) (random.nextDouble() * 1000);
-        list.add(val);
+        uniqueSet.add(val);
         
       }
 
       randomizer += 1000*booster;
     }
+    
+    Iterator<Integer> iter = uniqueSet.iterator();
+    while(iter.hasNext())
+    {
+      list.add(iter.next());
+    }
+    
 
     Collections.sort(list);
     System.out.println("Largest Element in the List:"+list.get( list.size() -1 ));
@@ -460,13 +474,13 @@ public class TestParameterizedDocSets {
     System.out.println("Compression Ratio : "+ ((double)set.sizeInBytes())/(batch * _length * 4));
   }
 
-  
   @Test
-  public void testP4DDocIdSetNonBoundarySkipSanity() {
+  public void testPForDeltaDocIdSetNonBoundarySkipSanity() throws IOException {
     double booster  = ((_max*1.0)/(1000f*_length));
-    P4DDocIdSet set = new P4DDocIdSet(batch);
+    
+    PForDeltaDocIdSet set = new PForDeltaDocIdSet(batch);
     System.out.println("");
-    System.out.println("Running P4DeltaDocSet Non-Boundary skip test");
+    System.out.println("Running PForDeltaDocIdSet Non-Boundary skip test");
     System.out.println("----------------------------");
     Random random = new Random();
     int extra = 35;
@@ -479,10 +493,10 @@ public class TestParameterizedDocSets {
     double totalDecompressionTime = 0;
 
     List<Integer> list = new LinkedList<Integer>();
-
+    Set<Integer> uniqueSet = new TreeSet<Integer>();
     for (int i = 1; i < _length + 1; i++) {
       for (int k = 0; k < batch; k++) {
-        list.add(randomizer + (int) (random.nextDouble() * 1000));
+        uniqueSet.add(randomizer + (int) (random.nextDouble() * 1000));
       }
 
       randomizer += 1000*booster;
@@ -490,8 +504,14 @@ public class TestParameterizedDocSets {
 
     randomizer += 1000*booster;
     for (int i = 0; i < extra; i++)
-      list.add(randomizer + (int) (random.nextDouble() * 1000));
+      uniqueSet.add(randomizer + (int) (random.nextDouble() * 1000));
     int counter = 0;
+    
+    Iterator<Integer> iter = uniqueSet.iterator();
+    while(iter.hasNext())
+    {
+      list.add(iter.next());
+    }
     
     Collections.sort(list);
     System.out.println("Largest Element in the List:"+list.get( list.size() -1 ));
@@ -533,13 +553,13 @@ public class TestParameterizedDocSets {
   }
   
   @Test
-  public void testP4DDocIdSetNonBoundaryCompressionSanity() throws IOException {
+  public void testPForDeltaDocIdSetNonBoundaryCompressionSanity() throws IOException {
     int extra = 34;
     double booster  = ((_max*1.0)/(1000f*_length));
     int counter = 0;
-    P4DDocIdSet set = new P4DDocIdSet(batch);
+    PForDeltaDocIdSet set = new PForDeltaDocIdSet(batch);
     System.out.println("");
-    System.out.println("Running P4DeltaDocSet Non-Boundary Compression Sanity test");
+    System.out.println("Running PForDeltaDocSet Non-Boundary Compression Sanity test");
     System.out.println("----------------------------");
     Random random = new Random();
     // Minimum 5 bits
@@ -550,11 +570,12 @@ public class TestParameterizedDocSets {
     int randomizer = 0;
     double totalDecompressionTime = 0;
     List<Integer> list = new LinkedList<Integer>();
-
+    Set<Integer> uniqueSet = new TreeSet<Integer>();
+    
     for (int i = 1; i < size + 1; i++) {
       for (int k = 0; k < batch; k++) {
         counter++;
-        list.add(randomizer + (int) (random.nextDouble() * 1000));
+        uniqueSet.add(randomizer + (int) (random.nextDouble() * 1000));
       }
 
       randomizer += 1000*booster;
@@ -565,7 +586,13 @@ public class TestParameterizedDocSets {
     for (int i = 0; i < extra; i++)
     {
       counter++;
-      list.add(randomizer + (int) (random.nextDouble() * 1000));
+      uniqueSet.add(randomizer + (int) (random.nextDouble() * 1000));
+    }
+    
+    Iterator<Integer> iter = uniqueSet.iterator();
+    while(iter.hasNext())
+    {
+      list.add(iter.next());
     }
     
     Collections.sort(list);
@@ -596,11 +623,11 @@ public class TestParameterizedDocSets {
   }
  
   @Test
-  public void testP4DDocIdSetSkipSanity() {
+  public void testPForDeltaDocIdSetSkipSanity() throws IOException {
     double booster  = ((_max*1.0)/(1000f*_length));
-    P4DDocIdSet set = new P4DDocIdSet(batch);
+    PForDeltaDocIdSet set = new PForDeltaDocIdSet(batch);
     System.out.println("");
-    System.out.println("Running P4DeltaDocSet Skip Sanity test");
+    System.out.println("Running PForDeltaDocIdSet Skip Sanity test");
     System.out.println("----------------------------");
     Random random = new Random();
 
@@ -610,14 +637,20 @@ public class TestParameterizedDocSets {
     double totalDecompressionTime = 0;
     List<Integer> list = new LinkedList<Integer>();
     LinkedList<Integer> list2 = new LinkedList<Integer>();
-
+    Set<Integer> uniqueSet = new TreeSet<Integer>();
     for (int i = 1; i < _length + 1; i++) {
 
       for (int k = 0; k < batch; k++) {
-        list.add(randomizer + (int) (random.nextDouble() * 1000));
+        uniqueSet.add(randomizer + (int) (random.nextDouble() * 1000));
       }
 
       randomizer += 1000*booster;
+    }
+    
+    Iterator<Integer> iter = uniqueSet.iterator();
+    while(iter.hasNext())
+    {
+      list.add(iter.next());
     }
     
     Collections.sort(list);
@@ -660,7 +693,6 @@ public class TestParameterizedDocSets {
 
   }
 
-  
   @Test
   public void testSkipPerformance() throws IOException
   {
@@ -669,9 +701,9 @@ public class TestParameterizedDocSets {
     System.out.println("----------------------------");
     
     double booster  = ((_max*1.0)/(1000f*_length));
-    P4DDocIdSet set = new P4DDocIdSet(batch);
+    PForDeltaDocIdSet set = new PForDeltaDocIdSet(batch);
     System.out.println("");
-    System.out.println("Running P4DeltaDocSet Skip Sanity test");
+    System.out.println("Running PForDeltaDocIdSet Skip Sanity test");
     System.out.println("----------------------------");
     Random random = new Random();
 
@@ -681,14 +713,20 @@ public class TestParameterizedDocSets {
     double totalDecompressionTime = 0;
     List<Integer> list = new LinkedList<Integer>();
     LinkedList<Integer> list2 = new LinkedList<Integer>();
-
+    Set<Integer> uniqueSet = new TreeSet<Integer>();
     for (int i = 1; i < _length + 1; i++) {
 
       for (int k = 0; k < batch; k++) {
-        list.add(randomizer + (int) (random.nextDouble() * 1000));
+        uniqueSet.add(randomizer + (int) (random.nextDouble() * 1000));
       }
 
       randomizer += 1000*booster;
+    }
+    
+    Iterator<Integer> iter = uniqueSet.iterator();
+    while(iter.hasNext())
+    {
+      list.add(iter.next());
     }
     
     Collections.sort(list);
@@ -697,14 +735,14 @@ public class TestParameterizedDocSets {
    
     
       //P4D
-      P4DDocIdSet p4d = new P4DDocIdSet();
+    PForDeltaDocIdSet pfd = new PForDeltaDocIdSet();
       int counter=0;
       
       for (Integer c : list) {
         counter++;
-        p4d.addDoc(c);
+        pfd.addDoc(c);
       }
-      StatefulDSIterator dcit = p4d.iterator();
+      StatefulDSIterator dcit = pfd.iterator();
      _testSkipPerformance(list.get(list.size()-1),dcit);
    
      // Int Array
@@ -713,7 +751,7 @@ public class TestParameterizedDocSets {
      
      for (Integer c : list) {
        counter++;
-       p4d.addDoc(c);
+       pfd.addDoc(c);
      }
      dcit = iSet.iterator();
     _testSkipPerformance(list.get(list.size()-1),dcit);
@@ -724,7 +762,7 @@ public class TestParameterizedDocSets {
     
     for (Integer c : list) {
       counter++;
-      p4d.addDoc(c);
+      pfd.addDoc(c);
     }
    dcit = oSet.iterator();
    _testSkipPerformance(list.get(list.size()-1),dcit);
@@ -748,6 +786,7 @@ public class TestParameterizedDocSets {
     
   }
 
+  
   @Test
   @Ignore
   public void testAndDocIdSetPerformance() throws Exception{
@@ -768,24 +807,25 @@ public class TestParameterizedDocSets {
 
     for (int j = 0; j < all; j++) {
       ArrayList<Integer> intSet = new ArrayList<Integer>();
-      P4DDocIdSet docSet = new P4DDocIdSet(batch);
+      PForDeltaDocIdSet docSet = new PForDeltaDocIdSet(batch);
+      Set<Integer> uniqueSet = new TreeSet<Integer>();
+      
       randomizer = 0;
       for (int i = 1; i < size + 1; i++) {
 
         for (int k = 0; k < batch; k++) {
-          intSet.add(randomizer + (int) (random.nextDouble() * 1000));
+          uniqueSet.add(randomizer + (int) (random.nextDouble() * 1000));
         }
 
         randomizer += 1000*booster;
-        Collections.sort(intSet);
-      
+        
       }
-      for (Integer c : intSet) {
+      for (Integer c : uniqueSet) {
         docSet.addDoc(c);
       }
       docSets.add(docSet);
-
     }
+    
     System.out.println("Constructed component DocSets");
     org.apache.lucene.search.DocIdSetIterator oit = new AndDocIdSet(docSets).iterator();
     long now = System.nanoTime();
@@ -825,7 +865,9 @@ public class TestParameterizedDocSets {
     int randomizer = 0;
     int b = 0;
     ArrayList<Integer> intSet = new ArrayList<Integer>();
-    P4DDocIdSet docSet = new P4DDocIdSet(batch);
+    PForDeltaDocIdSet docSet = new PForDeltaDocIdSet(batch);
+    Set<Integer> uniqueSet = new TreeSet<Integer>();
+    
     randomizer = 0;
 
     for (int i = 1; i < length + 1; i++) {
@@ -833,16 +875,16 @@ public class TestParameterizedDocSets {
       int bVal[] = new int[33];
       for (int k = 0; k < batch; k++) {
         b = randomizer + (int) (random.nextDouble() * 1000);
-        intSet.add(b);
+        uniqueSet.add(b);
 
       }
 
       randomizer += 1000;
-      Collections.sort(intSet);
+     // Collections.sort(intSet);
       
 
     }
-    for (Integer c : intSet) {
+    for (Integer c : uniqueSet) {
       docSet.addDoc(c);
     }
 
