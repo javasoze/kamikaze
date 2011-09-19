@@ -35,7 +35,10 @@ public class DocSetFactory
   public static enum FOCUS {PERFORMANCE, SPACE, OPTIMAL};
   
  
-  
+  /**
+   * @deprecated
+   * @use #getPForDeltaDocSetInstance
+   */
   public static DocSet getP4DDocSetInstance()
   {
     return new P4DDocIdSet();
