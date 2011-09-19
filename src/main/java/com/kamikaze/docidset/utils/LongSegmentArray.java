@@ -2,11 +2,14 @@ package com.kamikaze.docidset.utils;
 
 import java.io.Serializable;
 
-import com.kamikaze.docidset.bitset.MyOpenBitSet;
-
-public class LongSegmentArray extends PrimitiveArray<MyOpenBitSet>  implements Serializable{
+public class LongSegmentArray extends PrimitiveArray<long[]>  implements Serializable{
 
   
+  /**
+   * 
+   */
+  private static final long serialVersionUID = 1L;
+
   public LongSegmentArray(int len) {
     super(len);
   }
