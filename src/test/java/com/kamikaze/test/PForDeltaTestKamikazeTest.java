@@ -18,9 +18,12 @@ import com.kamikaze.docidset.impl.AndDocIdSet;
 import com.kamikaze.docidset.impl.OrDocIdSet;
 import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
 import com.kamikaze.docidset.utils.DocSetFactory;
+import com.kamikaze.docidset.impl.ImmutableIntArrayDocIdSet;
+import com.kamikaze.docidset.impl.IntArrayDocIdSet;
+import org.junit.Test;
 
 
-public class PForDeltaTestKamikaze extends TestCase 
+public class PForDeltaTestKamikazeTest extends TestCase 
 { 
 
       public void testMultipleIntersections() throws Exception
@@ -166,4 +169,17 @@ ArrayList<DocIdSet>();
               } 
               assertTrue(true); 
       } 
+      
+      @Test 
+      public void testImmutableSet() throws IOException{ 
+              int[] data = new int[]{20,30,40}; 
+              ImmutableIntArrayDocIdSet dsImmutable = new 
+              ImmutableIntArrayDocIdSet(data); 
+              IntArrayDocIdSet dsRegular = new IntArrayDocIdSet(); 
+              dsRegular.addDocs(data, 0, data.length); 
+              DocIdSetIterator dsImmutableIt = dsImmutable.iterator(); 
+              DocIdSetIterator dsRegualIt = dsRegular.iterator(); 
+              dsRegualIt.advance(0); // works 
+              dsImmutableIt.advance(0); // throws exception 
+      }
 }

@@ -7,15 +7,16 @@ import java.util.Arrays;
 
 import org.apache.lucene.search.DocIdSetIterator;
 import org.junit.Test;
+import junit.framework.TestCase;
+
 
 import com.kamikaze.docidset.api.StatefulDSIterator;
 import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
 
 // testing multiple threads: all threads share the same PForDeltaDocId set, and each thread has its own iterator iterating on it (only read operations). 
-  public class PForDeltaMultiThreadedAccessTest {
+  public class PForDeltaMultiThreadedAccessTest extends TestCase{
   int _length = 10;
   int _max = 300000;
-  //@Test
   public void testSkipPerformance() throws IOException, InterruptedException
   {
     System.out.println("");
@@ -56,9 +57,10 @@ import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
                 int docid;
 //                String filename = "/Users/hyan/cloudData/" + this.getId(); 
 //                PrintWriter pw = new PrintWriter(new FileOutputStream(filename, true));
+    //JOHN: what are we testing here?
                 while((docid = dcit.nextDoc()) != DocIdSetIterator.NO_MORE_DOCS)
                 { 
-                  System.out.println("Thread " + this.getId() + ": " + docid);
+                  //System.out.println("Thread " + this.getId() + ": " + docid);
                   //pw.print(docid + ",");
                   //Thread.sleep(0, 25000);
                 }
@@ -106,7 +108,6 @@ import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
       
       for (Integer c : list) {
         counter++;
-        //System.out.println(c);
         p4d.addDoc(c);
       }
       System.out.println("Set Size:"+ p4d.size());
@@ -129,15 +130,9 @@ import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
                   {
                     System.out.println("thread "  + this.getId() + " cannot find " + docid);
                   }
-//                  else
-//                  {
-//                    pw.print(docid + ",");
-//                  }
                   assertEquals(true, p4d.find(docid));
                   assertEquals(false,p4d.find(35));
                 }
-//                pw.flush();
-//                pw.close();
               } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();

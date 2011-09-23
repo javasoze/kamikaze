@@ -4,16 +4,18 @@ import static org.junit.Assert.assertEquals;
 
 import org.apache.lucene.search.DocIdSet;
 import org.junit.Test;
+import junit.framework.TestCase;
+
 
 import com.kamikaze.docidset.utils.DocSetFactory;
 import com.kamikaze.docidset.utils.DocSetFactory.FOCUS;
-public class PForDeltaTestDocSetFactory {
+public class PForDeltaTestDocSetFactoryTest extends TestCase {
 
   private static int batch = 128;
 
   private static String serial = "SerialDocSet";
 
-  public PForDeltaTestDocSetFactory() {
+  public PForDeltaTestDocSetFactoryTest() {
 
   }
 

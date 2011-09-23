@@ -33,8 +33,10 @@ import com.kamikaze.docidset.impl.P4DDocIdSet;
 import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
 import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
 
+import junit.framework.TestCase;
+
 @RunWith(Parameterized.class)
-public class PForDeltaTestParameterizedDocSets {
+public class PForDeltaTestParameterizedDocSetsTest extends TestCase {
 
   private static final int batch = 256;
 
@@ -44,7 +46,7 @@ public class PForDeltaTestParameterizedDocSets {
 
   private int _max = -1;
 
-  public PForDeltaTestParameterizedDocSets(int length, int max) {
+  public PForDeltaTestParameterizedDocSetsTest(int length, int max) {
     super();
     
     

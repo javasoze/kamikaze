@@ -23,6 +23,7 @@ import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.util.OpenBitSet;
 import org.junit.Test;
+import junit.framework.TestCase;
 
 import com.kamikaze.docidset.api.DocSet;
 import com.kamikaze.docidset.api.StatefulDSIterator;
@@ -34,13 +35,13 @@ import com.kamikaze.docidset.impl.OBSDocIdSet;
 import com.kamikaze.docidset.impl.OrDocIdSet;
 import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
 
-public class PForDeltaTestDocSetSerialization {
+public class PForDeltaTestDocSetSerializationTest extends TestCase {
 
   private static int batch = 128;
 
   private static String serial = "src/test/test-data/SerialDocSet";
 
-  public PForDeltaTestDocSetSerialization() {
+  public PForDeltaTestDocSetSerializationTest() {
 
   }
 

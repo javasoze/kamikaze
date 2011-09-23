@@ -26,7 +26,7 @@
 package com.kamikaze.docidset.utils;
 
 import java.io.Serializable;
-
+import java.util.Arrays;
 
 /**
  * 
@@ -76,9 +76,7 @@ public class IntArray extends PrimitiveArray<Integer> implements Serializable {
   protected Object buildArray(int len) {
     return new int[len];
   }
-
- 
-
+  
   public static int binarySearch(int[] a, int fromIndex, int toIndex,int key) {
     int low = fromIndex;
     int high = toIndex - 1;

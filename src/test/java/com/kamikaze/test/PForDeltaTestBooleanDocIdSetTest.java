@@ -16,7 +16,7 @@ import com.kamikaze.docidset.impl.IntArrayDocIdSet;
 import com.kamikaze.docidset.impl.NotDocIdSet;
 import com.kamikaze.docidset.impl.OrDocIdSet;
 
-public class PForDeltaTestBooleanDocIdSet  extends TestCase  {
+public class PForDeltaTestBooleanDocIdSetTest  extends TestCase  {
   @Test  
   public void testOrDocIdSet() throws Exception
   {

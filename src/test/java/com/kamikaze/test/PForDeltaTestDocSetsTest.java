@@ -16,6 +16,7 @@ import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.util.OpenBitSet;
 import org.junit.Test;
+import junit.framework.TestCase;
 
 import com.kamikaze.docidset.api.DocSet;
 import com.kamikaze.docidset.bitset.MyOpenBitSet;
@@ -30,12 +31,12 @@ import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
 import com.kamikaze.docidset.utils.DocSetFactory;
 import com.kamikaze.docidset.utils.DocSetFactory.FOCUS;
 
-public class PForDeltaTestDocSets {
+public class PForDeltaTestDocSetsTest extends TestCase{
 
   private static final FOCUS SPACE = null;
   private static int batch = 128;
 
-  public PForDeltaTestDocSets() {
+  public PForDeltaTestDocSetsTest() {
 
   }
   
