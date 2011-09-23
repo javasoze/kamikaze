@@ -42,7 +42,6 @@ import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
         //System.out.println(c);
         p4d.addDoc(c);
       }
-      System.out.println("Set Size:"+ p4d.size());
       
       Thread arr [] = new Thread[5]; 
       
@@ -55,17 +54,10 @@ import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
               
               try {
                 int docid;
-//                String filename = "/Users/hyan/cloudData/" + this.getId(); 
-//                PrintWriter pw = new PrintWriter(new FileOutputStream(filename, true));
-    //JOHN: what are we testing here?
                 while((docid = dcit.nextDoc()) != DocIdSetIterator.NO_MORE_DOCS)
                 { 
-                  //System.out.println("Thread " + this.getId() + ": " + docid);
-                  //pw.print(docid + ",");
-                  //Thread.sleep(0, 25000);
+                    assertEquals(true, p4d.find(docid));
                 }
-//                pw.flush();
-//                pw.close();
               } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -126,12 +118,7 @@ import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
                 //PrintWriter pw = new PrintWriter(new FileOutputStream(filename, true));
                 while((docid = dcit.nextDoc()) != DocIdSetIterator.NO_MORE_DOCS)
                 { 
-                  if(!p4d.find(docid))
-                  {
-                    System.out.println("thread "  + this.getId() + " cannot find " + docid);
-                  }
                   assertEquals(true, p4d.find(docid));
-                  assertEquals(false,p4d.find(35));
                 }
               } catch (IOException e) {
                 // TODO Auto-generated catch block
