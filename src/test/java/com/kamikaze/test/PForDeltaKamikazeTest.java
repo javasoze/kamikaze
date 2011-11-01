@@ -24,7 +24,9 @@ import org.junit.Test;
 import com.kamikaze.docidset.api.DocSet;
 import com.kamikaze.docidset.api.StatefulDSIterator;
 import com.kamikaze.docidset.impl.AndDocIdSet;
+import com.kamikaze.docidset.impl.AndNotDocIdSetIterator;
 import com.kamikaze.docidset.impl.IntArrayDocIdSet;
+import com.kamikaze.docidset.impl.OBSDocIdSet;
 import com.kamikaze.docidset.impl.OrDocIdSet;
 import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
 import com.kamikaze.docidset.utils.DocSetFactory;
@@ -72,6 +74,33 @@ public class PForDeltaKamikazeTest extends TestCase
     System.out.println("-------------------completed------------------------");
   } 
 
+  @Test
+  public void testAddNotDocsIdIterator() throws Exception
+  {     
+    System.out.println("Running test case: testAddNotDocsIdIterator()...");
+    
+    int n = 10;
+    OBSDocIdSet evenset = new OBSDocIdSet(n);
+    for (int i=0;i<n;i+=2){
+      evenset.addDoc(i);
+    }
+    
+    OBSDocIdSet fullset = new OBSDocIdSet(n);
+    for (int i=0;i<n;++i){
+      fullset.addDoc(i);
+    }
+    
+    AndNotDocIdSetIterator iter = new AndNotDocIdSetIterator(fullset.iterator(),evenset.iterator());
+    int doc;
+    int i=1;
+    while((doc=iter.nextDoc())!=DocIdSetIterator.NO_MORE_DOCS){
+      assertEquals(i,doc);
+      i+=2;
+    }
+    
+    assertEquals(11,i);
+  } 
+  
   @Test
   public void testAddDocsNextDoc() throws Exception
   {     
