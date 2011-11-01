@@ -442,6 +442,12 @@ public void testPForDeltaDocSetSerialization() throws Exception{
     e.printStackTrace();
     fail(e.getMessage());
   }
+  
+  File in = new File(serial);
+  if(in.exists())
+  {
+    in.delete();
+  }
   System.out.println("-----------------completed--------------------------");
 
 }
@@ -610,6 +616,17 @@ public void testPForDeltaDocSetSerializationAndFind() throws Exception{
   } catch (Exception e) {
     e.printStackTrace();
     fail(e.getMessage());
+  }
+  
+  File in = new File(serial);
+  if(in.exists())
+  {
+    in.delete();
+  }
+  File in2 = new File(serial2);
+  if(in2.exists())
+  {
+    in2.delete();
   }
   System.out.println("-----------------completed--------------------------");
 }
