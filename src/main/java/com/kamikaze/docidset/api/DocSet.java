@@ -25,7 +25,7 @@ public abstract class DocSet extends DocIdSet
      */
     public void addDocs(int[] docids, int start, int len) throws IOException
     {
-      int i=0;
+      int i=start;
       while(i<len)
       {
         addDoc(docids[i++]);

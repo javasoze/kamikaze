@@ -1,5 +1,7 @@
 package com.kamikaze.docidset.impl;
 
+import java.util.Arrays;
+
 import org.apache.lucene.search.DocIdSet;
 import org.apache.lucene.search.DocIdSetIterator;
 
@@ -53,7 +55,7 @@ public class ImmutableIntArrayDocIdSet extends DocIdSet {
     public int advance(int target) throws java.io.IOException{
       if (cursor >= _array.length || _array.length == -1) return DocIdSetIterator.NO_MORE_DOCS;
       if (target <= _doc) target = _doc + 1;      
-      int index = IntArray.binarySearch(_array, cursor, _array.length, target);
+      int index = Arrays.binarySearch(_array, target);
       if (index > 0){
         cursor = index;
         _doc = _array[cursor];

@@ -77,7 +77,7 @@ public class IntArray extends PrimitiveArray<Integer> implements Serializable {
     return new int[len];
   }
   
-  public static int binarySearch(int[] a, int fromIndex, int toIndex,int key) {
+  private static int binarySearch(int[] a, int fromIndex, int toIndex,int key) {
     int low = fromIndex;
     int high = toIndex - 1;
   
