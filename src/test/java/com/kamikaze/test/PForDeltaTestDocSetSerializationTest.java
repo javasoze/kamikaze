@@ -1,38 +1,20 @@
 package com.kamikaze.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.fail;
-
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.lucene.search.DocIdSet;
-import org.apache.lucene.search.DocIdSetIterator;
-import org.apache.lucene.util.OpenBitSet;
-import org.junit.Test;
 import junit.framework.TestCase;
 
-import com.kamikaze.docidset.api.DocSet;
-import com.kamikaze.docidset.api.StatefulDSIterator;
-import com.kamikaze.docidset.bitset.MyOpenBitSet;
-import com.kamikaze.docidset.impl.AndDocIdSet;
-import com.kamikaze.docidset.impl.IntArrayDocIdSet;
+import org.apache.lucene.search.DocIdSet;
+import org.apache.lucene.search.DocIdSetIterator;
+import org.junit.Test;
+
 import com.kamikaze.docidset.impl.NotDocIdSet;
-import com.kamikaze.docidset.impl.OBSDocIdSet;
-import com.kamikaze.docidset.impl.OrDocIdSet;
 import com.kamikaze.docidset.impl.PForDeltaDocIdSet;
 
 public class PForDeltaTestDocSetSerializationTest extends TestCase {
@@ -81,12 +63,14 @@ public class PForDeltaTestDocSetSerializationTest extends TestCase {
 
     DocIdSet not = new NotDocIdSet(docSet, max);
 
+    byte[] serialized = null;
     try {
-      File f = new File(serial);
-      ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(f));
+      ByteArrayOutputStream bout = new ByteArrayOutputStream();
+      ObjectOutputStream oos = new ObjectOutputStream(bout);
       oos.writeObject(not);
       oos.flush();
       oos.close();
+      serialized = bout.toByteArray();
 
     } catch (Exception e) {
       e.printStackTrace();
@@ -96,8 +80,7 @@ public class PForDeltaTestDocSetSerializationTest extends TestCase {
     NotDocIdSet not2 = null;
 
     try {
-      InputStream f = new FileInputStream(new File(serial));
-      ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(f));
+      ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(serialized));
       not2 = (NotDocIdSet) (ois.readObject());
     } catch (Exception e) {
       e.printStackTrace();
