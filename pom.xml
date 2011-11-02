@@ -9,7 +9,7 @@
   <groupId>com.linkedin.kamikaze</groupId>
   <artifactId>kamikaze</artifactId>
   <packaging>jar</packaging>
-  <version>3.0.5-SNAPSHOT</version>
+  <version>3.0.5</version>
   <name>kamikaze</name>
   <description>information retrival utility package for enhancing Lucene</description>
   <url>http://sna-projects.com/kamikaze</url>
@@ -143,4 +143,33 @@
 -->
  </distributionManagement>
 
+ <profiles>
+                    <profile>
+                        <id>release-sign-artifacts</id>
+                        <activation>
+                            <property>
+                                <name>performRelease</name>
+                                <value>true</value>
+                            </property>
+                        </activation>
+                        <build>
+                            <plugins>
+                                <plugin>
+                                    <groupId>org.apache.maven.plugins</groupId>
+                                    <artifactId>maven-gpg-plugin</artifactId>
+                                    <version>1.1</version>
+                                    <executions>
+                                        <execution>
+                                            <id>sign-artifacts</id>
+                                            <phase>verify</phase>
+                                            <goals>
+                                                <goal>sign</goal>
+                                            </goals>
+                                        </execution>
+                                    </executions>
+                                </plugin>
+                            </plugins>
+                        </build>
+                    </profile>
+                </profiles> 
 </project>
