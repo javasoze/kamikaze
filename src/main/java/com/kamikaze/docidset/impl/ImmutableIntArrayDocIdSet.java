@@ -63,7 +63,7 @@ public class ImmutableIntArrayDocIdSet extends DocIdSet {
       }
       else{
         cursor = -(index+1);
-        if (cursor>_array.length) {
+        if (cursor>=_array.length) {
           _doc = DocIdSetIterator.NO_MORE_DOCS;
         }
         else {

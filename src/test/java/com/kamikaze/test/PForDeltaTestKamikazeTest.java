@@ -179,7 +179,11 @@ ArrayList<DocIdSet>();
               dsRegular.addDocs(data, 0, data.length); 
               DocIdSetIterator dsImmutableIt = dsImmutable.iterator(); 
               DocIdSetIterator dsRegualIt = dsRegular.iterator(); 
-              assertEquals(20, dsRegualIt.advance(0)); // works 
-              assertEquals(20, dsImmutableIt.advance(0)); // throws exception 
+              assertEquals(20, dsRegualIt.advance(0));  
+              assertEquals(20, dsImmutableIt.advance(0));
+              assertEquals(30, dsRegualIt.advance(29));
+              assertEquals(30, dsImmutableIt.advance(29));
+              assertEquals(DocIdSetIterator.NO_MORE_DOCS,dsRegualIt.advance(50));
+              assertEquals(DocIdSetIterator.NO_MORE_DOCS,dsImmutableIt.advance(50));
       }
 }
