@@ -59,6 +59,8 @@ public class AndDocIdSet extends ImmutableDocSet implements Serializable {
       for (DocIdSet set : sets) {
         if (set != null) {
           DocIdSetIterator dcit = set.iterator();
+          if(dcit == null)
+            dcit = DocIdSet.EMPTY_DOCIDSET.iterator();
           iterators[j++] = dcit;
         }
       }

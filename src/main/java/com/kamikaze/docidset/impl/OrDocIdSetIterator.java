@@ -29,7 +29,7 @@ public class OrDocIdSetIterator extends DocIdSetIterator {
     _size = 0;
     for(DocIdSet set : sets)
     {
-      _heap[_size++] = new Item(set.iterator());
+      _heap[_size++] = new Item(set.iterator()==null? DocIdSet.EMPTY_DOCIDSET.iterator() : set.iterator());
     }
     if(_size == 0) _curDoc = DocIdSetIterator.NO_MORE_DOCS;
   }
