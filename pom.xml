@@ -67,7 +67,7 @@
         <version>2.5</version>
         <configuration>
           <argLine>
-            -Xms256m -Xmx2g
+            -Xms256m -Xmx4g <!-- -Xdebug -Xrunjdwp:transport=dt_socket,address=8002,server=y,suspend=y -->  
           </argLine>
           <excludes>
             <exclude>com/kamikaze/test/perf/*.java</exclude>
