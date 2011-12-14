@@ -12,9 +12,9 @@ import com.kamikaze.docidset.api.DocSet;
 import com.kamikaze.docidset.api.StatefulDSIterator;
 import com.kamikaze.docidset.compression.PForDeltaWithBase;
 import com.kamikaze.docidset.utils.CompResult;
+import com.kamikaze.docidset.utils.Conversion;
 import com.kamikaze.docidset.utils.IntArray;
 import com.kamikaze.docidset.utils.PForDeltaIntSegmentArray;
-import com.kamikaze.pfordelta.PForDelta;
 
 /**
  * This class implements the DocId set which is built on top of the optimized PForDelta algorithm (PForDeltaWithBase)
@@ -31,6 +31,7 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
   
   private PForDeltaIntSegmentArray sequenceOfCompBlocks; // segments of compressed data (each segment contains the compressed array of say, 256 integers)
   
+  
   public static final int DEFAULT_BATCH_SIZE = 256; // default block size
   private static final int[] POSSIBLE_B = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,16,20}; // all possible values of b in PForDelta algorithm
  
@@ -44,6 +45,8 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
   transient private int[] currentNoCompBlock;  // the memory used to store the uncompressed elements. Once the block is full, all its elements are compressed into sequencOfCompBlock and the block is cleared.
   transient private int sizeOfCurrentNoCompBlock = 0; // the number of uncompressed elements that is hold in the currentNoCompBlock  
   
+  private int version = 1;
+  
   public PForDeltaDocIdSet() {
     sequenceOfCompBlocks = new PForDeltaIntSegmentArray();
     baseListForOnlyCompBlocks = new IntArray();
@@ -54,14 +57,144 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
   
   public PForDeltaDocIdSet(int batchSize) {
     this();
-    if(_blockSize < batchSize)
+    if(_blockSize != batchSize)
     {
       currentNoCompBlock = new int[batchSize];
     }
     sizeOfCurrentNoCompBlock = 0;
     _blockSize = batchSize;      
   }
- 
+  
+  public static PForDeltaDocIdSet deserialize(byte[] bytesData, int offset) throws IOException
+  {
+    PForDeltaDocIdSet res = new PForDeltaDocIdSet();
+//    int totalNumInt = Conversion.byteArrayToInt(bytesData, offset);
+//    offset += Conversion.BYTES_PER_INT;
+    
+    // 1. version
+    res.version = Conversion.byteArrayToInt(bytesData, offset);
+    offset += Conversion.BYTES_PER_INT;
+    
+    // 2. blockSize
+    int blkSize = Conversion.byteArrayToInt(bytesData, offset);
+    offset += Conversion.BYTES_PER_INT;
+    if(res._blockSize != blkSize)
+    {
+      res._blockSize = blkSize;
+      res.currentNoCompBlock = new int[res._blockSize];
+    }
+    
+    // 3. lastAdded
+    res.lastAdded = Conversion.byteArrayToInt(bytesData, offset);
+    offset += Conversion.BYTES_PER_INT;
+    
+    // 4. totalDocIdNum
+    res.totalDocIdNum = Conversion.byteArrayToInt(bytesData, offset);
+    offset += Conversion.BYTES_PER_INT;
+    
+    // 5. compressedBitSize
+    res.compressedBitSize = Conversion.byteArrayToLong(bytesData, offset);
+    offset += Conversion.BYTES_PER_LONG;
+    
+    // 6. base (skipping info)
+    res.baseListForOnlyCompBlocks = IntArray.newInstanceFromBytes(bytesData, offset);
+    offset += (IntArray.getSerialIntNum(res.baseListForOnlyCompBlocks) * Conversion.BYTES_PER_INT);
+    
+    // 7. the last block (uncompressed) 
+    int noCompBlockSize = Conversion.byteArrayToInt(bytesData, offset);
+    offset += Conversion.BYTES_PER_INT;
+    for(int i=0; i<noCompBlockSize; i++)
+    {
+      res.currentNoCompBlock[i] = Conversion.byteArrayToInt(bytesData, offset);
+      offset += Conversion.BYTES_PER_INT;
+    }
+    
+    // 8. compressed blocks
+    res.sequenceOfCompBlocks = PForDeltaIntSegmentArray.newInstanceFromBytes(bytesData, offset);
+    offset += (PForDeltaIntSegmentArray.getSerialIntNum(res.sequenceOfCompBlocks) * Conversion.BYTES_PER_INT);
+    
+    // 9. hashCode
+    int expectedHashCode = 1;
+    int hashCode = Conversion.byteArrayToInt(bytesData, offset);
+    if(expectedHashCode != hashCode)
+    {
+      throw new IOException("serialization problem");
+    }
+    
+    return res;
+  }
+  
+  public static byte[] serialize(PForDeltaDocIdSet pForDeltaDocIdSet)
+  {
+    int versionNumInt = 1;
+    int blockSizeNumInt = 1;
+    int hashCodeInt = 1;
+    int lastAddedNumInt = 1;
+    int totalDocIdNumInt = 1;
+    int compressedBitsNumInt = 2; // long = 2 ints
+    
+    int baseListForOnlyComnpBlocksNumInt= IntArray.getSerialIntNum(pForDeltaDocIdSet.baseListForOnlyCompBlocks);
+    int currentNoCompBlockBlockNumInt = 1 + pForDeltaDocIdSet.sizeOfCurrentNoCompBlock;
+    
+    int seqCompBlockIntNum = PForDeltaIntSegmentArray.getSerialIntNum(pForDeltaDocIdSet.sequenceOfCompBlocks);
+    
+    // plus the hashCode for all data
+    int totalNumInt = versionNumInt + blockSizeNumInt + lastAddedNumInt + totalDocIdNumInt + compressedBitsNumInt +  
+                      baseListForOnlyComnpBlocksNumInt + currentNoCompBlockBlockNumInt + seqCompBlockIntNum + hashCodeInt;
+    
+    byte[] bytesData = new byte[(totalNumInt+1)*Conversion.BYTES_PER_INT];  // +1 because of totalNumInt itself
+    
+    int offset = 0;
+    
+    // 0. totalNumInt
+    Conversion.intToByteArray(totalNumInt, bytesData, offset);
+    offset += Conversion.BYTES_PER_INT;
+    
+    // 1. version
+    Conversion.intToByteArray(pForDeltaDocIdSet.version, bytesData, offset);
+    offset += Conversion.BYTES_PER_INT;
+    
+    // 2. blockSize
+    Conversion.intToByteArray(pForDeltaDocIdSet._blockSize, bytesData, offset);
+    offset += Conversion.BYTES_PER_INT;
+    
+    // 3. lastAdded
+    Conversion.intToByteArray(pForDeltaDocIdSet.lastAdded, bytesData, offset);
+    offset += Conversion.BYTES_PER_INT;
+    
+    // 4. totalDocIdNum
+    Conversion.intToByteArray(pForDeltaDocIdSet.totalDocIdNum, bytesData, offset);
+    offset += Conversion.BYTES_PER_INT;
+    
+    // 5. compressedBitSize
+    Conversion.longToByteArray(pForDeltaDocIdSet.compressedBitSize, bytesData, offset);
+    offset += Conversion.BYTES_PER_LONG;
+    
+    // 6. base (skipping info)
+    int baseIntNum = IntArray.convertToBytes(pForDeltaDocIdSet.baseListForOnlyCompBlocks, bytesData, offset);
+    offset += (baseIntNum * Conversion.BYTES_PER_INT);
+
+    // 7. the last block (uncompressed) 
+    Conversion.intToByteArray(pForDeltaDocIdSet.sizeOfCurrentNoCompBlock, bytesData, offset);
+    offset += Conversion.BYTES_PER_INT;
+    for(int i=0; i<pForDeltaDocIdSet.sizeOfCurrentNoCompBlock; i++)
+    {
+      Conversion.intToByteArray(pForDeltaDocIdSet.currentNoCompBlock[i], bytesData, offset);
+      offset += Conversion.BYTES_PER_INT;
+    }
+    
+    // 8. compressed blocks
+    PForDeltaIntSegmentArray.convertToBytes(pForDeltaDocIdSet.sequenceOfCompBlocks, bytesData, offset);
+    offset += (seqCompBlockIntNum*Conversion.BYTES_PER_INT); 
+    
+    // 9. hashCode
+    int hashCode = 1;;
+    Conversion.intToByteArray(hashCode, bytesData, offset);
+    
+    return bytesData;
+  }
+  
+
   /**
    * Serialize the object manually
    * 

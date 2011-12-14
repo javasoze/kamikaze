@@ -4,11 +4,7 @@ import java.io.Serializable;
 
 public class LongSegmentArray extends PrimitiveArray<long[]>  implements Serializable{
 
-  
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+  private static final long serialVersionUID = -5791570113959834064L;
 
   public LongSegmentArray(int len) {
     super(len);

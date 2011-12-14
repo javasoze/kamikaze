@@ -25,6 +25,7 @@
 
 package com.kamikaze.docidset.utils;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Arrays;
 
@@ -95,4 +96,61 @@ public class IntArray extends PrimitiveArray<Integer> implements Serializable {
     return -(low + 1);  // key not found.
   }
 
+  public static int getSerialIntNum(IntArray instance)
+  {
+    int num = 3 + instance._count; // _len, _count, _growth
+    return num;
+  }
+  
+  public static int convertToBytes(IntArray instance, byte[] out, int offset)
+  {
+    int numInt = 0;
+    Conversion.intToByteArray(instance._len, out, offset);
+    offset += Conversion.BYTES_PER_INT;
+    numInt++;
+    
+    Conversion.intToByteArray(instance._count, out, offset);
+    offset += Conversion.BYTES_PER_INT;
+    numInt++;
+    
+    Conversion.intToByteArray(instance._growth, out, offset);
+    offset += Conversion.BYTES_PER_INT;
+    numInt++;
+    
+    for(int i=0; i<instance.size(); i++)
+    {
+      int data = instance.get(i);
+      Conversion.intToByteArray(data, out, offset);
+      offset += Conversion.BYTES_PER_INT;
+    }
+    numInt += instance.size();
+    return numInt;
+  }
+  
+  public static IntArray newInstanceFromBytes(byte[] inData, int offset) throws IOException
+  {
+    int len = Conversion.byteArrayToInt(inData, offset);
+    offset += Conversion.BYTES_PER_INT;
+    
+    IntArray instance = new IntArray(len);
+    
+    int count = Conversion.byteArrayToInt(inData, offset);
+    offset += Conversion.BYTES_PER_INT;
+    
+    int growth =  Conversion.byteArrayToInt(inData, offset);
+    offset += Conversion.BYTES_PER_INT;
+    
+    for(int i=0; i<count; i++)
+    {
+      int data = Conversion.byteArrayToInt(inData, offset);
+      offset += Conversion.BYTES_PER_INT;    
+      instance.add(data);
+    }
+    
+    instance._growth = growth;
+    if(instance._count != count)
+      throw new IOException("cannot build IntArray from byte[]");
+    
+    return instance;
+  }
 }

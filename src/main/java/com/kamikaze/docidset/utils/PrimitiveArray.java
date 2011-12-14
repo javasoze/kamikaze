@@ -29,6 +29,8 @@ import java.io.Serializable;
 import java.lang.reflect.Array;
 
 public abstract class PrimitiveArray<T> implements Serializable {
+  private static final long serialVersionUID = 4564518164881690599L;
+      
   protected Object _array;
 
   protected int _count;

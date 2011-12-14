@@ -9,7 +9,7 @@ import com.kamikaze.docidset.bitset.MyOpenBitSet;
  * author@abhasin
  */
 public class MyOpenBitSetArray extends PrimitiveArray<MyOpenBitSet>  implements Serializable{
-
+  private static final long serialVersionUID = 2493283898882704031L;
   
   public MyOpenBitSetArray(int len) {
     super(len);
