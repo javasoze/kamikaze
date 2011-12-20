@@ -29,15 +29,15 @@ public class Conversion {
    bytes[offset+7] = (byte)value;
 }
 
-public static final long byteArrayToLong(byte [] b, int offset) {
-  return (b[offset] << 56)
-      + ((b[offset+1] & 0xFF) << 48)
-      + ((b[offset+2] & 0xFF) << 40)
-      + ((b[offset+3] & 0xFF) << 32)
-      + ((b[offset+4] & 0xFF) << 24)
-      + ((b[offset+5] & 0xFF) << 16)
-      + ((b[offset+6] & 0xFF) << 8)
-      + (b[offset+7] & 0xFF);
-}
+ public static final long byteArrayToLong(byte [] b, int offset) {
+   return ((long)b[offset] << 56)
+       + (((long)b[offset+1] & 0xFF) << 48)
+       + (((long)b[offset+2] & 0xFF) << 40)
+       + (((long)b[offset+3] & 0xFF) << 32)
+       + (((long)b[offset+4] & 0xFF) << 24)
+       + ((b[offset+5] & 0xFF) << 16)
+       + ((b[offset+6] & 0xFF) << 8)
+       + (b[offset+7] & 0xFF);
+ }
 
 }

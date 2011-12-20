@@ -1,10 +1,13 @@
 package com.kamikaze.docidset.impl;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.zip.CRC32;
+import java.util.zip.Checksum;
 
 import org.apache.lucene.search.DocIdSetIterator;
 
@@ -68,8 +71,6 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
   public static PForDeltaDocIdSet deserialize(byte[] bytesData, int offset) throws IOException
   {
     PForDeltaDocIdSet res = new PForDeltaDocIdSet();
-//    int totalNumInt = Conversion.byteArrayToInt(bytesData, offset);
-//    offset += Conversion.BYTES_PER_INT;
     
     // 1. version
     res.version = Conversion.byteArrayToInt(bytesData, offset);
@@ -113,12 +114,16 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
     res.sequenceOfCompBlocks = PForDeltaIntSegmentArray.newInstanceFromBytes(bytesData, offset);
     offset += (PForDeltaIntSegmentArray.getSerialIntNum(res.sequenceOfCompBlocks) * Conversion.BYTES_PER_INT);
     
-    // 9. hashCode
-    int expectedHashCode = 1;
-    int hashCode = Conversion.byteArrayToInt(bytesData, offset);
-    if(expectedHashCode != hashCode)
+    // 9. checksum
+    Checksum digest = new CRC32();
+    digest.update(bytesData, 0, offset);
+    long checksum = digest.getValue();
+    
+    long receivedChecksum = Conversion.byteArrayToLong(bytesData, offset);
+    
+    if(receivedChecksum != checksum)
     {
-      throw new IOException("serialization problem");
+      throw new IOException("serialization error: check sum does not match: ");
     }
     
     return res;
@@ -128,7 +133,7 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
   {
     int versionNumInt = 1;
     int blockSizeNumInt = 1;
-    int hashCodeInt = 1;
+    int checksumInt = 2; // checksum is long = 2 ints
     int lastAddedNumInt = 1;
     int totalDocIdNumInt = 1;
     int compressedBitsNumInt = 2; // long = 2 ints
@@ -140,7 +145,7 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
     
     // plus the hashCode for all data
     int totalNumInt = versionNumInt + blockSizeNumInt + lastAddedNumInt + totalDocIdNumInt + compressedBitsNumInt +  
-                      baseListForOnlyComnpBlocksNumInt + currentNoCompBlockBlockNumInt + seqCompBlockIntNum + hashCodeInt;
+                      baseListForOnlyComnpBlocksNumInt + currentNoCompBlockBlockNumInt + seqCompBlockIntNum + checksumInt;
     
     byte[] bytesData = new byte[(totalNumInt+1)*Conversion.BYTES_PER_INT];  // +1 because of totalNumInt itself
     
@@ -150,6 +155,7 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
     Conversion.intToByteArray(totalNumInt, bytesData, offset);
     offset += Conversion.BYTES_PER_INT;
     
+    int startOffset = offset;
     // 1. version
     Conversion.intToByteArray(pForDeltaDocIdSet.version, bytesData, offset);
     offset += Conversion.BYTES_PER_INT;
@@ -187,9 +193,12 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
     PForDeltaIntSegmentArray.convertToBytes(pForDeltaDocIdSet.sequenceOfCompBlocks, bytesData, offset);
     offset += (seqCompBlockIntNum*Conversion.BYTES_PER_INT); 
     
-    // 9. hashCode
-    int hashCode = 1;;
-    Conversion.intToByteArray(hashCode, bytesData, offset);
+    // 9. checksum
+    Checksum digest = new CRC32();
+    digest.update(bytesData, startOffset, offset-startOffset);
+    long checksum = digest.getValue();
+    
+    Conversion.longToByteArray(checksum, bytesData, offset);
     
     return bytesData;
   }
