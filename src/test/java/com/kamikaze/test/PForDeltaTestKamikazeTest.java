@@ -172,18 +172,20 @@ ArrayList<DocIdSet>();
       
       @Test 
       public void testImmutableSet() throws IOException{ 
-              int[] data = new int[]{20,30,40}; 
+              int[] data = new int[]{10,20,30,40}; 
               ImmutableIntArrayDocIdSet dsImmutable = new 
               ImmutableIntArrayDocIdSet(data); 
               IntArrayDocIdSet dsRegular = new IntArrayDocIdSet(); 
               dsRegular.addDocs(data, 0, data.length); 
               DocIdSetIterator dsImmutableIt = dsImmutable.iterator(); 
-              DocIdSetIterator dsRegualIt = dsRegular.iterator(); 
-              assertEquals(20, dsRegualIt.advance(0));  
-              assertEquals(20, dsImmutableIt.advance(0));
-              assertEquals(30, dsRegualIt.advance(29));
+              DocIdSetIterator dsRegularIt = dsRegular.iterator(); 
+              assertEquals(10, dsRegularIt.advance(10));  
+              assertEquals(10, dsImmutableIt.advance(10));
+              assertEquals(20, dsRegularIt.advance(15));  
+              assertEquals(20, dsImmutableIt.advance(15));
+              assertEquals(30, dsRegularIt.advance(29));
               assertEquals(30, dsImmutableIt.advance(29));
-              assertEquals(DocIdSetIterator.NO_MORE_DOCS,dsRegualIt.advance(50));
+              assertEquals(DocIdSetIterator.NO_MORE_DOCS,dsRegularIt.advance(50));
               assertEquals(DocIdSetIterator.NO_MORE_DOCS,dsImmutableIt.advance(50));
       }
 }
