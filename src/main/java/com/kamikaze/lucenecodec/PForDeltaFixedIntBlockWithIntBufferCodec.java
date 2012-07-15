@@ -3,24 +3,21 @@ package com.kamikaze.lucenecodec;
 import java.io.IOException;
 import java.util.Set;
 
+import org.apache.lucene.codecs.BlockTermsReader;
+import org.apache.lucene.codecs.BlockTermsWriter;
+import org.apache.lucene.codecs.Codec;
+import org.apache.lucene.codecs.FieldsConsumer;
+import org.apache.lucene.codecs.FieldsProducer;
+import org.apache.lucene.codecs.PostingsReaderBase;
+import org.apache.lucene.codecs.PostingsWriterBase;
+import org.apache.lucene.codecs.TermsIndexReaderBase;
+import org.apache.lucene.codecs.TermsIndexWriterBase;
+import org.apache.lucene.codecs.VariableGapTermsIndexReader;
+import org.apache.lucene.codecs.VariableGapTermsIndexWriter;
 import org.apache.lucene.index.SegmentInfo;
-import org.apache.lucene.index.SegmentWriteState;
 import org.apache.lucene.index.SegmentReadState;
-import org.apache.lucene.index.codecs.Codec;
-import org.apache.lucene.index.codecs.FieldsConsumer;
-import org.apache.lucene.index.codecs.FieldsProducer;
-import org.apache.lucene.index.codecs.sep.SepPostingsReaderImpl;
-import org.apache.lucene.index.codecs.sep.SepPostingsWriterImpl;
-import org.apache.lucene.index.codecs.VariableGapTermsIndexReader;
-import org.apache.lucene.index.codecs.VariableGapTermsIndexWriter;
-import org.apache.lucene.index.codecs.PostingsWriterBase;
-import org.apache.lucene.index.codecs.PostingsReaderBase;
-import org.apache.lucene.index.codecs.BlockTermsReader;
-import org.apache.lucene.index.codecs.BlockTermsWriter;
-import org.apache.lucene.index.codecs.TermsIndexReaderBase;
-import org.apache.lucene.index.codecs.TermsIndexWriterBase;
-import org.apache.lucene.index.codecs.standard.StandardCodec;
-import org.apache.lucene.store.*;
+import org.apache.lucene.index.SegmentWriteState;
+import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.BytesRef;
 
 

@@ -1,15 +1,16 @@
-package com.kamikaze.lucenecodec.test;
+package com.kamikaze.lucenecode.test;
+
+import java.util.Random;
 
 import junit.framework.TestCase;
 
-import org.apache.lucene.index.BulkPostingsEnum;
-import org.apache.lucene.index.codecs.sep.*;
-import org.apache.lucene.index.codecs.sep.IntStreamFactory;
+import org.apache.lucene.codecs.sep.IntIndexInput;
+import org.apache.lucene.codecs.sep.IntIndexOutput;
+import org.apache.lucene.codecs.sep.IntStreamFactory;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.RAMDirectory;
 import org.junit.After;
 import org.junit.Before;
-import java.util.Random;
 
 import com.kamikaze.lucenecodec.PForDeltaFixedIntBlockWithIntBufferFactory;
 
