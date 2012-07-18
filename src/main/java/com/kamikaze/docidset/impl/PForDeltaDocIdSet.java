@@ -1,6 +1,5 @@
 package com.kamikaze.docidset.impl;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -13,11 +12,11 @@ import org.apache.lucene.search.DocIdSetIterator;
 
 import com.kamikaze.docidset.api.DocSet;
 import com.kamikaze.docidset.api.StatefulDSIterator;
-import com.kamikaze.docidset.compression.PForDeltaWithBase;
 import com.kamikaze.docidset.utils.CompResult;
 import com.kamikaze.docidset.utils.Conversion;
 import com.kamikaze.docidset.utils.IntArray;
 import com.kamikaze.docidset.utils.PForDeltaIntSegmentArray;
+import com.kamikaze.pfordelta.PForDelta;
 
 /**
  * This class implements the DocId set which is built on top of the optimized PForDelta algorithm (PForDeltaWithBase)
@@ -43,7 +42,6 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
   private int totalDocIdNum=0; // the total number of elemnts that have been inserted/accessed so far
   private long compressedBitSize=0; // compressed size in bits
    
-  transient private PForDeltaWithBase compBlockWithBase = new PForDeltaWithBase(); // the PForDelta algorithm to compress a block
   transient private IntArray baseListForOnlyCompBlocks; // the base lists for skipping
   transient private int[] currentNoCompBlock;  // the memory used to store the uncompressed elements. Once the block is full, all its elements are compressed into sequencOfCompBlock and the block is cleared.
   transient private int sizeOfCurrentNoCompBlock = 0; // the number of uncompressed elements that is hold in the currentNoCompBlock  
@@ -232,8 +230,6 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
   {
     inStrm.defaultReadObject();
     
-    compBlockWithBase = new PForDeltaWithBase();
-    
     int[] baseArray = (int[])inStrm.readObject();
     baseListForOnlyCompBlocks = new IntArray();
     for(int i=0; i<baseArray.length; ++i)
@@ -241,10 +237,8 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
       baseListForOnlyCompBlocks.add(baseArray[i]);
     }
     
-    int[] noCompBlock = (int[])inStrm.readObject();
-    sizeOfCurrentNoCompBlock = noCompBlock.length;
-    currentNoCompBlock = new int[sizeOfCurrentNoCompBlock];
-    System.arraycopy(noCompBlock, 0, currentNoCompBlock, 0, sizeOfCurrentNoCompBlock);
+    currentNoCompBlock = (int[])inStrm.readObject();
+    sizeOfCurrentNoCompBlock = currentNoCompBlock.length;
   }
   
   
@@ -302,7 +296,9 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
      return false;
    
   // compBlockWithBase.decompressOneBlock(curDecompBlock, sequenceOfCompBlocks.get(iterDecompBlock), _blockSize);
-   compBlockWithBase.decompressOneBlock(myDecompBlock, sequenceOfCompBlocks.get(iterDecompBlock), _blockSize);
+   //compBlockWithBase.decompressOneBlock(myDecompBlock, sequenceOfCompBlocks.get(iterDecompBlock), _blockSize);
+   PForDelta.decompressOneBlock(myDecompBlock, sequenceOfCompBlocks.get(iterDecompBlock), _blockSize);
+   
    int idx ;
    lastId = myDecompBlock[0];
    if (lastId == target) return true;
@@ -560,8 +556,11 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
    */
   private CompResult PForDeltaCompressOneBlock(int[] srcData)
   {    
-    CompResult compRes = compBlockWithBase.compressOneBlock(srcData, _blockSize);
-    return compRes;
+    int[] compBlock = PForDelta.compressOneBlockOpt(srcData, _blockSize);
+    CompResult res = new CompResult();
+    res.setCompressedSize(compBlock.length<<5);
+    res.setCompressedBlock(compBlock);
+    return res;
   }
    
   /**
@@ -570,7 +569,7 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
    */
   private int PForDeltaEstimateCompSize(int[] srcData, int b)
   {    
-    return compBlockWithBase.estimateCompSize(srcData, b, _blockSize);
+    return PForDelta.estimateCompressedSize(srcData, b, _blockSize);
   }
   
   private void initSet() {
@@ -765,7 +764,6 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
 
     int compBlockNum=0; // the number of compressed blocks
     transient int[] iterDecompBlock = new int[_blockSize]; // temporary storage for the decompressed data
-    PForDeltaWithBase iterPForDeltaSetWithBase = new PForDeltaWithBase(); // PForDelta algorithm
 
     PForDeltaDocIdIterator() {
       super();
@@ -806,7 +804,7 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
       // must be in one of the compressed blocks
       else if(offset == 0) // case 2: the comp block has been decompressed; 
       {
-        iterPForDeltaSetWithBase.decompressOneBlock(iterDecompBlock, sequenceOfCompBlocks.get(iterBlockIndex), _blockSize);
+        PForDelta.decompressOneBlock(iterDecompBlock, sequenceOfCompBlocks.get(iterBlockIndex), _blockSize);
         lastAccessedDocId = iterDecompBlock[offset];
       }
       else // case 3: in the recently decompressed block
@@ -945,7 +943,7 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
         System.err.println("ERROR: advanceToTargetInTheFollowingCompBlocks(): Impossible, we must be able to find the block");
       }
       
-      iterPForDeltaSetWithBase.decompressOneBlock(iterDecompBlock, sequenceOfCompBlocks.get(iterBlockIndex), _blockSize);        
+      PForDelta.decompressOneBlock(iterDecompBlock, sequenceOfCompBlocks.get(iterBlockIndex), _blockSize);
       postProcessBlock(iterDecompBlock, _blockSize);
       
       int offset = binarySearchForFirstElementEqualOrLargerThanTarget(iterDecompBlock, 0, _blockSize-1, target);
@@ -973,7 +971,7 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
         System.err.println("ERROR: advanceToTargetInTheFollowingCompBlocks(): Impossible, we must be able to find the block");
       }
       
-      iterPForDeltaSetWithBase.decompressOneBlock(iterDecompBlock, sequenceOfCompBlocks.get(iterBlockIndex), _blockSize);        
+      PForDelta.decompressOneBlock(iterDecompBlock, sequenceOfCompBlocks.get(iterBlockIndex), _blockSize);
       lastAccessedDocId = iterDecompBlock[0];
       if (lastAccessedDocId >= target)
       {
@@ -1011,7 +1009,7 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
     {
        for (int i = 0; i < _blockSize; i++) 
        {
-          iterPForDeltaSetWithBase.decompressOneBlock(iterDecompBlock, sequenceOfCompBlocks.get(i), _blockSize);
+          PForDelta.decompressOneBlock(iterDecompBlock, sequenceOfCompBlocks.get(i), _blockSize);
           postProcessBlock(iterDecompBlock, _blockSize);
           System.out.print(iterDecompBlock + ",");
         }
