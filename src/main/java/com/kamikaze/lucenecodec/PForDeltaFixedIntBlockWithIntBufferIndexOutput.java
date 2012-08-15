@@ -18,18 +18,21 @@ package com.kamikaze.lucenecodec;
  * limitations under the License.
  */
 
-import org.apache.lucene.index.codecs.intblock.FixedIntBlockIndexOutput;
-import org.apache.lucene.store.Directory;
-import org.apache.lucene.util.pfor2.LCPForDelta;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
+import org.apache.lucene.codecs.intblock.FixedIntBlockIndexOutput;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.IOContext;
+
+import com.kamikaze.pfordelta.LCPForDelta;
+
 public class PForDeltaFixedIntBlockWithIntBufferIndexOutput extends FixedIntBlockIndexOutput {
   private final LCPForDelta compressor;
   private final int blockSize;
-  public PForDeltaFixedIntBlockWithIntBufferIndexOutput(Directory dir, String fileName, int blockSize) throws IOException {
-    super(dir.createOutput(fileName), blockSize);
+  public PForDeltaFixedIntBlockWithIntBufferIndexOutput(Directory dir, String fileName, int blockSize, IOContext context) throws IOException {
+    super(dir.createOutput(fileName,context), blockSize);
     this.blockSize = blockSize;
     compressor = new LCPForDelta();
   }

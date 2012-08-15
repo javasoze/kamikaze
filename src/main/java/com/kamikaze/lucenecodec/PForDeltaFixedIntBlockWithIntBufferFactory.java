@@ -17,12 +17,13 @@ package com.kamikaze.lucenecodec;
  * limitations under the License.
  */
 
-import org.apache.lucene.store.Directory;
-import org.apache.lucene.index.codecs.sep.IntStreamFactory;
-import org.apache.lucene.index.codecs.sep.IntIndexInput;
-import org.apache.lucene.index.codecs.sep.IntIndexOutput;
-
 import java.io.IOException;
+
+import org.apache.lucene.codecs.sep.IntIndexInput;
+import org.apache.lucene.codecs.sep.IntIndexOutput;
+import org.apache.lucene.codecs.sep.IntStreamFactory;
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.IOContext;
 
 public class PForDeltaFixedIntBlockWithIntBufferFactory extends IntStreamFactory {
   private final int blockSize;
@@ -33,12 +34,14 @@ public class PForDeltaFixedIntBlockWithIntBufferFactory extends IntStreamFactory
     this.blockSize = blockSize;
   }
 
-  public IntIndexInput openInput(Directory dir, String fileName, int readBufferSize) throws IOException {
-    return new PForDeltaFixedIntBlockWithIntBufferIndexInput(dir, fileName, readBufferSize);
+  @Override
+  public IntIndexInput openInput(Directory dir, String fileName, IOContext context) throws IOException {
+    return new PForDeltaFixedIntBlockWithIntBufferIndexInput(dir, fileName, context);
   }
   
 
-  public IntIndexOutput createOutput(Directory dir, String fileName) throws IOException {
-    return new PForDeltaFixedIntBlockWithIntBufferIndexOutput(dir, fileName, blockSize);
+  @Override
+  public IntIndexOutput createOutput(Directory dir, String fileName, IOContext context) throws IOException {
+    return new PForDeltaFixedIntBlockWithIntBufferIndexOutput(dir, fileName, blockSize, context);
   }
 }

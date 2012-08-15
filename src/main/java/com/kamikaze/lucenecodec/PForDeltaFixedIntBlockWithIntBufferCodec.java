@@ -6,10 +6,18 @@ import java.util.Set;
 import org.apache.lucene.codecs.BlockTermsReader;
 import org.apache.lucene.codecs.BlockTermsWriter;
 import org.apache.lucene.codecs.Codec;
+import org.apache.lucene.codecs.DocValuesFormat;
+import org.apache.lucene.codecs.FieldInfosFormat;
 import org.apache.lucene.codecs.FieldsConsumer;
 import org.apache.lucene.codecs.FieldsProducer;
+import org.apache.lucene.codecs.LiveDocsFormat;
+import org.apache.lucene.codecs.NormsFormat;
+import org.apache.lucene.codecs.PostingsFormat;
 import org.apache.lucene.codecs.PostingsReaderBase;
 import org.apache.lucene.codecs.PostingsWriterBase;
+import org.apache.lucene.codecs.SegmentInfoFormat;
+import org.apache.lucene.codecs.StoredFieldsFormat;
+import org.apache.lucene.codecs.TermVectorsFormat;
 import org.apache.lucene.codecs.TermsIndexReaderBase;
 import org.apache.lucene.codecs.TermsIndexWriterBase;
 import org.apache.lucene.codecs.VariableGapTermsIndexReader;
@@ -30,107 +38,63 @@ import org.apache.lucene.util.BytesRef;
 public class PForDeltaFixedIntBlockWithIntBufferCodec extends Codec {
 
   private final int blockSize;
+  private static final String CODEC_NAME = "PatchedFrameOfRef4";
 
   public PForDeltaFixedIntBlockWithIntBufferCodec(int blockSize) {
+    super(CODEC_NAME);
     this.blockSize = blockSize;
-    name = "PatchedFrameOfRef4";
   }
 
   @Override
   public String toString() {
-    return name + "(blockSize=" + blockSize + ")";
-  }
-
-
-  @Override
-  public FieldsConsumer fieldsConsumer(SegmentWriteState state) throws IOException {
-    PostingsWriterBase postingsWriter = new SepPostingsWriterImpl(state, new PForDeltaFixedIntBlockWithIntBufferFactory(blockSize));
-
-    boolean success = false;
-    TermsIndexWriterBase indexWriter;
-    try {
-      indexWriter = new VariableGapTermsIndexWriter(state, new VariableGapTermsIndexWriter.EveryNTermSelector(state.termIndexInterval));
-      success = true;
-    } finally {
-      if (!success) {
-        postingsWriter.close();
-      }
-    }
-
-    success = false;
-    try {
-      FieldsConsumer ret = new BlockTermsWriter(indexWriter, state, postingsWriter, BytesRef.getUTF8SortedAsUnicodeComparator());
-      success = true;
-      return ret;
-    } finally {
-      if (!success) {
-        try {
-          postingsWriter.close();
-        } finally {
-          indexWriter.close();
-        }
-      }
-    }
+    return getName() + "(blockSize=" + blockSize + ")";
   }
 
   @Override
-  public FieldsProducer fieldsProducer(SegmentReadState state) throws IOException {
-    PostingsReaderBase postingsReader = new SepPostingsReaderImpl(state.dir,
-                                                                      state.segmentInfo,
-                                                                      state.readBufferSize,
-                                                                      new PForDeltaFixedIntBlockWithIntBufferFactory(blockSize), state.codecId);
-
-    TermsIndexReaderBase indexReader;
-    boolean success = false;
-    try {
-      indexReader = new VariableGapTermsIndexReader(state.dir,
-                                                    state.fieldInfos,
-                                                    state.segmentInfo.name,
-                                                    state.termsIndexDivisor,
-                                                    state.codecId);
-      success = true;
-    } finally {
-      if (!success) {
-        postingsReader.close();
-      }
-    }
-
-    success = false;
-    try {
-      FieldsProducer ret = new BlockTermsReader(indexReader,
-                                                       state.dir,
-                                                       state.fieldInfos,
-                                                       state.segmentInfo.name,
-                                                       postingsReader,
-                                                       state.readBufferSize,
-                                                       BytesRef.getUTF8SortedAsUnicodeComparator(),
-                                                       StandardCodec.TERMS_CACHE_SIZE,
-                                                       state.codecId);
-      success = true;
-      return ret;
-    } finally {
-      if (!success) {
-        try {
-          postingsReader.close();
-        } finally {
-          indexReader.close();
-        }
-      }
-    }
+  public PostingsFormat postingsFormat() {
+    return new PForDeltaFixedIntBlockWithIntBufferPostingsFormat(getName(), blockSize);
   }
 
   @Override
-  public void files(Directory dir, SegmentInfo segmentInfo, String codecId, Set<String> files) {
-    SepPostingsReaderImpl.files(segmentInfo, codecId, files);
-    BlockTermsReader.files(dir, segmentInfo, codecId, files);
-    VariableGapTermsIndexReader.files(dir, segmentInfo, codecId, files);
+  public DocValuesFormat docValuesFormat() {
+    // TODO Auto-generated method stub
+    return null;
   }
 
   @Override
-  public void getExtensions(Set<String> extensions) {
-    SepPostingsWriterImpl.getExtensions(extensions);
-    BlockTermsReader.getExtensions(extensions);
-    VariableGapTermsIndexReader.getIndexExtensions(extensions);
+  public StoredFieldsFormat storedFieldsFormat() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public TermVectorsFormat termVectorsFormat() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public FieldInfosFormat fieldInfosFormat() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public SegmentInfoFormat segmentInfoFormat() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public NormsFormat normsFormat() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public LiveDocsFormat liveDocsFormat() {
+    // TODO Auto-generated method stub
+    return null;
   }
 }
 
