@@ -1,32 +1,21 @@
 package com.kamikaze.lucenecodec;
 
-import java.io.IOException;
-import java.util.Set;
-
-import org.apache.lucene.codecs.BlockTermsReader;
-import org.apache.lucene.codecs.BlockTermsWriter;
 import org.apache.lucene.codecs.Codec;
 import org.apache.lucene.codecs.DocValuesFormat;
 import org.apache.lucene.codecs.FieldInfosFormat;
-import org.apache.lucene.codecs.FieldsConsumer;
-import org.apache.lucene.codecs.FieldsProducer;
 import org.apache.lucene.codecs.LiveDocsFormat;
 import org.apache.lucene.codecs.NormsFormat;
 import org.apache.lucene.codecs.PostingsFormat;
-import org.apache.lucene.codecs.PostingsReaderBase;
-import org.apache.lucene.codecs.PostingsWriterBase;
 import org.apache.lucene.codecs.SegmentInfoFormat;
 import org.apache.lucene.codecs.StoredFieldsFormat;
 import org.apache.lucene.codecs.TermVectorsFormat;
-import org.apache.lucene.codecs.TermsIndexReaderBase;
-import org.apache.lucene.codecs.TermsIndexWriterBase;
-import org.apache.lucene.codecs.VariableGapTermsIndexReader;
-import org.apache.lucene.codecs.VariableGapTermsIndexWriter;
-import org.apache.lucene.index.SegmentInfo;
-import org.apache.lucene.index.SegmentReadState;
-import org.apache.lucene.index.SegmentWriteState;
-import org.apache.lucene.store.Directory;
-import org.apache.lucene.util.BytesRef;
+import org.apache.lucene.codecs.lucene40.Lucene40DocValuesFormat;
+import org.apache.lucene.codecs.lucene40.Lucene40FieldInfosFormat;
+import org.apache.lucene.codecs.lucene40.Lucene40LiveDocsFormat;
+import org.apache.lucene.codecs.lucene40.Lucene40NormsFormat;
+import org.apache.lucene.codecs.lucene40.Lucene40SegmentInfoFormat;
+import org.apache.lucene.codecs.lucene40.Lucene40StoredFieldsFormat;
+import org.apache.lucene.codecs.lucene40.Lucene40TermVectorsFormat;
 
 
 
@@ -39,6 +28,14 @@ public class PForDeltaFixedIntBlockWithIntBufferCodec extends Codec {
 
   private final int blockSize;
   private static final String CODEC_NAME = "PatchedFrameOfRef4";
+  
+  private final StoredFieldsFormat fieldsFormat = new Lucene40StoredFieldsFormat();
+  private final TermVectorsFormat vectorsFormat = new Lucene40TermVectorsFormat();
+  private final FieldInfosFormat fieldInfosFormat = new Lucene40FieldInfosFormat();
+  private final DocValuesFormat docValuesFormat = new Lucene40DocValuesFormat();
+  private final SegmentInfoFormat infosFormat = new Lucene40SegmentInfoFormat();
+  private final NormsFormat normsFormat = new Lucene40NormsFormat();
+  private final LiveDocsFormat liveDocsFormat = new Lucene40LiveDocsFormat();
 
   public PForDeltaFixedIntBlockWithIntBufferCodec(int blockSize) {
     super(CODEC_NAME);
@@ -57,44 +54,37 @@ public class PForDeltaFixedIntBlockWithIntBufferCodec extends Codec {
 
   @Override
   public DocValuesFormat docValuesFormat() {
-    // TODO Auto-generated method stub
-    return null;
+    return docValuesFormat;
   }
 
   @Override
   public StoredFieldsFormat storedFieldsFormat() {
-    // TODO Auto-generated method stub
-    return null;
+    return fieldsFormat;
   }
 
   @Override
   public TermVectorsFormat termVectorsFormat() {
-    // TODO Auto-generated method stub
-    return null;
+    return vectorsFormat;
   }
 
   @Override
   public FieldInfosFormat fieldInfosFormat() {
-    // TODO Auto-generated method stub
-    return null;
+    return fieldInfosFormat;
   }
 
   @Override
   public SegmentInfoFormat segmentInfoFormat() {
-    // TODO Auto-generated method stub
-    return null;
+    return infosFormat;
   }
 
   @Override
   public NormsFormat normsFormat() {
-    // TODO Auto-generated method stub
-    return null;
+    return normsFormat;
   }
 
   @Override
   public LiveDocsFormat liveDocsFormat() {
-    // TODO Auto-generated method stub
-    return null;
+    return liveDocsFormat;
   }
 }
 
