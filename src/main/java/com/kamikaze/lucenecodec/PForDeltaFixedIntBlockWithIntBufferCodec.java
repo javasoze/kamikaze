@@ -37,9 +37,9 @@ public class PForDeltaFixedIntBlockWithIntBufferCodec extends Codec {
   private final NormsFormat normsFormat = new Lucene40NormsFormat();
   private final LiveDocsFormat liveDocsFormat = new Lucene40LiveDocsFormat();
 
-  public PForDeltaFixedIntBlockWithIntBufferCodec(int blockSize) {
+  public PForDeltaFixedIntBlockWithIntBufferCodec() {
     super(CODEC_NAME);
-    this.blockSize = blockSize;
+    this.blockSize = 128;
   }
 
   @Override
