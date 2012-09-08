@@ -38,6 +38,39 @@ public class PForDeltaKamikazeTest extends TestCase
   private static String serial = "PForDeltaSerial";
   private static String serial2 = "PForDeltaSerial2";
   
+  @Test
+  public void testCorrectness() throws Exception{
+    int numdocs = 6;
+    Random rand = new Random();
+    HashSet<Integer> set = new HashSet<Integer>();
+    while(set.size() < numdocs){
+      int n = Math.abs(rand.nextInt());
+      set.add(n);
+    }
+    
+    int[] numArray = new int[set.size()];
+    
+    //Arrays.sort(numArray);
+    
+    int i = 0;
+    for (int n : set){
+      numArray[i++] = n;
+    }
+    
+    PForDeltaDocIdSet docset = new PForDeltaDocIdSet(5);
+    
+    for (int n : numArray){
+      docset.addDoc(n); 
+    }
+    
+    DocIdSetIterator iter = docset.iterator();
+    
+    int doc;
+    i = 0;
+    while((doc=iter.nextDoc()) != DocIdSetIterator.NO_MORE_DOCS){
+      TestCase.assertEquals(numArray[i++], doc);
+    }
+  }
 
   @Test
   public void testAddDocNextDoc() throws Exception
