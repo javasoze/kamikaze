@@ -40,7 +40,7 @@ public class PForDeltaKamikazeTest extends TestCase
   
   @Test
   public void testCorrectness() throws Exception{
-    int numdocs = 6;
+    int numdocs = 257;
     Random rand = new Random();
     HashSet<Integer> set = new HashSet<Integer>();
     while(set.size() < numdocs){
@@ -57,7 +57,7 @@ public class PForDeltaKamikazeTest extends TestCase
       numArray[i++] = n;
     }
     
-    PForDeltaDocIdSet docset = new PForDeltaDocIdSet(5);
+    PForDeltaDocIdSet docset = new PForDeltaDocIdSet();
     
     for (int n : numArray){
       docset.addDoc(n); 
