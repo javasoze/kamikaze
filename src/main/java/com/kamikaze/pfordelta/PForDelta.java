@@ -36,7 +36,7 @@ public class PForDelta{
   // Max number of bits to store an uncompressed value
   private static final int MAX_BITS = 32;
   // Header records the value of b and the number of exceptions in the block
-  private static final int HEADER_NUM = 1;
+  private static final int HEADER_NUM = 2;
   // Header size in bits
   private static final int HEADER_SIZE = MAX_BITS * HEADER_NUM;
 
@@ -97,12 +97,11 @@ public class PForDelta{
    */
   public static int decompressOneBlock(int[] outBlock, int[] inBlock, int blockSize)
   {
-    int[] expPos = new int[blockSize];
-    int[] expHighBits = new int[blockSize];
+    int[] expAux = new int[blockSize*2];
 
-    int expNum = inBlock[0] & MASK[31-POSSIBLE_B_BITS]; 
-    int bits = (inBlock[0]>>>(31-POSSIBLE_B_BITS)) & (0x1f);    
-
+    int expNum = inBlock[0] & 0x3ff; 
+    int bits = (inBlock[0]>>>10) & (0x1f);    
+    
     // decompress the b-bit slots
     int offset = HEADER_SIZE;
     int compressedBits = 0;
@@ -121,15 +120,13 @@ public class PForDelta{
     // decompress exceptions
     if(expNum>0)
     {
-      compressedBits = decompressBlockByS16(expPos, inBlock, offset, expNum);
-      offset += compressedBits;
-      compressedBits = decompressBlockByS16(expHighBits, inBlock, offset, expNum);
+      compressedBits = decompressBlockByS16(expAux, inBlock, offset, expNum*2);
       offset += compressedBits;
 
       for (int i = 0; i < expNum; i++) 
       { 
-        int curExpPos = expPos[i]  ;
-        int curHighBits = expHighBits[i];
+        int curExpPos = expAux[i]  ;
+        int curHighBits = expAux[i+expNum];
         outBlock[curExpPos] = (outBlock[curExpPos] & MASK[bits]) | ((curHighBits & MASK[32-bits] ) << bits);
       }
     }
@@ -188,9 +185,8 @@ public class PForDelta{
    */
   public static int[] compressOneBlock(int[] inputBlock, int bits, int blockSize) throws IllegalArgumentException {
     
-    int[] expPos = new int[blockSize];
-    int[] expHighBits = new int[blockSize];
-    
+    int[] expAux = new int[blockSize*2];
+
     int maxCompBitSize =  HEADER_SIZE + blockSize * (MAX_BITS  + MAX_BITS + MAX_BITS) + 32;
     int[] tmpCompressedBlock = new int[(maxCompBitSize>>>5)];
 
@@ -198,6 +194,15 @@ public class PForDelta{
     int expUpperBound = 1<<bits;
     int expNum = 0;      
 
+    for(int elem : inputBlock)
+    {
+      if(elem >= expUpperBound)
+      {
+        expNum++;
+      }
+    }
+    
+    int expIndex = 0;
     // compress the b-bit slots
     for (int i = 0; i<blockSize; ++i)
     {
@@ -210,23 +215,23 @@ public class PForDelta{
         // store the lower bits-bits of the exception
         writeBits(tmpCompressedBlock, inputBlock[i] & MASK[bits], outputOffset, bits); 
         // write the position of exception
-        expPos[expNum] = i; 
+        expAux[expIndex] = i; 
         // write the higher 32-bits bits of the exception
-        expHighBits[expNum] = (inputBlock[i] >>> bits) & MASK[32-bits];
-        expNum++;
+        expAux[expIndex + expNum] = (inputBlock[i] >>> bits) & MASK[32-bits];
+        expIndex++;
       }
       outputOffset += bits;
     }    
 
     // the first int in the compressed block stores the value of b and the number of exceptions
-    tmpCompressedBlock[0] = ((bits & MASK[POSSIBLE_B_BITS]) << (31-POSSIBLE_B_BITS)) | (expNum & MASK[31-POSSIBLE_B_BITS]);
-
+    //tmpCompressedBlock[0] = ((bits & MASK[POSSIBLE_B_BITS]) << (31-POSSIBLE_B_BITS)) | (expNum & MASK[31-POSSIBLE_B_BITS]);
+    tmpCompressedBlock[0] = ((bits & MASK[10]) << 10) | (expNum & 0x3ff);
+    tmpCompressedBlock[1] = inputBlock[blockSize-1];
+    
     // compress exceptions
     if(expNum>0)
     {
-      int compressedBitSize = compressBlockByS16(tmpCompressedBlock, outputOffset, expPos, expNum);
-      outputOffset += compressedBitSize;
-      compressedBitSize = compressBlockByS16(tmpCompressedBlock, outputOffset, expHighBits, expNum);
+      int compressedBitSize = compressBlockByS16(tmpCompressedBlock, outputOffset, expAux, expNum*2);
       outputOffset += compressedBitSize;
     }
 

@@ -46,7 +46,7 @@ public class PForDeltaDocIdSet extends DocSet implements Serializable {
   transient private int[] currentNoCompBlock;  // the memory used to store the uncompressed elements. Once the block is full, all its elements are compressed into sequencOfCompBlock and the block is cleared.
   transient private int sizeOfCurrentNoCompBlock = 0; // the number of uncompressed elements that is hold in the currentNoCompBlock  
   
-  private int version = 1;
+  transient private int version = 1;
   
   public PForDeltaDocIdSet() {
     sequenceOfCompBlocks = new PForDeltaIntSegmentArray();
