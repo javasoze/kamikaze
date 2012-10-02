@@ -36,7 +36,7 @@ public class PForDeltaTestDocSetSerializationTest extends TestCase {
 
 
   @Test
-  public void AAtestNewPForDeltaDocSetSerialization() throws Exception{
+  public void testNewPForDeltaDocSetSerialization() throws Exception{
      //using the new static serialize/deserialize methods to test the accuracy of the serializaton and deserialization of PForDeltaDocIdSet objects by verifying if the deserialized object's nextDoc() results match the original object's nextDoc() results
     int batch = 128;
     System.out.println("");

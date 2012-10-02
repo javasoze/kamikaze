@@ -56,7 +56,7 @@ public class ImmutableIntArrayDocIdSet extends DocIdSet {
       if (cursor >= _array.length || _array.length == -1) return DocIdSetIterator.NO_MORE_DOCS;
       if (target <= _doc) target = _doc + 1;      
       int index = Arrays.binarySearch(_array, target);
-      if (index > 0){
+      if (index >= 0){
         cursor = index;
         _doc = _array[cursor];
         return _doc;

@@ -9,7 +9,7 @@
   <groupId>com.linkedin.kamikaze</groupId>
   <artifactId>kamikaze</artifactId>
   <packaging>jar</packaging>
-  <version>3.0.6</version>
+  <version>3.0.7-SNAPSHOT</version>
   <name>kamikaze</name>
   <description>information retrival utility package for enhancing Lucene</description>
   <url>http://sna-projects.com/kamikaze</url>
@@ -70,6 +70,7 @@
             -Xms256m -Xmx4g <!-- -Xdebug -Xrunjdwp:transport=dt_socket,address=8002,server=y,suspend=y -->  
           </argLine>
           <excludes>
+            <exclude>com/kamikaze/lucenecode/test/*.java</exclude>
             <exclude>com/kamikaze/test/perf/*.java</exclude>
             <exclude>**/*$*</exclude>
           </excludes>
