@@ -55,11 +55,11 @@
         </configuration>
       </plugin>
       <plugin>
-<artifactId>maven-resources-plugin</artifactId>
-<version>2.2</version>
-<configuration>
-        <encoding>UTF-8</encoding>
-</configuration>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <encoding>UTF-8</encoding>
+        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
